@@ -1,0 +1,12 @@
+{
+    "type": "array",
+    "title": "ArrayTest",
+    "perfixItems": [{
+      "type": "string",
+      "default": "bazinga"
+    }],
+    "items": {
+      "type": "string",
+      "default": "bazinga"
+    }
+  }

@@ -1,0 +1,114 @@
+{
+    "type": "object",
+    "properties": {
+        "enumValue": {
+            "enum": [
+                15,
+                "一段文字",
+                false,
+                [1,2,3,4,5],
+                null,
+                {
+                    "stuff": 123,
+                    "str": "一段文字"
+                }
+            ]
+        },
+        "constValue":{
+            "const": 123
+        },
+        "typeError": {
+            "description": "这个变量的类型应该是string，现在是object",
+            "type": "string"
+        },
+        "newNameTest": {
+            "type": "object",
+            "title": "变量创建-命名测试",
+            "properties": {
+                "pro1": {
+                    "type": "integer"
+                },
+                "pro2": {
+                    "type": "integer"
+                },
+                "pro3": {
+                    "type": "integer"
+                },
+                "pro4": {
+                    "type": "integer"
+                },
+                "pro5": {
+                    "type": "integer"
+                },
+                "pro6": {
+                    "type": "integer"
+                }
+            },
+            "required": ["pro1", "pro2"],
+            "patternProperties": {
+                "pattern[0-9]+": {
+                    "description":"这个属性改名应该满足表达式 pattern[0-9]+",
+                    "type": "number"
+                }
+            },
+            "additionalProperties": {
+                "type":"number",
+                "description": "这是 additionalProperties，应当<50",
+                "maximum": 50
+            }
+        },
+        "mess": {
+            "title": "混乱",
+            "description": "这个属性的模式定义是混乱的，意在这种情况下看组件是否正常工作。",
+            "type": ["object", "array", "string", "number", "integer"],
+            "properties": {
+                "num": {
+                    "type": "number"
+                }
+            },
+            "additionalProperties": {
+                "type": "number"
+            },
+            "required": ["num"],
+            "items": {
+                "type": "string",
+                "format": "color"
+            },
+            "format": "color",
+            "maxLength": 5,
+            "minimum": 20,
+            "multipleOf": 2
+        },
+        "formats": {
+            "type": "object",
+            "title": "格式测试",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "format": "color"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "ipv4": {
+                    "type": "string",
+                    "format": "ipv4"
+                },
+                "row": {
+                    "type": "string",
+                    "format": "row"
+                },
+                "multi": {
+                    "type": "string",
+                    "format": "multiline"
+                }
+            }
+        }
+    },
+    "required": ["enumValue", "constValue", "typeError", "newNameTest", "formats"]
+}

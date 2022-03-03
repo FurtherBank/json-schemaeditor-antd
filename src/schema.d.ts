@@ -1,7 +1,8 @@
+
 interface RootSchema extends Schema {
   $id?: string;
   $schema?: string;
-  definitions?: { [propName: string]: Schema };
+  definitions?: { [propName: string]: (Schema | boolean) };
 }
 
 interface Schema {
@@ -10,38 +11,37 @@ interface Schema {
   $ref?: string;
   enum?: any[];
   const?: any;
-  oneOf?: Schema[];
-  anyOf?: Schema[];
-  allOf?: Schema[];
-  type?: string;
+  oneOf?: (Schema | boolean)[];
+  anyOf?: (Schema | boolean)[];
+  allOf?: (Schema | boolean)[];
+  type?: string | string[];
   // string
   minLength?: number;
   maxLength?: number;
   pattern?: string;
-  view?: string; // 多种方式解释编辑字符串，其中multi为多行编辑
+  format?: string; // 多种方式解释编辑字符串，其中有些格式不支持短优化
   // number
   mininum?: number;
   maxinum?: number;
-  exclusiveMinimum?: boolean;
-  exclusiveMaximum?: boolean;
+  exclusiveMinimum?: number;
+  exclusiveMaximum?: number;
   // array
-  prefixItems?: Schema[] | Schema;
-  items?: Schema[] | Schema;
-  additionalItems?: Schema;
+  prefixItems?: (Schema | boolean)[] | (Schema | boolean);
+  items?: (Schema | boolean)[] | (Schema | boolean);
+  additionalItems?: (Schema | boolean);
   minItems?: number;
   maxItems?: number;
-  contains?: Schema;
+  contains?: (Schema | boolean);
   // object
-  properties?: { [propName: string]: Schema };
-  patternProperties?: { [propName: string]: Schema };
-  additionalProperties?: { [propName: string]: Schema };
-  propertyNames?: Schema;
+  properties?: { [propName: string]: (Schema | boolean) };
+  patternProperties?: { [propName: string]: (Schema | boolean) };
+  additionalProperties?: (Schema | boolean);
+  propertyNames?: (Schema | boolean);
   required?: string[];
   minProperties?: number;
   maxProperties?: number;
   dependencies?: { [propName: string]: string[] };
 }
-
 
 interface Act {
   type: string;
@@ -52,10 +52,14 @@ interface Act {
 
 interface State {
   data: any;
-  schema: any;
+  rootSchema: any;
   editionName: string,
   lastChangedRoute: string[] | null,
-  lastChangedField: string[]
+  lastChangedField: string[],
+  dataErrors: any[],
+  schemaErrors?: any,
+  cache: Caches,
+  validate?: Function
 }
 
 // enum JsonTypes {}

@@ -1,0 +1,26 @@
+{
+    "enumValue": [1,2,3,4,5],
+    "constValue": {
+        "num": 123,
+        "str": "将变量改成数字123，应当验证成功"
+    },
+    "typeError": {
+        "num": 123,
+        "str": "该变量应该是字符串"
+    },
+    "newNameTest":{
+        "pro1": 20,
+        "pro2": 15,
+        "pro3": 55,
+        "balabala": 100,
+        "pattern567": 45.254
+    },
+    "mess": ["#0055ff", "#9955ffff"],
+    "formats": {
+        "row": "如果你不喜欢现在的生活，那么你快去考研吧！",
+        "multi": "万山丛中一点红\n普天之下皆沃土\n但见卷王一大堆\n我整不了了啊啊啊",
+        "color": "#bbbbbb",
+        "email": "abcdef@163.com"
+
+    }
+}

@@ -1,128 +1,229 @@
-import _ from "lodash";
+import Ajv, { ValidateFunction } from "ajv"
+import addFormats from "ajv-formats"
+import draft6MetaSchema from "ajv/dist/refs/json-schema-draft-06.json"
+import localize from "ajv-i18n/localize/zh"
+
+import _ from "lodash"
+
+export enum ShortOpt {
+  no,
+  short,
+  extra,
+}
+
+export interface ofSchemaCache {
+  ofRef: string
+  ofLength: number
+  extracted: RootSchema
+  options: any[]
+}
+
+export interface propertySchemaCache {
+  shortProps: (string | RegExp)[]
+  otherProps: (string | RegExp)[]
+  required: string[]
+  additionalShortAble: boolean
+  additionalValid: boolean
+}
+
+export interface itemSchemaCache {
+  shortOpt: ShortOpt
+  itemLength?: number
+}
+
+export interface Caches {
+  ofCache: Map<string, ofSchemaCache | null>
+  propertyCache: Map<string, propertySchemaCache | null>
+  itemCache: Map<string, itemSchemaCache | null>
+}
+
+const ajv = new Ajv({
+  allErrors: true,
+}) // options can be passed, e.g. {allErrors: true}
+ajv.addMetaSchema(draft6MetaSchema)
+addFormats(ajv)
+
+// 添加base-64 format
+ajv.addFormat(
+  "data-url",
+  /^data:([a-z]+\/[a-z0-9-+.]+)?;(?:name=(.*);)?base64,(.*)$/
+)
+
+// 添加color format
+ajv.addFormat(
+  "color",
+  // eslint-disable-next-line max-len
+  /^(#?([0-9A-Fa-f]{3}){1,2}\b|aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow|(rgb\(\s*\b([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\b\s*,\s*\b([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\b\s*,\s*\b([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\b\s*\))|(rgb\(\s*(\d?\d%|100%)+\s*,\s*(\d?\d%|100%)+\s*,\s*(\d?\d%|100%)+\s*\)))$/
+)
+
+// 添加row format
+ajv.addFormat("row", /.*/)
+
+// 添加multiline format
+ajv.addFormat("multiline", /.*/)
+
+const ajvInstance = ajv
+
+// let validate: ValidateFunction = null!
+// const ajvValidate = (
+//   schema: any,
+//   data: any
+// ): [boolean | PromiseLike<any>, ValidateFunction] => {
+//   const validate = ajv.compile(schema);
+
+//   const valid = validate(data);
+//   return [valid, validate];
+// };
 
 const reducer = (
   s: State = {
     data: null,
     editionName: "",
-    schema: {},
+    rootSchema: {},
     lastChangedRoute: [],
     lastChangedField: [],
+    dataErrors: [],
+    cache: {
+      ofCache: new Map(),
+      propertyCache: new Map(),
+      itemCache: new Map(),
+    },
+    validate: null!,
   },
   a: Act
 ) => {
-  const { type, route, field, value } = a;
-  if (!route) return Object.assign({}, s); // 防止初始化报错
-  if (type === 'set') return Object.assign({}, s, value)  // set强制设置
+  const { rootSchema } = s
+  const { type, route, field, value } = a
+  const reValidate = () => {
+    if (typeof s.validate === "function") {
+      const validate = s.validate as ValidateFunction
+      const valid = validate(s.data)
+      localize(validate.errors)
+      s.dataErrors = validate.errors ? validate.errors : []
+      if (validate.errors) {
+        console.log("not valid", validate.errors)
+      } else {
+        console.log("验证成功")
+      }
+    }
+  }
+
+  // 特殊接口： set强制设置
+  if (type === "set") return Object.assign({}, s, value) // set强制设置
+  // 初始化
+  if (!route) {
+    reValidate()
+    return Object.assign({}, s)
+  }
   const access = field !== null ? route.concat(field) : route
-  console.log(type, s, route.join("/") + "+" + field, value);
+  console.log(type, s, route.join("/") + "+" + field, value)
 
   const logError = (error: string) => {
-    console.log(error, route.join("/") + "+" + field, value, oriNode);
-    s.lastChangedRoute = null;
-    return s;
-  };
-
-  let data = s.data; // 注意这个变量一直是 s 子节点的一个引用
-  for (let key of route) {
-    data = data[key];
+    console.log(error, route.join("/") + "+" + field, value, oriNode)
+    s.lastChangedRoute = null
+    return s
   }
-  const oriNode = data;
+
+  let data = s.data // 注意这个变量一直是 s 子节点的一个引用
+  for (let key of route) {
+    data = data[key]
+  }
+  const oriNode = data
 
   // 初始化动作修改路径
-  s.lastChangedField = [];
-  s.lastChangedRoute = route;
+  s.lastChangedField = []
+  s.lastChangedRoute = route
 
   switch (type) {
     case "create":
+      if (!field) {
+        logError("未指定field")
+        return s
+      }
       if (oriNode instanceof Array) {
         // 给array push 一个新东西
-        let newItem = null;
-        if (oriNode.length > 0) newItem = oriNode[oriNode.length - 1];
-        oriNode.push(_.cloneDeep(newItem));
+        const index = parseInt(field!)
+        oriNode[index] = value
       } else if (oriNode instanceof Object) {
         // 给对象创建新的属性
-        const keys = Object.keys(oriNode);
-        if (keys.length > 0) {
-          let key = keys[keys.length - 1];
-          const value = _.cloneDeep(oriNode[key]);
-          for (let i = 0; ; i++) {
-            const newKey = key + i;
-            if (!oriNode.hasOwnProperty(newKey)) {
-              oriNode[newKey] = value;
-              break;
-            }
-          }
-        } else {
-          oriNode["propName"] = null;
+        if (!oriNode.hasOwnProperty(field)) {
+          oriNode[field] = value
         }
       } else {
-        logError("对非对象/数组的错误创建请求");
+        logError("对非对象/数组的错误创建请求")
       }
-      s.lastChangedRoute = access
-      break;
+      s.lastChangedField = [field]
+      break
     case "change": // change 是对非对象值的改变
       if (field === null) {
-        s.data = _.cloneDeep(value);
+        s.data = _.cloneDeep(value)
       } else if (oriNode instanceof Array || oriNode instanceof Object)
-        oriNode[field] = _.cloneDeep(value);
-      else logError('对非对象/数组的字段修改请求')
+        oriNode[field] = _.cloneDeep(value)
+      else logError("对非对象/数组的字段修改请求")
 
       s.lastChangedRoute = access
-      break;
+      break
     case "delete":
-      if (!field) return s;
+      if (!field) return s
 
       if (oriNode instanceof Array) {
         // 注意数组删除，后面元素是要前移的
-        const index = parseInt(field);
-        _.remove(oriNode, (value: any, i: number) => i === index);
-      } else if (oriNode instanceof Object) delete oriNode[field];
+        const index = parseInt(field)
+        _.remove(oriNode, (value: any, i: number) => i === index)
+      } else if (oriNode instanceof Object) delete oriNode[field]
       else {
-        logError("对非对象/数组的字段删除请求");
+        logError("对非对象/数组的字段删除请求")
       }
-      break;
+      break
     case "rename":
-      if (!field || !value || field === value) break;
+      if (!field || !value || field === value) break
 
       if (oriNode instanceof Object) {
         // todo: 严查value类型
         if (!oriNode.hasOwnProperty(value)) {
-          oriNode[value!] = oriNode[field];
-          delete oriNode[field];
+          oriNode[value!] = oriNode[field]
+          delete oriNode[field]
         }
       } else {
-        logError("对非对象的字段重命名请求");
+        logError("对非对象的字段重命名请求")
       }
-      break;
+      break
     case "moveup":
     case "movedown":
       if (oriNode instanceof Array) {
-        if (!field) return s;
-        const index = parseInt(field);
-        const swapIndex = type === "moveup" ? index - 1 : index + 1;
+        if (!field) return s
+        const index = parseInt(field)
+        const swapIndex = type === "moveup" ? index - 1 : index + 1
         if (swapIndex >= 0 && swapIndex < oriNode.length) {
-          const temp = oriNode[index];
-          oriNode[index] = oriNode[swapIndex];
-          oriNode[swapIndex] = temp;
+          const temp = oriNode[index]
+          oriNode[index] = oriNode[swapIndex]
+          oriNode[swapIndex] = temp
           s.lastChangedField = [field, swapIndex.toString()]
         } else {
-          logError("数组项越界移动");
+          logError("数组项越界移动")
         }
-      } else logError("对非数组的移动请求");
-      break;
+      } else logError("对非数组的移动请求")
+      break
     default:
-      console.log("错误的动作请求");
+      console.log("错误的动作请求")
   }
-  return Object.assign({}, s);
-};
+  // 重新验证
+  reValidate()
+  return Object.assign({}, s)
+}
 
-const doAction = (type: string, route = [], field = null, value = 0) => ({
+const doAction = (
+  type: string,
+  route = [],
+  field = null,
+  value = undefined
+) => ({
   type,
   route,
   field,
   value,
-});
+})
 
-const JsonTypes = ["object", "array", "string", "number", "boolean", "null"];
+const JsonTypes = ["object", "array", "string", "number", "boolean", "null"]
 
-export { reducer, doAction, JsonTypes };
+export { reducer, doAction, JsonTypes, ajvInstance }

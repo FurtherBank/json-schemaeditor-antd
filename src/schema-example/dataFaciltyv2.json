@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/DataFacilityElement"
+  },
+  "definitions": {
+    "DataFacilityElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "名称",
+          "description": "建筑设施的名称",
+          "type": "string"
+        },
+        "description": {
+          "title": "介绍",
+          "description": "建筑设施的描述",
+          "type": "string",
+          "format": "multiline"
+        },
+        "consume": {
+          "title": "能源消耗",
+          "description": "建筑设施每级的能耗",
+          "type": "integer"
+        },
+        "price": {
+          "title": "升级价格",
+          "description": "在索引等级时升级的各种资源耗费",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "title": "能源",
+                "type": "integer"
+              },
+              {
+                "title": "晶钢",
+                "type": "integer"
+              },
+              {
+                "title": "芯髓",
+                "type": "integer"
+              }
+            ],
+            "additionalItems": false
+          }
+        },
+        "capacity": {
+          "title": "资源容量",
+          "description": "在索引等级时升级的各种资源容量",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "required": ["capacity", "consume", "description", "name", "price"],
+      "title": "设施"
+    }
+  }
+}

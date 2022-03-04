@@ -58,7 +58,7 @@ const EditorHook = (props: EditorProps) => {
     return store
   }
 
-  const validate = useMemo(compileSchema, [schema])
+  const validate = useMemo(compileSchema, [schema]) as Function | any
   const drawerRef = useRef(null) as React.RefObject<any>
   const store = initStore()
 
@@ -70,9 +70,9 @@ const EditorHook = (props: EditorProps) => {
   
   return (
     <Provider store={store}>
-      {validate instanceof Array ? (
-        <Alert message="Error" description={validate} type="error" showIcon />
-      ) : null}
+      {validate instanceof Function ? null : (
+        <Alert message="Error" description={validate.toString()} type="error" showIcon />
+      )}
       <Field route={[]} field={null} schemaEntry="#" setDrawer={setDrawer} />
       <FieldDrawer ref={drawerRef} />
     </Provider>

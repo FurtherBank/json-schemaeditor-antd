@@ -45,7 +45,13 @@ const extractURI = (uri: string) => {
   }
 }
 
-// $ref 引用
+/**
+ * 通过 uri 查找 obj 对象对应路径下的值。  
+ * 如果找不到会返回 undefined
+ * @param obj 对象
+ * @param $ref 
+ * @returns 
+ */
 const getPathVal = (obj: any, $ref: string) => {
   const pathArr = extractURI($ref)
   for (let i = 0; i < pathArr.length; i += 1) {
@@ -391,8 +397,8 @@ const absorbProperties = (
       let result = {}
       filtered.reverse()
       for (const schema of filtered) {
-        if (schema.hasOwnProperty(key) && jsonDataType(schema) === 'object') {
-          result = Object.assign(result, schema)
+        if (schema.hasOwnProperty(key) && jsonDataType(schema[key]) === 'object') {
+          result = Object.assign(result, schema[key])
         } else {
           return null
         }

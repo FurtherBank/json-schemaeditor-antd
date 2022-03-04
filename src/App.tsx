@@ -1,18 +1,40 @@
-import React from 'react';
+import React, { useState } from "react"
 // import formdata from "./json-example/formdata.json"
 import schema from "./schema-example/schema.json"
-import data from "./json-example/dataFaciltyv2.json"
-import Editor from './Editor';
-import EditorHook from './EditorHook';
+import jsonData from "./json-example/dataFaciltyv2.json"
+import Editor from "./Editor"
+import EditorHook from "./EditorHook"
+import _ from "lodash"
 
-function App() {
+const initialData = _.cloneDeep(jsonData)
+
+const App = () => {
+  const [data, setData] = useState(jsonData)
+
+  const change = (value: string) => {
+    console.log('新的只', value)
+  }
+
   return (
-    <EditorHook 
-      data={data}
-      schema={schema}
-      editionName={'datavalue'}
-    />
-  );
+    <div style={{position: "relative"}}>
+      <EditorHook
+        data={data}
+        schema={schema as any}
+        editionName={"datavalue"}
+        onChange={change}
+      />
+      <button
+        onClick={(e) => {
+          console.log('重置');
+          console.dir(initialData);
+          setData(initialData)
+        }}
+        style={{position: "sticky", top: "3px"}}
+      >
+        有本事点我一下(受控测试)
+      </button>
+    </div>
+  )
 }
 
-export default App;
+export default App

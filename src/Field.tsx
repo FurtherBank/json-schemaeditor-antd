@@ -286,7 +286,7 @@ const FieldBase = (props: FieldProps) => {
             <CInput
               size="small"
               bordered={false}
-              style={{ textDecoration: "underline", width: "100px" }}
+              style={{ textDecoration: "underline", width: "130px", padding: '0' }}
               value={field} // todo: validate the propertyName
               validate={(v) => {
                 return fieldNameRange instanceof RegExp
@@ -454,6 +454,7 @@ const FieldBase = (props: FieldProps) => {
               onChange={(value, options) => {
                 doAction("change", route, field, [])
               }} // todo
+              style={{minWidth: "60px"}}
               value={ofIndex}
               allowClear={false}
             />
@@ -720,7 +721,7 @@ const Field = connect(
         const oneOf = findKeyRefs(entrySchemaMap, "oneOf", false) as string
         if (oneOf) {
           const oneOfKeys = getPathVal(rootSchema, oneOf).map(
-            (v: any, i: string) => addRef(oneOf, i)
+            (v: any, i: string) => addRef(oneOf, i.toString())
           ) as string[]
           const oneOfOptions = oneOfKeys.map((ref, i) => {
             const optMap = getRefSchemaMap(ref, rootSchema)

@@ -3,6 +3,7 @@ import AutoComplete from "antd/lib/auto-complete"
 import Button from "antd/lib/button"
 import Input from "antd/lib/input"
 import message from "antd/lib/message"
+import _ from "lodash"
 import React, { useState } from "react"
 import { FatherInfo, FieldProps } from "./Field"
 import { getDefaultValue } from "./FieldOptions"
@@ -41,6 +42,7 @@ const CreateName = (props: CreateNameProps) => {
     if (fatherInfo.type === "object") {
       setEditing(!editing)
     } else {
+      // 数组新变量创建。注意如果使用已有变量直接创建时不要忘记深拷贝！
       const itemCacheValue = valueEntry ? itemCache.get(valueEntry) : undefined
       const nowLength = data.length
       if (itemCacheValue) {
@@ -49,7 +51,7 @@ const CreateName = (props: CreateNameProps) => {
         const defaultValue = getDefaultValue(fieldProps, schemaRef)
         doAction!('create', access, nowLength.toString(), defaultValue)
       } else {
-        doAction!('create', access, nowLength.toString(), data[data.length-1])
+        doAction!('create', access, nowLength.toString(), _.cloneDeep(data[data.length-1]))
       }
     }
   }

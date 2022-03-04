@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { FatherInfo, FieldProps } from "./Field";
-import { absorbProperties, addRef, filterIter, filterObjSchema, findKeyRefs, getRefSchemaMap, jsonDataType } from "./utils";
+import { absorbProperties, addRef, filterIter, filterObjSchema, findKeyRefs, getPathVal, getRefSchemaMap, jsonDataType } from "./utils";
 
 const maxCollapseLayer = 5;
 const longFormats = ["row"];
@@ -251,17 +251,57 @@ const canDelete = (props: FieldProps) => {
  */
 export const getDefaultValue = (props: FieldProps, entry: string | undefined): any => {
   const { cache, rootSchema } = props
-  const {ofCache} = cache!
+  const {ofCache, itemCache} = cache!
   if (!entry) return null
+  const entryMap = getRefSchemaMap(entry, rootSchema)
+  // 1. 优先返回规定的 default 字段值(注意深拷贝，否则会形成对象环！)
+  const defaultValue = absorbProperties(entryMap, "default")
+  if (defaultValue !== undefined) {
+    return _.cloneDeep(defaultValue)
+  }
+  // 2. 如果有 const/enum，采用其值
+  const constValue = absorbProperties(entryMap, "const")
+  if (constValue !== undefined) return _.cloneDeep(constValue)
+  
+  const enumValue = absorbProperties(entryMap, "enum")
+  if (enumValue !== undefined) return _.cloneDeep(enumValue[0])
+  // 3. oneOf/anyOf 选择第0项的schema返回
   const ofCacheValue = ofCache.get(entry)
   if (ofCacheValue) {
     return getDefaultValue(props, addRef(ofCacheValue.ofRef, '0')!)
   }
-  const entryMap = getRefSchemaMap(entry, rootSchema)
+  // 4. 按照 schema 寻找答案
   const allTypes = absorbProperties(entryMap, 'type', 'intersection')
   if (allTypes.length > 0) {
     const type = allTypes[0]
-    return defaultTypeValue[type]
+    switch (type) {
+      case 'object':
+        const result = {} as any
+        const allPropsRef = findKeyRefs(entryMap, 'properties', true, false) as string[]
+        for (const ref of allPropsRef) {
+          // const properties = getPathVal(rootSchema, addRef(ref, 'properties')!)
+          // 仅对 required 中的属性进行创建
+          const required = getPathVal(rootSchema, addRef(ref, 'required')!) || []
+          for (const propName of required) {
+            result[propName] = getDefaultValue(props, addRef(ref, 'properties', propName))
+          }
+        }
+        return result
+      case 'array':
+        const arrayResult = []
+        const itemsRef = findKeyRefs(entryMap, 'items') as string | undefined
+        const itemCacheValue = itemCache.get(entry)
+        if (itemCacheValue && itemCacheValue.itemLength !== undefined) {
+          const {itemLength} = itemCacheValue
+          for (let i = 0; i < itemLength; i++) {
+            arrayResult.push(getDefaultValue(props, addRef(itemsRef, i.toString())))
+          }
+        }
+        return arrayResult
+      default:
+        break;
+    }
+    return _.cloneDeep(defaultTypeValue[type])
   } else {
     return null
   }

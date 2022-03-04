@@ -15,6 +15,8 @@ interface Schema {
   anyOf?: (Schema | boolean)[];
   allOf?: (Schema | boolean)[];
   type?: string | string[];
+  default?: any,
+  examples?: any,
   // string
   minLength?: number;
   maxLength?: number;

@@ -41,11 +41,13 @@ const cacheInput = (
 
     // onChange 更新 cache。支持 onChange 事件拿到的是 value 或 DOM事件两种情况
     const onChange = (e: any) => {
-      const value =
-        typeof e === "object" && e.hasOwnProperty("currentTarget")
-          ? e.currentTarget.value
-          : e
-      setCache(value)
+      if (e !== null) {
+        const value =
+          typeof e === "object" && e.hasOwnProperty("currentTarget")
+            ? e.currentTarget.value
+            : e
+        setCache(value)
+      }
     }
 
     const newOnBlur = (e: { currentTarget: { value: any } }) => {

@@ -1,4 +1,10 @@
-import React from "react"
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { createStore, Store } from "redux"
 import { Provider } from "react-redux"
 import Field from "./Field"
@@ -13,64 +19,64 @@ interface EditorProps {
   schema: RootSchema | boolean
 }
 
-export default class Editor extends React.Component<EditorProps> {
-  static defaultProps = { schema: true }
-  store: Store
-  drawerRef: React.RefObject<{ setDrawer: Function }>
-  constructor(props: EditorProps) {
-    super(props)
-    this.drawerRef = React.createRef()
-    const change = () => {
-      if (this.props.onChange && typeof this.props.onChange == "function") {
-        this.props.onChange(this.store.getState().data)
-      }
-    }
+const EditorHook = (props: EditorProps) => {
+  const { schema, data, onChange, editionName } = props
+  const compileSchema = () => {
     let validate = undefined
     let schemaErrors = null
     try {
-      validate = ajvInstance.compile(props.schema)
+      validate = ajvInstance.compile(schema)
+      return validate
     } catch (error) {
       schemaErrors = error
+      return schemaErrors
     }
-    // 异步加载的时候，可以在加载完schema和json，并设置完store的时候正式render一次
+  }
+  const change = () => {
+    if (onChange && typeof onChange == "function") {
+      onChange(store.getState().data)
+    }
+  }
+  const initStore = () => {
     const initialState = {
-      data: props.data,
-      editionName: props.editionName,
-      rootSchema: this.props.schema,
+      data: data,
+      editionName: editionName,
+      rootSchema: typeof validate === "function" ? schema : true,
       lastChangedRoute: [],
       lastChangedField: [],
       dataErrors: [],
-      schemaErrors,
+      schemaErrors: typeof validate === "function" ? null : validate,
       cache: {
         ofCache: new Map(),
         propertyCache: new Map(),
         itemCache: new Map(),
       },
-      validate: schemaErrors ? undefined : validate,
+      validate: typeof validate === "function" ? validate : undefined,
     }
-    this.store = createStore(reducer, initialState)
-    this.store.subscribe(change)
+    const store = createStore(reducer, initialState)
+    store.subscribe(change)
+    return store
   }
 
-  render() {
-    // const { doAction } = this.props;
-    const setDrawer = (...args: any[]) => {
-      console.log("setDrawer", this.drawerRef.current, args)
+  const validate = useMemo(compileSchema, [schema]) as Function | any
+  const drawerRef = useRef(null) as React.RefObject<any>
+  const store = initStore()
 
-      if (this.drawerRef.current) this.drawerRef.current.setDrawer(...args)
-    }
-    // route 由 react 组件控制，data 由 redux 控制
-    return (
-      <Provider store={this.store}>
-        {/* {schemaErrors ? <Alert
-      message="Error"
-      description={schemaErrors}
-      type="error"
-      showIcon
-    /> : null} */}
-        <Field route={[]} field={null} schemaEntry="#" setDrawer={setDrawer} />
-        <FieldDrawer ref={this.drawerRef} />
-      </Provider>
-    )
+  const setDrawer = (...args: any[]) => {
+    console.log("setDrawer", drawerRef.current)
+    if (drawerRef.current) drawerRef.current.setDrawer(...args)
   }
+  console.log('editor重新渲染');
+  
+  return (
+    <Provider store={store}>
+      {validate instanceof Function ? null : (
+        <Alert message="Error" description={validate.toString()} type="error" showIcon />
+      )}
+      <Field route={[]} field={null} schemaEntry="#" setDrawer={setDrawer} />
+      <FieldDrawer ref={drawerRef} />
+    </Provider>
+  )
 }
+
+export default React.memo(EditorHook)

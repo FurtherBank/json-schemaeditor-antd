@@ -3,7 +3,6 @@ import React, { useState } from "react"
 import schema from "./schema-example/schema.json"
 import jsonData from "./json-example/dataFaciltyv2.json"
 import Editor from "./Editor"
-import EditorHook from "./EditorHook"
 import _ from "lodash"
 
 const initialData = _.cloneDeep(jsonData)
@@ -17,7 +16,7 @@ const App = () => {
 
   return (
     <div style={{position: "relative"}}>
-      <EditorHook
+      <Editor
         data={data}
         schema={schema as any}
         editionName={"datavalue"}

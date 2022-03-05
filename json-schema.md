@@ -141,10 +141,10 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 1. 编辑的过程中，模式是不变的
 2. `required`的属性都具备在`properties`中
-2. 设置了`type`属性后，才会给对应属性类型约束
-2. `oneOf`包含的模式中不存在`oneOf`字段。且`oneOf`与`enum`不同时存在。
-2. `properties`和`patternProperties`不能匹配到同一名称
-2. 如果是多模式验证，满足**替换假设**。否则某些特性会无法正常工作。详见 [采用多schema](#采用多schema)
+3. 设置了`type`属性后，才会给对应属性类型约束
+4. `oneOf`、`anyOf`、`enum`、`const`不同时存在，如果存在`oneOf`或`anyOf`，其选项相连不出现循环引用。
+5. `properties`和`patternProperties`不能匹配到同一名称
+6. 如果是多模式验证，满足**替换假设**。否则某些特性会无法正常工作。详见 [采用多schema](#采用多schema)
 
 ### 字段标题
 

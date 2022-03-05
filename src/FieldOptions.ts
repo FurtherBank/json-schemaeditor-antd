@@ -3,7 +3,7 @@ import { FatherInfo, FieldProps } from "./Field";
 import { absorbProperties, addRef, filterIter, filterObjSchema, findKeyRefs, getPathVal, getRefSchemaMap, jsonDataType } from "./utils";
 
 const maxCollapseLayer = 5;
-const longFormats = ["row"];
+const longFormats = ["row", "uri-reference"];
 const extraLongFormats = ["multiline"];
 
 export const gridOption = [
@@ -244,7 +244,7 @@ const canDelete = (props: FieldProps) => {
 
 /**
  * 通过一个schemaEntry 得到schema，确定其创建时默认对象。  
- * 允许找不到schema的场合
+ * 允许找不到schema的场合，且前后变量保持最大兼容(未实装)
  * @param props 
  * @param entry 
  * @returns 

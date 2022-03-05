@@ -1,16 +1,12 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { createStore, Store } from "redux"
 import { Provider } from "react-redux"
 import Field from "./Field"
 import { ajvInstance, reducer } from "./reducer"
 import FieldDrawer from "./FieldDrawer"
 import Alert from "antd/lib/alert"
+
+import "./css/index.scss"
 
 interface EditorProps {
   editionName: string
@@ -66,8 +62,8 @@ const EditorHook = (props: EditorProps) => {
     console.log("setDrawer", drawerRef.current)
     if (drawerRef.current) drawerRef.current.setDrawer(...args)
   }
-  console.log('editor重新渲染');
-  
+  console.log("editor重新渲染")
+
   return (
     <Provider store={store}>
       {validate instanceof Function ? null : (

@@ -11,3 +11,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.selectable-selectbox {
+  z-index: 9000;
+  position: absolute;
+  cursor: default;
+  background: none;
+  border: 1px dashed grey;
+}
+
+.selectable-div, .selected-div {
+  width: 180px;
+  height: 28px;
+  line-height: 28px;
+  padding: 3px 0;
+  line-height: normal;
+  box-sizing: border-box;
+  border: 1px dotted #bbbbbb;
+  user-select:none;
+}
+
+.selectable-div {
+  background-color: #ffffff;
+  :hover {
+    background-color: #cccccc;
+  }
+}
+
+.selected-div {
+  background-color: #99ffff;
+  :hover {
+    background-color: #6699ff;
+  }
+}

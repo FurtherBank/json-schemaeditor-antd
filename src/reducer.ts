@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import Ajv, { ValidateFunction } from "ajv"
 import addFormats from "ajv-formats"
 import draft6MetaSchema from "ajv/dist/refs/json-schema-draft-06.json"
@@ -44,10 +45,7 @@ ajv.addMetaSchema(draft6MetaSchema)
 addFormats(ajv)
 
 // 添加base-64 format
-ajv.addFormat(
-  "data-url",
-  /^data:([a-z]+\/[a-z0-9-+.]+)?;(?:name=(.*);)?base64,(.*)$/
-)
+ajv.addFormat("data-url", /^data:([a-z]+\/[a-z0-9-+.]+)?;(?:name=(.*);)?base64,(.*)$/)
 
 // 添加color format
 ajv.addFormat(
@@ -61,6 +59,18 @@ ajv.addFormat("row", /.*/)
 
 // 添加multiline format
 ajv.addFormat("multiline", /.*/)
+
+// 添加 view 关键字
+ajv.addKeyword({
+  keyword: "view",
+  type: "object",
+  metaSchema: {
+    type: "object",
+    properties: { type: { type: "string" } },
+    required: ["type"],
+    additionalProperties: false,
+  },
+})
 
 const ajvInstance = ajv
 
@@ -125,7 +135,7 @@ const reducer = (
   }
 
   let data = s.data // 注意这个变量一直是 s 子节点的一个引用
-  for (let key of route) {
+  for (const key of route) {
     data = data[key]
   }
   const oriNode = data
@@ -157,8 +167,7 @@ const reducer = (
     case "change": // change 是对非对象值的改变
       if (field === null) {
         s.data = _.cloneDeep(value)
-      } else if (oriNode instanceof Array || oriNode instanceof Object)
-        oriNode[field] = _.cloneDeep(value)
+      } else if (oriNode instanceof Array || oriNode instanceof Object) oriNode[field] = _.cloneDeep(value)
       else logError("对非对象/数组的字段修改请求")
 
       s.lastChangedRoute = access
@@ -212,12 +221,7 @@ const reducer = (
   return Object.assign({}, s)
 }
 
-const doAction = (
-  type: string,
-  route = [],
-  field = null,
-  value = undefined
-) => ({
+const doAction = (type: string, route = [], field = null, value = undefined) => ({
   type,
   route,
   field,

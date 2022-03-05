@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { getSchemaTypes } from "ajv/dist/compile/validate/dataType"
 import { debug } from "console"
 import _, { isEqual } from "lodash"
@@ -464,7 +465,7 @@ const extractSchema = (
   }
 
   // 2. 暴力修改 $ref
-  for (let [key, schema] of schemaMap) {
+  for (const [key, schema] of schemaMap) {
     const newRef = pathMap.get(key)
     const replacedSchema = deepReplace(_.cloneDeep(schema), "$ref", (ref) => {
       return typeof ref === 'string' ? pathMap.get(ref) : ref

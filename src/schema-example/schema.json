@@ -11,10 +11,6 @@
       "type": "integer",
       "minimum": 0
     },
-    "nonNegativeIntegerDefault0": {
-      "$ref": "#/definitions/nonNegativeInteger",
-      "default": 0
-    },
     "simpleTypes": {
       "enum": [
         "array",
@@ -54,7 +50,7 @@
           "format": "multiline"
         },
         "maxProperties": { "$ref": "#/definitions/nonNegativeInteger" },
-        "minProperties": { "$ref": "#/definitions/nonNegativeIntegerDefault0" },
+        "minProperties": { "$ref": "#/definitions/nonNegativeInteger" },
         "required": { "$ref": "#/definitions/stringArray" },
         "additionalProperties": {
           "oneOf": [{ "const": false, "title": "false" }, { "$ref": "#" }]
@@ -128,7 +124,7 @@
           "anyOf": [{ "$ref": "#" }, { "$ref": "#/definitions/schemaArray" }]
         },
         "maxItems": { "$ref": "#/definitions/nonNegativeInteger" },
-        "minItems": { "$ref": "#/definitions/nonNegativeIntegerDefault0" },
+        "minItems": { "$ref": "#/definitions/nonNegativeInteger" },
         "uniqueItems": {
           "type": "boolean",
           "default": false
@@ -221,7 +217,7 @@
           "items": {}
         },
         "maxLength": { "$ref": "#/definitions/nonNegativeInteger" },
-        "minLength": { "$ref": "#/definitions/nonNegativeIntegerDefault0" },
+        "minLength": { "$ref": "#/definitions/nonNegativeInteger" },
         "pattern": {
           "type": "string",
           "format": "regex"

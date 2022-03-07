@@ -7,6 +7,7 @@ import FieldDrawer from "./FieldDrawer"
 import Alert from "antd/lib/alert"
 
 import "./css/index.scss"
+import _ from "lodash"
 
 interface EditorProps {
   editionName: string
@@ -17,9 +18,11 @@ interface EditorProps {
 
 const EditorHook = (props: EditorProps) => {
   const { schema, data, onChange, editionName } = props
+  let schemaChanged = false
   const compileSchema = () => {
     let validate = undefined
     let schemaErrors = null
+    schemaChanged = true
     try {
       validate = ajvInstance.compile(schema)
       return validate
@@ -28,11 +31,8 @@ const EditorHook = (props: EditorProps) => {
       return schemaErrors
     }
   }
-  const change = () => {
-    if (onChange && typeof onChange == "function") {
-      onChange(store.getState().data)
-    }
-  }
+
+  // 在 store 被更改的时候才会重新渲染
   const initStore = () => {
     const initialState = {
       data: data,
@@ -54,15 +54,30 @@ const EditorHook = (props: EditorProps) => {
     return store
   }
 
+  const change = () => {
+    const changedData = store.getState().data
+    setNowData(changedData)
+    if (onChange && typeof onChange == "function") {
+      onChange(changedData)
+    }
+  }
   const validate = useMemo(compileSchema, [schema]) as Function | any
   const drawerRef = useRef(null) as React.RefObject<any>
-  const store = initStore()
+
+  const [nowData, setNowData] = useState(undefined)  // 通过 nowData 与 data 是否同步检测变化是否来自外部，如果是则重置store
+  const [store, setStore] = useState(undefined! as Store<State, Act>)
 
   const setDrawer = (...args: any[]) => {
     console.log("setDrawer", drawerRef.current)
     if (drawerRef.current) drawerRef.current.setDrawer(...args)
   }
-  console.log("editor重新渲染")
+
+  if (!_.isEqual(data, nowData) || schemaChanged) {
+    console.log("重置 store")
+    schemaChanged = false
+    setNowData(data)
+    setStore(initStore)
+  }
 
   return (
     <Provider store={store}>

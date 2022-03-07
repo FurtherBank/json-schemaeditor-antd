@@ -1,8 +1,8 @@
 import itemSchema from "../../schema-example/Items.json";
 import itemData from "../../json-example/Items.json";
 import { ValidateFunction } from "ajv";
-import { ajvInstance } from "../../reducer";
-import { toOfName } from "../../FieldOptions";
+import { ajvInstance } from "../../Editor/reducer";
+import { toOfName } from "../../Editor/FieldOptions";
 import { findKeyRefs, getPathVal, addRef, getRefSchemaMap, extractSchema, iterToArray, deepReplace, deepCollect } from "../../Editor/utils";
 
 const ajvValidate = (

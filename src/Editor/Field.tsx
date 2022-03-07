@@ -253,18 +253,6 @@ const FieldBase = (props: FieldProps) => {
   const formatType = getFormatType(format)
   const types = absorbProperties(entrySchemaMap!, "type", "intersection")
 
-  // 对数组json专用的 列表选择特性
-  const [currentItem, setCurrentItem] = useState(0)
-
-  const handleSelectable = (selectedItems: React.Component<DataItemProps>[]) => {
-    const ids: number[] = selectedItems.map((v) => {
-      return v.props.id
-    })
-    if (ids.length > 0) {
-      setCurrentItem(ids[0])
-    }
-  }
-
   // 渲染排错
   if (dataType === "undefined") {
     console.log("错误的渲染:", props)
@@ -549,33 +537,14 @@ const FieldBase = (props: FieldProps) => {
     }
 
     return access.length === 0 && dataType === "array" && _.isEqual(types, ["array"]) ? (
-      <Layout>
-        <Sider theme={"light"} style={{ display: "flex", flexDirection: "column" }}>
-          <SelectableGroup
-            clickClassName="tick"
-            enableDeselect={true}
-            tolerance={0}
-            deselectOnEsc={false}
-            allowClickWithoutSelected={true}
-            resetOnStart={true}
-            onSelectionFinish={handleSelectable}
-            ignoreList={[".not-selectable"]}
-          >
-            <ItemList items={children} />
-          </SelectableGroup>
-          {space.has("create") ? <CreateName fatherInfo={childFatherInfo} fieldProps={props} /> : null}
-        </Sider>
-        <Content>
-          <Field
-            route={access}
-            field={currentItem.toString()}
-            fatherInfo={childFatherInfo.type ? childFatherInfo : undefined}
-            schemaEntry={getFieldSchema(props, currentItem.toString())}
-            short={short}
-            setDrawer={setDrawer}
-          />
-        </Content>
-      </Layout>
+      <FieldList
+        fieldProps={props}
+        content={children}
+        fatherInfo={childFatherInfo}
+        short={ShortOpt.no}
+        canCreate={space.has("create")}
+        view={"list"}
+      />
     ) : dataType === "object" || dataType === "array" ? (
       <Collapse defaultActiveKey={access.length < maxCollapseLayer ? ["theoneandtheonly"] : undefined}>
         <Panel key="theoneandtheonly" header={titleCom} extra={<Space onClick={stopBubble}>{actionComs}</Space>}>
@@ -647,8 +616,9 @@ const FieldBase = (props: FieldProps) => {
 
 /**
  * 字段组件是否需要重新渲染，条件：
- * 1. access 完全匹配了 lastChangedRoute
+ * 1. access 完全匹配了 lastChangedRoute 
  * 2. lastChangedRoute + lastChangedField 一个元素 是 access 的子串
+ * 3. 根节点
  * @param access
  * @param lastChangedRoute
  * @param lastChangedField
@@ -656,6 +626,7 @@ const FieldBase = (props: FieldProps) => {
  */
 const needReRender = (access: string[], lastChangedRoute: null | string[], lastChangedField: string[]) => {
   if (lastChangedRoute === null) return false
+  if (access.length === 0) return true
   let i = 0
   for (const p of lastChangedRoute) {
     if (access[i] === p) {
@@ -677,6 +648,15 @@ const needReRender = (access: string[], lastChangedRoute: null | string[], lastC
   return false
 }
 
+/**
+ * 对 设置 ofCache
+ * @param ofCache 
+ * @param schemaEntry 
+ * @param entrySchemaMap 
+ * @param rootSchema 
+ * @param nowOfRefs 
+ * @returns 
+ */
 const setOfCache = (
   ofCache: Map<string, ofSchemaCache | null>,
   schemaEntry: string,

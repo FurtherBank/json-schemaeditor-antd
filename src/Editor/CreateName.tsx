@@ -12,10 +12,11 @@ import { addRef, concatAccess, findKeyRefs, matchKeys } from "./utils"
 interface CreateNameProps {
   fatherInfo: FatherInfo
   fieldProps: FieldProps
+  style?: React.CSSProperties
 }
 
 const CreateName = (props: CreateNameProps) => {
-  const { fatherInfo, fieldProps } = props
+  const { fatherInfo, fieldProps, style } = props
   const { cache, valueEntry, data, doAction, route, field, valueSchemaMap } = fieldProps
   const { propertyCache, itemCache } = cache!
   const access = concatAccess(route, field)
@@ -116,6 +117,7 @@ const CreateName = (props: CreateNameProps) => {
       size="small"
       block
       onClick={handleClick}
+      style={style}
     >
       {fatherInfo.type === "object" ? "Property" : "Item"}
     </Button>

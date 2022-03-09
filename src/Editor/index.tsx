@@ -10,15 +10,16 @@ import "./css/index.scss"
 import _ from "lodash"
 
 interface EditorProps {
-  editionName: string
   onChange?: (data: any) => void | null
   data?: any
   schema: RootSchema | boolean
 }
 
 const EditorHook = (props: EditorProps) => {
-  const { schema, data, onChange, editionName } = props
+  const { schema, data, onChange } = props
   let schemaChanged = false
+
+  // 编译 schema，并通知 schema 已经改变。
   const compileSchema = () => {
     let validate = undefined
     let schemaErrors = null
@@ -32,11 +33,11 @@ const EditorHook = (props: EditorProps) => {
     }
   }
 
-  // 在 store 被更改的时候才会重新渲染
+  // 在 store 被更改的时候才会重新渲染，这一步清空 schema 修改标记
   const initStore = () => {
+    schemaChanged = false
     const initialState = {
       data: data,
-      editionName: editionName,
       rootSchema: typeof validate === "function" ? schema : true,
       lastChangedRoute: [],
       lastChangedField: [],
@@ -64,17 +65,17 @@ const EditorHook = (props: EditorProps) => {
   const validate = useMemo(compileSchema, [schema]) as Function | any
   const drawerRef = useRef(null) as React.RefObject<any>
 
-  const [nowData, setNowData] = useState(undefined)  // 通过 nowData 与 data 是否同步检测变化是否来自外部，如果是则重置store
-  const [store, setStore] = useState(undefined! as Store<State, Act>)
+  const [nowData, setNowData] = useState(data)  // 通过 nowData 与 data 是否同步检测变化是否来自外部，如果是则重置store
+  const [store, setStore] = useState(initStore)
 
   const setDrawer = (...args: any[]) => {
     console.log("setDrawer", drawerRef.current)
     if (drawerRef.current) drawerRef.current.setDrawer(...args)
   }
 
+  // 如果 data 更新来自外部，或者 schema 更改，则重置 store
   if (!_.isEqual(data, nowData) || schemaChanged) {
     console.log("重置 store")
-    schemaChanged = false
     setNowData(data)
     setStore(initStore)
   }

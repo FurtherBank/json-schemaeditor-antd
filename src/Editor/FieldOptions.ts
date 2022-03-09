@@ -169,11 +169,11 @@ const canSchemaCreate = (props: FieldProps) => {
  * @returns 返回字符串为不可命名，返回正则为命名范围，返回空串即可命名
  */
 const canSchemaRename = (props: FieldProps) => {
-  const { field, schemaEntry, editionName, entrySchemaMap, fatherInfo } = props
+  const { field, schemaEntry,  entrySchemaMap, fatherInfo } = props
   const title = absorbProperties(entrySchemaMap!, "title", "first") as string | undefined
 
   if (field === null) {
-    return editionName!
+    return title ? title : ''
   } else if (fatherInfo && fatherInfo.type === "array") {
     return title ? title + " " + field : field
   } else if (schemaEntry === undefined) {

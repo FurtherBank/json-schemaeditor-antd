@@ -35,7 +35,7 @@ import {
   toEnumName,
   toOfName,
 } from "./FieldOptions"
-import { ajvInstance, Caches, doAction, JsonTypes, ofSchemaCache, ShortOpt } from "./reducer"
+import { ajvInstance, Caches, doAction, JsonTypes, ofSchemaCache, ShortOpt, State } from "./reducer"
 import {
   absorbProperties,
   filterObjSchema,
@@ -83,7 +83,6 @@ export interface FieldProps {
   valueSchemaMap?: Map<string, boolean | Schema>
   cache?: Caches
   doAction?: Function
-  editionName?: string
   data?: any
   reRender?: any
   dataErrors?: any[]
@@ -258,7 +257,7 @@ const FieldBase = (props: FieldProps) => {
     console.log("错误的渲染:", props)
     return null
   }
-  console.log("渲染", route.join("/"), field, data)
+  if (field === null) console.log("大框架渲染", data)
 
   // 1. 设置标题组件
   const spaceStyle =
@@ -721,7 +720,7 @@ const setOfCache = (
 const Field = connect(
   (state: State, props: FieldProps) => {
     const { route, field, schemaEntry } = props
-    const { data, editionName, lastChangedRoute, lastChangedField, rootSchema, cache, dataErrors } = state
+    const { data, lastChangedRoute, lastChangedField, rootSchema, cache, dataErrors } = state
     const { ofCache, itemCache, propertyCache } = cache!
 
     // 得到确切访问路径，取得数据
@@ -867,7 +866,6 @@ const Field = connect(
     return {
       data: targetData,
       valueEntry,
-      editionName,
       entrySchemaMap,
       valueSchemaMap,
       rootSchema,

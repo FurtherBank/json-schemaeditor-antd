@@ -490,7 +490,7 @@ export const mergeValue = (t: any, s: any) => {
       case 'object':
         return Object.assign(t, s)
       default:
-        break;
+        break
     }
   }
   return t

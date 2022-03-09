@@ -45,23 +45,4 @@ interface Schema {
   dependencies?: { [propName: string]: string[] };
 }
 
-interface Act {
-  type: string;
-  route: string[];
-  field: string | null;
-  value?: string;
-}
-
-interface State {
-  data: any;
-  rootSchema: any;
-  editionName: string,
-  lastChangedRoute: string[] | null,
-  lastChangedField: string[],
-  dataErrors: any[],
-  schemaErrors?: any,
-  cache: Caches,
-  validate?: Function
-}
-
 // enum JsonTypes {}

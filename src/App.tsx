@@ -17,7 +17,7 @@ const App = () => {
 
   return (
     <>
-      <Editor data={data} schema={schema as any} editionName={"datavalue"} onChange={change} />
+      <Editor data={data} schema={schema as any} onChange={change} />
       <Affix offsetTop={50} style ={{position: "absolute", bottom: "80px", right:"60px"}}><button
         onClick={(e) => {
           console.log("重置")

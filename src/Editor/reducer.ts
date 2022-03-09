@@ -38,6 +38,24 @@ export interface Caches {
   itemCache: Map<string, itemSchemaCache | null>
 }
 
+export interface Act {
+  type: string;
+  route: string[];
+  field: string | null;
+  value?: string;
+}
+
+export interface State {
+  data: any;
+  rootSchema: any;
+  lastChangedRoute: string[] | null,
+  lastChangedField: string[],
+  dataErrors: any[],
+  schemaErrors?: any,
+  cache: Caches,
+  validate?: Function
+}
+
 const ajv = new Ajv({
   allErrors: true,
 }) // options can be passed, e.g. {allErrors: true}
@@ -88,7 +106,6 @@ const ajvInstance = ajv
 const reducer = (
   s: State = {
     data: null,
-    editionName: "",
     rootSchema: {},
     lastChangedRoute: [],
     lastChangedField: [],

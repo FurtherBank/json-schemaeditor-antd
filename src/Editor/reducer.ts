@@ -47,12 +47,10 @@ export interface Act {
 
 export interface State {
   data: any;
-  rootSchema: any;
   lastChangedRoute: string[] | null,
   lastChangedField: string[],
   dataErrors: any[],
   schemaErrors?: any,
-  cache: Caches,
   validate?: Function
 }
 
@@ -106,20 +104,13 @@ const ajvInstance = ajv
 const reducer = (
   s: State = {
     data: null,
-    rootSchema: {},
     lastChangedRoute: [],
     lastChangedField: [],
     dataErrors: [],
-    cache: {
-      ofCache: new Map(),
-      propertyCache: new Map(),
-      itemCache: new Map(),
-    },
     validate: null!,
   },
   a: Act
 ) => {
-  const { rootSchema } = s
   const { type, route, field, value } = a
   const reValidate = () => {
     if (typeof s.validate === "function") {

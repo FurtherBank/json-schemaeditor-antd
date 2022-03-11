@@ -7,6 +7,7 @@ import List from "antd/lib/list"
 import space from "antd/lib/space"
 import React, { useState } from "react"
 import { SelectableGroup } from "react-selectable-fast"
+import { SchemaCache } from "."
 import CreateName from "./CreateName"
 import { DataItemProps } from "./DataItem"
 import Field, { FatherInfo, FieldProps } from "./Field"
@@ -17,6 +18,7 @@ import { concatAccess, getFieldSchema, jsonDataType } from "./utils"
 
 interface FieldListProps {
   fieldProps: FieldProps
+  fieldCache: SchemaCache
   short: ShortOpt
   content: any[]
   fatherInfo: FatherInfo
@@ -25,9 +27,9 @@ interface FieldListProps {
 }
 
 const FieldList = (props: FieldListProps) => {
-  const { content, fieldProps, fatherInfo, short, canCreate, view } = props
+  const { content, fieldProps, fatherInfo, short, canCreate, view, fieldCache } = props
   const doAction = fieldProps.doAction!
-  const { data, route, field, setDrawer, cache, valueEntry } = fieldProps
+  const { data, route, field, setDrawer, valueEntry } = fieldProps
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
 
@@ -51,7 +53,7 @@ const FieldList = (props: FieldListProps) => {
     case "list":
       return (
         <Layout style={{ height: "100%", flexDirection: "row",  alignItems: 'stretch' }}>
-          <Sider theme={"light"} style={{ height: "100%" }}>
+          <Sider theme={"light"} style={{ height: "100%", position: "sticky" , top: "0" }}>
             <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
               <SelectableGroup
                 clickClassName="tick"
@@ -62,12 +64,12 @@ const FieldList = (props: FieldListProps) => {
                 resetOnStart={true}
                 onSelectionFinish={handleSelectable}
                 ignoreList={[".not-selectable"]}
-                style={{ flex: "1", overflow: "auto" }}
+                style={{ flex: "1", overflow: "auto"}}
                 key={'select'}
               >
                 <ItemList items={content} />
               </SelectableGroup>
-              {canCreate ? <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} style={{margin: "3px", width:"auto"}} key={'create'}/> : null}
+              {canCreate ? <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} fieldCache={fieldCache} style={{margin: "3px", width:"auto"}} key={'create'}/> : null}
             </div>
           </Sider>
           <Content style={{ height: "100%", overflow: 'auto' }}>
@@ -75,7 +77,7 @@ const FieldList = (props: FieldListProps) => {
               route={access}
               field={currentItem.toString()}
               fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-              schemaEntry={getFieldSchema(fieldProps, currentItem.toString())}
+              schemaEntry={getFieldSchema(fieldProps, fieldCache, currentItem.toString())}
               short={short}
               setDrawer={setDrawer}
             />
@@ -105,6 +107,7 @@ const FieldList = (props: FieldListProps) => {
                   key="start"
                   content={itemData}
                   fieldProps={fieldProps}
+                  fieldCache={fieldCache}
                   fatherInfo={fatherInfo}
                   short={ShortOpt.short}
                 />
@@ -116,7 +119,7 @@ const FieldList = (props: FieldListProps) => {
                     route={access}
                     field={key}
                     fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-                    schemaEntry={getFieldSchema(fieldProps, key)}
+                    schemaEntry={getFieldSchema(fieldProps, fieldCache, key)}
                     short={short}
                     setDrawer={setDrawer}
                   />
@@ -125,7 +128,7 @@ const FieldList = (props: FieldListProps) => {
             else
               return (
                 <List.Item key="end">
-                  <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} />
+                  <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} fieldCache={fieldCache}/>
                 </List.Item>
               )
           }}

@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _ from "lodash"
 
 
 test("Map迭代顺序测试", () => {
@@ -12,5 +12,5 @@ test("Map迭代顺序测试", () => {
   for (const [key, value] of map) {
     str = str + key + '=' + value + ','
   }
-  expect(str).toBe('0=zero,1=一,2=two,');
-});
+  expect(str).toBe('0=zero,1=一,2=two,')
+})

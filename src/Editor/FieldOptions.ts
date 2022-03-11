@@ -1,4 +1,5 @@
 import _ from "lodash"
+import { SchemaCache } from "."
 import { FatherInfo, FieldProps } from "./Field"
 import {
   absorbProperties,
@@ -112,8 +113,9 @@ export const getFormatType = (format: string | undefined) => {
  * @param data 当前json
  * @param schemas
  */
-const canSchemaCreate = (props: FieldProps) => {
-  const { data, valueSchemaMap } = props
+const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
+  const { data } = props
+  const {valueSchemaMap} = schemaCache
   const dataType = jsonDataType(data)
   for (const schema of valueSchemaMap!.values()) {
     if (schema === false) return false
@@ -168,8 +170,9 @@ const canSchemaCreate = (props: FieldProps) => {
  * @param props
  * @returns 返回字符串为不可命名，返回正则为命名范围，返回空串即可命名
  */
-const canSchemaRename = (props: FieldProps) => {
-  const { field, schemaEntry,  entrySchemaMap, fatherInfo } = props
+const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => {
+  const { field, schemaEntry, fatherInfo } = props
+  const { entrySchemaMap, itemCache, propertyCache, valueSchemaMap } = schemaCache
   const title = absorbProperties(entrySchemaMap!, "title", "first") as string | undefined
 
   if (field === null) {
@@ -204,10 +207,12 @@ const canSchemaRename = (props: FieldProps) => {
  * 3. 如果父亲是对象，只要不在 required 里面即可删除
  *
  * @param props
+ * @param schemaCache
  */
-const canDelete = (props: FieldProps) => {
-  const { fatherInfo, field, cache } = props
-  const { itemCache, propertyCache } = cache!
+const canDelete = (props: FieldProps, schemaCache: SchemaCache) => {
+  const { fatherInfo, field } = props
+  const { itemCache, propertyCache } = schemaCache
+
   if (field === null) return false
   if (fatherInfo) {
     const { valueEntry: fatherValueEntry } = fatherInfo
@@ -238,13 +243,12 @@ const canDelete = (props: FieldProps) => {
 /**
  * 通过一个schemaEntry 得到schema，确定其创建时默认对象。
  * 允许找不到schema的场合，且前后变量保持最大兼容(未实装)
- * @param props
+ * @param schemaCache
  * @param entry
  * @returns
  */
-export const getDefaultValue = (props: FieldProps, entry: string | undefined): any => {
-  const { cache, rootSchema } = props
-  const { ofCache, itemCache } = cache!
+export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefined): any => {
+  const { ofCache, itemCache, rootSchema } = schemaCache!
   if (!entry) return null
   const entryMap = getRefSchemaMap(entry, rootSchema)
   // 1. 优先返回规定的 default 字段值(注意深拷贝，否则会形成对象环！)
@@ -261,7 +265,7 @@ export const getDefaultValue = (props: FieldProps, entry: string | undefined): a
   // 3. oneOf/anyOf 选择第0项的schema返回
   const ofCacheValue = ofCache.get(entry)
   if (ofCacheValue) {
-    return getDefaultValue(props, addRef(ofCacheValue.ofRef, "0")!)
+    return getDefaultValue(schemaCache, addRef(ofCacheValue.ofRef, "0")!)
   }
   // 4. 按照 schema 寻找答案
   const allTypes = absorbProperties(entryMap, "type", "intersection")
@@ -276,7 +280,7 @@ export const getDefaultValue = (props: FieldProps, entry: string | undefined): a
         // 仅对 required 中的属性进行创建
         const required = getPathVal(rootSchema, addRef(ref, "required")!) || []
         for (const propName of required) {
-          result[propName] = getDefaultValue(props, addRef(ref, "properties", propName))
+          result[propName] = getDefaultValue(schemaCache, addRef(ref, "properties", propName))
         }
       }
       return result
@@ -287,7 +291,7 @@ export const getDefaultValue = (props: FieldProps, entry: string | undefined): a
       if (itemCacheValue && itemCacheValue.itemLength !== undefined) {
         const { itemLength } = itemCacheValue
         for (let i = 0; i < itemLength; i++) {
-          arrayResult.push(getDefaultValue(props, addRef(itemsRef, i.toString())))
+          arrayResult.push(getDefaultValue(schemaCache, addRef(itemsRef, i.toString())))
         }
       }
       return arrayResult

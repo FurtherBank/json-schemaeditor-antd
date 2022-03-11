@@ -5,6 +5,7 @@ import Input from "antd/lib/input"
 import message from "antd/lib/message"
 import _ from "lodash"
 import React, { useState } from "react"
+import { SchemaCache } from "."
 import { FatherInfo, FieldProps } from "./Field"
 import { getDefaultValue } from "./FieldOptions"
 import { addRef, concatAccess, findKeyRefs, matchKeys } from "./utils"
@@ -12,13 +13,14 @@ import { addRef, concatAccess, findKeyRefs, matchKeys } from "./utils"
 interface CreateNameProps {
   fatherInfo: FatherInfo
   fieldProps: FieldProps
+  fieldCache: SchemaCache
   style?: React.CSSProperties
 }
 
 const CreateName = (props: CreateNameProps) => {
-  const { fatherInfo, fieldProps, style } = props
-  const { cache, valueEntry, data, doAction, route, field, valueSchemaMap } = fieldProps
-  const { propertyCache, itemCache } = cache!
+  const { fatherInfo, fieldProps, style, fieldCache } = props
+  const { valueEntry, data, doAction, route, field} = fieldProps
+  const { propertyCache, itemCache, valueSchemaMap } = fieldCache
   const access = concatAccess(route, field)
 
   const [editing, setEditing] = useState(false)
@@ -49,7 +51,7 @@ const CreateName = (props: CreateNameProps) => {
       if (itemCacheValue) {
         const { itemLength } = itemCacheValue
         const schemaRef = itemLength !== undefined ? nowLength < itemLength ? addRef(valueEntry, 'items', nowLength.toString()) : addRef(valueEntry, 'additionalItems') : addRef(valueEntry, 'items')
-        const defaultValue = getDefaultValue(fieldProps, schemaRef)
+        const defaultValue = getDefaultValue(fieldCache, schemaRef)
         doAction!('create', access, nowLength.toString(), defaultValue)
       } else {
         doAction!('create', access, nowLength.toString(), _.cloneDeep(data[data.length-1]))
@@ -86,7 +88,7 @@ const CreateName = (props: CreateNameProps) => {
         }
       }
     }
-    doAction!('create', access, name, getDefaultValue(fieldProps, newValueEntry))
+    doAction!('create', access, name, getDefaultValue(fieldCache, newValueEntry))
     setEditing(false)
   }
   return editing ? (

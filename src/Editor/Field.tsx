@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useContext, useMemo } from "react"
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -66,6 +66,7 @@ import { SelectableGroup } from "react-selectable-fast"
 import ItemList from "./ItemList"
 import { useState } from "react"
 import { DataItemProps } from "./DataItem"
+import { CacheContext, SchemaCache } from "."
 const { Panel } = Collapse
 
 export interface FieldProps {
@@ -78,10 +79,6 @@ export interface FieldProps {
   setDrawer?: Function
   canNotRename?: boolean | undefined
   // redux props
-  rootSchema?: boolean | Schema | undefined
-  entrySchemaMap?: Map<string, boolean | Schema>
-  valueSchemaMap?: Map<string, boolean | Schema>
-  cache?: Caches
   doAction?: Function
   data?: any
   reRender?: any
@@ -114,9 +111,9 @@ const sideActions = ["detail", "moveup", "movedown", "oneOf", "type", "delete"]
  * 动作空间函数，理应有。
  * 注意：该函数输出的顺序影响侧栏动作按钮的顺序！
  */
-const actionSpace = (props: FieldProps, error: any | undefined) => {
-  const { fatherInfo, field, data, schemaEntry, entrySchemaMap, valueSchemaMap, short, cache } = props
-  const { ofCache, propertyCache, itemCache } = cache!
+const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | undefined) => {
+  const { fatherInfo, field, data, schemaEntry, short } = props
+  const { ofCache, propertyCache, itemCache, entrySchemaMap, valueSchemaMap } = schemaCache
   const dataType = jsonDataType(data)
   const schemas = []
   for (const iterator of entrySchemaMap!.values()) {
@@ -127,7 +124,7 @@ const actionSpace = (props: FieldProps, error: any | undefined) => {
   const result = new Map()
   // 对象和数组 在schema允许的情况下可以 create
   if (data instanceof Array || data instanceof Object) {
-    const autoCompleteFields = canSchemaCreate(props)
+    const autoCompleteFields = canSchemaCreate(props, schemaCache)
     if (autoCompleteFields) result.set("create", autoCompleteFields)
   }
 
@@ -155,11 +152,11 @@ const actionSpace = (props: FieldProps, error: any | undefined) => {
   }
 
   // 短优化时，如果有 const/enum 或者类型错误，加入detail
-  if (short && (result.has("const") || result.has("enum") || error)) result.set("detail", true)
+  if (short && (result.has("const") || result.has("enum") || errors.length > 0)) result.set("detail", true)
 
   // 如果父亲是对象/数组，且属性可删除，加入删除功能
   if (fatherInfo && fatherInfo.type) {
-    if (canDelete(props)) result.set("delete", true)
+    if (canDelete(props, schemaCache)) result.set("delete", true)
   }
 
   return result
@@ -218,34 +215,153 @@ const stopBubble = (e: React.SyntheticEvent) => {
 }
 
 const FieldBase = (props: FieldProps) => {
-  const {
-    data,
-    route,
-    field,
-    valueSchemaMap,
-    dataErrors,
-    schemaEntry,
-    cache,
-    short,
-    valueEntry,
-    entrySchemaMap,
-    canNotRename,
-    setDrawer,
-  } = props
+  const { data, route, field, dataErrors, schemaEntry, short, canNotRename, setDrawer } = props
+
+  const caches = useContext(CacheContext), { ofCache, propertyCache, itemCache, rootSchema } = caches
+
+  // 读取路径上的 schemaMap
+  const entrySchemaMap = getRefSchemaMap(schemaEntry, rootSchema) //useMemo(() => {return getRefSchemaMap(schemaEntry, rootSchema)}, [schemaEntry, caches])
+
+  let valueEntry = undefined as undefined | string
+  if (schemaEntry) {
+    // 设置 ofCache (use Entry map ,root)
+    if (!ofCache.has(schemaEntry)) {
+      setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
+    }
+    // 确定 valueEntry
+    const ofOption = getOfOption(data, schemaEntry, ofCache)
+    valueEntry =
+      ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ofCache, schemaEntry, ofOption)
+  }
+
+  const valueSchemaMap = getRefSchemaMap(valueEntry, rootSchema) // useMemo(() => {
+  //   return getRefSchemaMap(valueEntry, rootSchema)
+  // }, [valueEntry, caches])
+  
+  if (valueEntry) {
+    // 设置 propertyCache
+    if (!propertyCache.has(valueEntry)) {
+      // 得到以下属性的 ref
+      const propertyRefs = findKeyRefs(valueSchemaMap, "properties", true) as string[]
+      const patternRefs = findKeyRefs(valueSchemaMap, "patternProperties", true) as string[]
+      const additionalRef = findKeyRefs(valueSchemaMap, "additionalProperties", false) as string | undefined
+      const requiredRefs = findKeyRefs(valueSchemaMap, "required", true) as string[]
+
+      if (propertyRefs.length + patternRefs.length > 0 || additionalRef) {
+        // 对字段是否是短字段进行分类
+        const shortProps: (string | RegExp)[] = []
+        const otherProps: (string | RegExp)[] = []
+        propertyRefs.forEach((ref) => {
+          const schemas = getPathVal(rootSchema, ref)
+          if (!schemas || schemas === true) return []
+          for (const key in schemas) {
+            if (schemaShortable(addRef(ref, key)!, rootSchema)) {
+              shortProps.push(key)
+            } else {
+              otherProps.push(key)
+            }
+          }
+        })
+        patternRefs.forEach((ref) => {
+          const schemas = getPathVal(rootSchema, ref)
+          if (!schemas || schemas === true) return []
+          for (const key in schemas) {
+            if (schemaShortable(addRef(ref, key)!, rootSchema)) {
+              shortProps.push(new RegExp(key))
+            } else {
+              otherProps.push(new RegExp(key))
+            }
+          }
+        })
+        const additionalValid = additionalRef ? getPathVal(rootSchema, additionalRef) !== false : false
+        const additionalShortAble = additionalRef ? schemaShortable(additionalRef, rootSchema) : false
+        // 得到 required 字段
+        const required = requiredRefs.flatMap((ref) => {
+          const schemas = getPathVal(rootSchema, ref)
+          if (!schemas || schemas === true) return []
+          return schemas
+        })
+        propertyCache.set(valueEntry, {
+          shortProps: _.uniq(shortProps),
+          otherProps: _.uniq(otherProps),
+          required,
+          additionalShortAble,
+          additionalValid,
+        })
+      } else {
+        propertyCache.set(valueEntry, null)
+      }
+    }
+
+    // 设置 itemCache
+    if (!itemCache.has(valueEntry)) {
+      // 先进行对象的 itemCache 设置
+      const itemRef = findKeyRefs(valueSchemaMap, "items") as string
+      const additionalItemRef = findKeyRefs(valueSchemaMap, "additionalItems") as string
+      if (itemRef) {
+        const itemSchema = getPathVal(rootSchema, itemRef)
+        // 如果所有 schema 没有 title，认为是extra 短优化，此外是普通短优化
+        if (itemSchema instanceof Array) {
+          const additionalItemSchemaMap = getRefSchemaMap(additionalItemRef, rootSchema)
+          const itemListShort = itemSchema.every((schema, i) => {
+            return schemaShortable(addRef(itemRef, i.toString())!, rootSchema)
+          })
+          const additionalItemShort = schemaShortable(additionalItemRef, rootSchema)
+          if (itemListShort && additionalItemShort) {
+            // 判断是否是extra短优化(true/false 不能shortable，故不需要先过滤)
+            const itemListNoTitle = itemSchema.every((schema, i) => {
+              const fieldRef = addRef(itemRef, i.toString())!
+              const fieldMap = getRefSchemaMap(fieldRef, rootSchema)
+              return absorbProperties(fieldMap, "title", "first") === undefined
+            })
+            const additionalItemHasTitle = absorbProperties(additionalItemSchemaMap, "title", "first") !== undefined
+            if (!itemListNoTitle || additionalItemHasTitle) {
+              itemCache.set(valueEntry, {
+                shortOpt: ShortOpt.short,
+                itemLength: itemSchema.length,
+              })
+            } else {
+              itemCache.set(valueEntry, {
+                shortOpt: ShortOpt.extra,
+                itemLength: itemSchema.length,
+              })
+            }
+          } else {
+            itemCache.set(valueEntry, null)
+          }
+        } else {
+          const oneTypeArrayShortAble = schemaShortable(itemRef, rootSchema)
+          const itemHasTitle = itemSchema.title !== undefined
+          if (oneTypeArrayShortAble) {
+            if (itemHasTitle) {
+              itemCache.set(valueEntry, { shortOpt: ShortOpt.short })
+            } else {
+              itemCache.set(valueEntry, { shortOpt: ShortOpt.extra })
+            }
+          } else {
+            itemCache.set(valueEntry, null)
+          }
+        }
+      } else {
+        itemCache.set(valueEntry, null)
+      }
+    }
+  }
+
+  const schemaCache = { ofCache, propertyCache, itemCache, rootSchema, valueSchemaMap, entrySchemaMap }
   // 这里单独拿出来是为防止被undefined
-  const { ofCache, propertyCache, itemCache } = cache!
   const doAction = props.doAction!
 
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
-  const error = getError(dataErrors!, access)
+  const errors = getError(dataErrors!, access)
 
-  const space = actionSpace(props, error)
+  const space = actionSpace(props, schemaCache, errors)
   const valueType = space.has("const") ? "const" : space.has("enum") ? "enum" : dataType
 
   const title = absorbProperties(entrySchemaMap!, "title", "first") as string | undefined
   const description = absorbProperties(entrySchemaMap!, "description", "first")
-  const fieldNameRange = canSchemaRename(props)
+  const fieldNameRange = canSchemaRename(props, schemaCache)
   const itemCacheValue = itemCache.get(valueEntry!)
 
   const format = absorbProperties(valueSchemaMap!, "format", "first")
@@ -274,8 +390,8 @@ const FieldBase = (props: FieldProps) => {
   const titleCom = (
     <Space onClick={stopBubble} style={spaceStyle}>
       {
-        error ? (
-          <Tooltip title={error.message} placement="topLeft" key="valid">
+        errors.length > 0 ? (
+          <Tooltip title={errors.map((error: { message: string }) => error.message).join('\n')} placement="topLeft" key="valid">
             <CloseCircleOutlined style={{ color: "red" }} />
           </Tooltip>
         ) : null
@@ -441,7 +557,7 @@ const FieldBase = (props: FieldProps) => {
               treeData={options}
               onChange={(value, labellist, extra) => {
                 const schemaRef = getRefByOfChain(ofCache, schemaEntry!, value)
-                const defaultValue = getDefaultValue(props, schemaRef)
+                const defaultValue = getDefaultValue(schemaCache, schemaRef)
                 doAction("change", route, field, defaultValue)
               }}
               style={{ minWidth: "90px" }}
@@ -538,6 +654,7 @@ const FieldBase = (props: FieldProps) => {
     return access.length === 0 && dataType === "array" && _.isEqual(types, ["array"]) ? (
       <FieldList
         fieldProps={props}
+        fieldCache={schemaCache}
         content={children}
         fatherInfo={childFatherInfo}
         short={ShortOpt.no}
@@ -549,6 +666,7 @@ const FieldBase = (props: FieldProps) => {
         <Panel key="theoneandtheonly" header={titleCom} extra={<Space onClick={stopBubble}>{actionComs}</Space>}>
           <FieldList
             fieldProps={props}
+            fieldCache={schemaCache}
             content={children}
             fatherInfo={childFatherInfo}
             short={dataType === "array" && itemCacheValue ? itemCacheValue.shortOpt : ShortOpt.no}
@@ -615,7 +733,7 @@ const FieldBase = (props: FieldProps) => {
 
 /**
  * 字段组件是否需要重新渲染，条件：
- * 1. access 完全匹配了 lastChangedRoute 
+ * 1. access 完全匹配了 lastChangedRoute
  * 2. lastChangedRoute + lastChangedField 一个元素 是 access 的子串
  * 3. 根节点
  * @param access
@@ -649,12 +767,12 @@ const needReRender = (access: string[], lastChangedRoute: null | string[], lastC
 
 /**
  * 对 设置 ofCache
- * @param ofCache 
- * @param schemaEntry 
- * @param entrySchemaMap 
- * @param rootSchema 
- * @param nowOfRefs 
- * @returns 
+ * @param ofCache
+ * @param schemaEntry
+ * @param entrySchemaMap
+ * @param rootSchema
+ * @param nowOfRefs
+ * @returns
  */
 const setOfCache = (
   ofCache: Map<string, ofSchemaCache | null>,
@@ -719,9 +837,8 @@ const setOfCache = (
  */
 const Field = connect(
   (state: State, props: FieldProps) => {
-    const { route, field, schemaEntry } = props
-    const { data, lastChangedRoute, lastChangedField, rootSchema, cache, dataErrors } = state
-    const { ofCache, itemCache, propertyCache } = cache!
+    const { route, field } = props
+    const { data, lastChangedRoute, lastChangedField, dataErrors } = state
 
     // 得到确切访问路径，取得数据
     const access = field != null ? route.concat(field) : route
@@ -733,143 +850,8 @@ const Field = connect(
     // 根据上次动作给出的渲染路径 判断
     const reRender = needReRender(access, lastChangedRoute, lastChangedField)
 
-    // 读取路径上的 schemaMap
-    const entrySchemaMap = getRefSchemaMap(schemaEntry, rootSchema)
-
-    let valueEntry = undefined
-    if (schemaEntry) {
-      // 设置 ofCache (use Entry map ,root)
-      if (!ofCache.has(schemaEntry)) {
-        setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
-      }
-      // 确定 valueEntry
-      const ofOption = getOfOption(targetData, schemaEntry, ofCache)
-      valueEntry =
-        ofOption === null
-          ? schemaEntry
-          : ofOption === false
-          ? undefined
-          : getRefByOfChain(ofCache, schemaEntry, ofOption)
-    }
-
-    const valueSchemaMap = getRefSchemaMap(valueEntry, rootSchema)
-    if (valueEntry) {
-      // 设置 propertyCache
-      if (!propertyCache.has(valueEntry)) {
-        // 得到以下属性的 ref
-        const propertyRefs = findKeyRefs(valueSchemaMap, "properties", true) as string[]
-        const patternRefs = findKeyRefs(valueSchemaMap, "patternProperties", true) as string[]
-        const additionalRef = findKeyRefs(valueSchemaMap, "additionalProperties", false) as string | undefined
-        const requiredRefs = findKeyRefs(valueSchemaMap, "required", true) as string[]
-
-        if (propertyRefs.length + patternRefs.length > 0 || additionalRef) {
-          // 对字段是否是短字段进行分类
-          const shortProps: (string | RegExp)[] = []
-          const otherProps: (string | RegExp)[] = []
-          propertyRefs.forEach((ref) => {
-            const schemas = getPathVal(rootSchema, ref)
-            if (!schemas || schemas === true) return []
-            for (const key in schemas) {
-              if (schemaShortable(addRef(ref, key)!, rootSchema)) {
-                shortProps.push(key)
-              } else {
-                otherProps.push(key)
-              }
-            }
-          })
-          patternRefs.forEach((ref) => {
-            const schemas = getPathVal(rootSchema, ref)
-            if (!schemas || schemas === true) return []
-            for (const key in schemas) {
-              if (schemaShortable(addRef(ref, key)!, rootSchema)) {
-                shortProps.push(new RegExp(key))
-              } else {
-                otherProps.push(new RegExp(key))
-              }
-            }
-          })
-          const additionalValid = additionalRef ? getPathVal(rootSchema, additionalRef) !== false : false
-          const additionalShortAble = additionalRef ? schemaShortable(additionalRef, rootSchema) : false
-          // 得到 required 字段
-          const required = requiredRefs.flatMap((ref) => {
-            const schemas = getPathVal(rootSchema, ref)
-            if (!schemas || schemas === true) return []
-            return schemas
-          })
-          propertyCache.set(valueEntry, {
-            shortProps: _.uniq(shortProps),
-            otherProps: _.uniq(otherProps),
-            required,
-            additionalShortAble,
-            additionalValid,
-          })
-        } else {
-          propertyCache.set(valueEntry, null)
-        }
-      }
-
-      // 设置 itemCache
-      if (!itemCache.has(valueEntry)) {
-        // 先进行对象的 itemCache 设置
-        const itemRef = findKeyRefs(valueSchemaMap, "items") as string
-        const additionalItemRef = findKeyRefs(valueSchemaMap, "additionalItems") as string
-        if (itemRef) {
-          const itemSchema = getPathVal(rootSchema, itemRef)
-          // 如果所有 schema 没有 title，认为是extra 短优化，此外是普通短优化
-          if (itemSchema instanceof Array) {
-            const additionalItemSchemaMap = getRefSchemaMap(additionalItemRef, rootSchema)
-            const itemListShort = itemSchema.every((schema, i) => {
-              return schemaShortable(addRef(itemRef, i.toString())!, rootSchema)
-            })
-            const additionalItemShort = schemaShortable(additionalItemRef, rootSchema)
-            if (itemListShort && additionalItemShort) {
-              // 判断是否是extra短优化(true/false 不能shortable，故不需要先过滤)
-              const itemListNoTitle = itemSchema.every((schema, i) => {
-                const fieldRef = addRef(itemRef, i.toString())!
-                const fieldMap = getRefSchemaMap(fieldRef, rootSchema)
-                return absorbProperties(fieldMap, "title", "first") === undefined
-              })
-              const additionalItemHasTitle = absorbProperties(additionalItemSchemaMap, "title", "first") !== undefined
-              if (!itemListNoTitle || additionalItemHasTitle) {
-                itemCache.set(valueEntry, {
-                  shortOpt: ShortOpt.short,
-                  itemLength: itemSchema.length,
-                })
-              } else {
-                itemCache.set(valueEntry, {
-                  shortOpt: ShortOpt.extra,
-                  itemLength: itemSchema.length,
-                })
-              }
-            } else {
-              itemCache.set(valueEntry, null)
-            }
-          } else {
-            const oneTypeArrayShortAble = schemaShortable(itemRef, rootSchema)
-            const itemHasTitle = itemSchema.title !== undefined
-            if (oneTypeArrayShortAble) {
-              if (itemHasTitle) {
-                itemCache.set(valueEntry, { shortOpt: ShortOpt.short })
-              } else {
-                itemCache.set(valueEntry, { shortOpt: ShortOpt.extra })
-              }
-            } else {
-              itemCache.set(valueEntry, null)
-            }
-          }
-        } else {
-          itemCache.set(valueEntry, null)
-        }
-      }
-    }
-
     return {
       data: targetData,
-      valueEntry,
-      entrySchemaMap,
-      valueSchemaMap,
-      rootSchema,
-      cache,
       dataErrors,
       reRender: reRender ? {} : null, // 本来在 areEqual 之前还有一个浅比较：相等一定不渲染。这里true用一个空对象(变引用)就可以解决这一个问题
     }

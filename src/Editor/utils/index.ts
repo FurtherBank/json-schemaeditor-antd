@@ -2,6 +2,7 @@
 import { getSchemaTypes } from "ajv/dist/compile/validate/dataType"
 import { debug } from "console"
 import _, { isEqual } from "lodash"
+import { SchemaCache } from ".."
 import { FieldProps } from "../Field"
 
 const concatAccess = (route: any[], ...args: any[]) => {
@@ -245,22 +246,26 @@ const filterIter = <T>(
  * 对 Array/Object 获取特定字段 schemaEntry。
  * 注意：无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
  * @param props
+ * @param schemaCache
  * @param field
  * @param oneOfChoice
  * @returns
  */
 const getFieldSchema = (
   props: FieldProps,
+  schemaCache: SchemaCache,
   field: string,
   oneOfChoice: number | null = null
 ) => {
-  const { schemaEntry, data, rootSchema, cache, valueSchemaMap } = props
+  const { schemaEntry, data } = props
+  const { valueSchemaMap, propertyCache, itemCache, rootSchema} = schemaCache
   const dataType = jsonDataType(data)
   switch (dataType) {
     case "object":
       const properties = findKeyRefs(valueSchemaMap!, "properties", false) as string | undefined
       if (properties) {
         const propertySchema = getPathVal(rootSchema, properties) as object
+        // debugger
         if (propertySchema.hasOwnProperty(field))
           return addRef(properties, field)
       }
@@ -475,12 +480,19 @@ const extractSchema = (
   return newSchema
 }
 
+/**
+ * 得到该字段犯下的错误
+ * @param errors 所有的error
+ * @param access 字段的access
+ * @returns 
+ */
 const getError = (errors: any[], access: string[]): any | undefined => {
-  return errors.find((error, i) => {
+  const foundErrors =  errors.filter((error, i) => {
     const instancePath = error.instancePath.split("/")
     instancePath.shift()
     return isEqual(instancePath, access)
   })
+  return foundErrors
 }
 
 export const mergeValue = (t: any, s: any) => {

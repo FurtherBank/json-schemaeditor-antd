@@ -57,9 +57,9 @@ const toEnumName = (v: any) => {
  */
 const toOfName = (schemaMap: Map<string, boolean | Schema>) => {
   const schemas = filterObjSchema(schemaMap.values())
-  const title = absorbProperties(schemas, "title", "first")
+  const title = absorbProperties(schemas, "title")
   if (title) return title
-  const type = absorbProperties(schemas, "type", "intersection")
+  const type = absorbProperties(schemas, "type")
   if (type.length === 1) return type[0]
   return ""
 }
@@ -78,16 +78,16 @@ const schemaShortable = (ref: string, rootSchema: RootSchema | boolean | undefin
   const existToTrue = ["const", "enum"]
   for (let i = 0; i < existToTrue.length; i++) {
     const key = existToTrue[i]
-    const keySchema = absorbProperties(schemaMap, key, "first")
+    const keySchema = absorbProperties(schemaMap, key)
     if (keySchema !== undefined) return true
   }
 
-  const types = absorbProperties(schemaMap, "type", "intersection")
+  const types = absorbProperties(schemaMap, "type")
   if (types.length === 1) {
     const type = types[0]
     switch (type) {
     case "string":
-      const format = absorbProperties(schemaMap, "format", "first")
+      const format = absorbProperties(schemaMap, "format")
       if (format && (extraLongFormats.includes(format) || longFormats.includes(format))) return false
       return true
     case "number":
@@ -110,8 +110,8 @@ export const getFormatType = (format: string | undefined) => {
 
 /**
  * 当前json在既定的schema下是否可以创建新的属性。
- * @param data 当前json
- * @param schemas
+ * @param props 
+ * @param schemaCache
  */
 const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
   const { data } = props
@@ -173,7 +173,7 @@ const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
 const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => {
   const { field, schemaEntry, fatherInfo } = props
   const { entrySchemaMap, itemCache, propertyCache, valueSchemaMap } = schemaCache
-  const title = absorbProperties(entrySchemaMap!, "title", "first") as string | undefined
+  const title = absorbProperties(entrySchemaMap!, "title") as string | undefined
 
   if (field === null) {
     return title ? title : ''
@@ -247,7 +247,7 @@ const canDelete = (props: FieldProps, schemaCache: SchemaCache) => {
  * @param entry
  * @returns
  */
-export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefined): any => {
+export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefined, nowData: any = undefined): any => {
   const { ofCache, itemCache, rootSchema } = schemaCache!
   if (!entry) return null
   const entryMap = getRefSchemaMap(entry, rootSchema)
@@ -268,7 +268,7 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
     return getDefaultValue(schemaCache, addRef(ofCacheValue.ofRef, "0")!)
   }
   // 4. 按照 schema 寻找答案
-  const allTypes = absorbProperties(entryMap, "type", "intersection")
+  const allTypes = absorbProperties(entryMap, "type")
   if (allTypes.length > 0) {
     const type = allTypes[0]
     switch (type) {

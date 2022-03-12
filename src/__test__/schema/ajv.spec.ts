@@ -2,11 +2,17 @@ import Ajv, { ValidateFunction } from "ajv"
 import addFormats from "ajv-formats"
 import draft6MetaSchema from "ajv/dist/refs/json-schema-draft-06.json"
 
+import facility from "../../json-example/dataFacility.json"
+import $facility from "../../json-example/$schema.dataFacility.json"
+
 import propertyTest from "../../schema-example/test-property.json"
 import refTest from "../../schema-example/test-ref.json"
 import formatTest from "../../schema-example/test-format.json"
 import messTest from "../../schema-example/test-format.json"
 import _ from "lodash"
+
+import {ajvInstance} from '../../Editor/reducer'
+import { time } from "console"
 
 const ajv = new Ajv({
   allErrors: true
@@ -47,6 +53,15 @@ const ajvValidate = (
 
   const valid = validate(data)
   return [valid, validate]
+}
+
+const testTime = <R>(func: (...args: any[]) => R) => {
+  return (...args: any[]) => {
+    const s = Date.now()
+    const result = func(...args)
+    const e = Date.now()
+    return [result, e-s] as [R, number]
+  }
 }
 
 test("基础", () => {
@@ -145,9 +160,11 @@ test("无类型混乱模式", () => {
   if (!valid) console.log(validate.errors)
 })
 
-// test('1', () => {
-//   getSchemaTypes
-//   const data = null
-//   const [valid, validate] = ajvValidate(extracted, data);
-//   expect(valid).toBe(true);
-// })
+test('验证时间测试', () => {
+  console.time('testtime')
+  const valid = ajvInstance.validate($facility, facility)
+  console.timeEnd('testtime')
+
+  expect(valid).toBe(true)
+  
+})

@@ -1,4 +1,8 @@
-# json-schema
+# json-schemaeditor-antd
+## 使用方法
+核心部分是Editor文件夹的组件。  
+直接引用Editor文件夹即可。  
+组件就三个属性：data，schema，onChange: (value: any) => void
 
 ## 数据表示
 
@@ -86,10 +90,11 @@ null是不需要显示的。
 
 https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.3
 
-| 关键字                  | 作用          | 值类型 | 备注 |
-| ----------------------- | ------------- | ------ | ---- |
-| `minLength`,`maxLength` | 最小/最大长度 | int    |      |
-| `pattern`               | 符合的正则    | regex  |      |
+| 关键字                  | 作用           | 值类型 | 备注 |
+| ----------------------- | -------------- | ------ | ---- |
+| `minLength`,`maxLength` | 最小/最大长度  | int    |      |
+| `pattern`               | 符合的正则     | regex  |      |
+| `format`                | 格式，就是正则 | string |      |
 
 ### 数组
 
@@ -142,7 +147,9 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 1. 编辑的过程中，模式是不变的
 2. `required`的属性都具备在`properties`中
 3. 设置了`type`属性后，才会给对应属性类型约束
-4. `oneOf`、`anyOf`、`enum`、`const`不同时存在，如果存在`oneOf`或`anyOf`，其选项相连不出现循环引用。
+4. `oneOf`、`anyOf`、`enum`、`const`不同时存在
+5. 如果存在`oneOf`或`anyOf`，其选项相连不出现循环引用，而且之外不存在验证属性
+   如果出现了层叠的`oneOf`和`anyOf`，不会出现重复引用项
 5. `properties`和`patternProperties`不能匹配到同一名称
 6. 如果是多模式验证，满足**替换假设**。否则某些特性会无法正常工作。详见 [采用多schema](#采用多schema)
 
@@ -205,6 +212,8 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 ## 具体问题
 
 ### ajv的配置相关
+
+### oneOf/anyOf下出现additionalProperties的性能问题
 
 
 
@@ -285,6 +294,24 @@ https://ajv.js.org/packages/ajv-formats.html
 如果数据错误，会在对应处出现一个❌，鼠标移到上面可以查看错误信息详情。
 会以数据实际类型来显示数据。
 如果数据作为短字段显示且为对象/数组的话，会出现类型错误四个字，可以查看详情更改或者重置
+
+### oneOf/anyOf 自动判别器
+
+正常来说，判断一份数据属于 oneOf/anyOf 的哪一个选项时，就是将每一个选项的模式分别对数据进行验证，如果数据匹配一个模式，就认为该数据属于这个模式对应的选项。
+
+但是这么做有两个非常明显的缺点：
+
+1. 实现中需要一一展开模式，并且对每一个选项的数据都要进行验证，非常费时，对于一个不太大的数据，验证时间甚至会达到秒的数量级
+   (一个一般大的模式，每个选项验证大概需要20ms)
+2. 如果数据并不满足任何模式，但是和某个模式非常相似，那么也无法提供模式对于编辑的确定性支持
+
+因此，这里引入了自动判别器的概念。
+
+实际上，draft 2019-9 也提供了discrimiator这个关键词，来做这件事情。
+
+自动判别就是通过数据的一些特征直接匹配到对应的模式选项上，而不是整个的验证，来解决以上的两个问题。
+
+
 
 ## Reducer
 

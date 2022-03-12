@@ -68,6 +68,7 @@ import { useState } from "react"
 import { DataItemProps } from "./DataItem"
 import { CacheContext, SchemaCache } from "."
 import { time } from "console"
+import { ValidateFunction } from "ajv"
 const { Panel } = Collapse
 
 export interface FieldProps {
@@ -75,7 +76,6 @@ export interface FieldProps {
   field: string | null // route的最后
   fatherInfo?: FatherInfo
   schemaEntry?: string | undefined
-  valueEntry?: string | undefined
   short?: ShortOpt
   setDrawer?: Function
   canNotRename?: boolean | undefined
@@ -137,8 +137,8 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
   }
 
   // 按照 enums/oneOf/types 分类
-  const constSchema = absorbProperties(filteredSchemas, "const", "first") as any | undefined
-  const enums = absorbProperties(filteredSchemas, "enum", "first") as any[] | undefined
+  const constSchema = absorbProperties(filteredSchemas, "const") as any | undefined
+  const enums = absorbProperties(filteredSchemas, "enum") as any[] | undefined
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : undefined
   if (constSchema !== undefined) {
     result.set("const", constSchema)
@@ -148,7 +148,7 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
     result.set("oneOf", ofCacheValue)
   } else {
     // 如果类型可能性有多种，使用 'type' 切换属性
-    const types = absorbProperties(filteredSchemas, "type", "intersection")
+    const types = absorbProperties(filteredSchemas, "type")
     if (hasFalse || types.length !== 1) result.set("type", types.length > 0 ? types : JsonTypes)
   }
 
@@ -165,29 +165,31 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
 
 /**
  * 验证数据符合 oneOf/anyOf 的哪一个选项
- * @param props
- * @param of 指明是 oneOf/anyOf
- * @returns
+ * @param data
+ * @param schemaEntry
+ * @param ofCache
+ * @returns `null`为无 oneOf/anyOf，`false`为不符合任何选项，`string`为选项链
  */
 const getOfOption = (
   data: any,
   schemaEntry: string,
   ofCache: Map<string, ofSchemaCache | null>,
-  optValue = ""
 ): string | null | false => {
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null
   if (ofCacheValue) {
     const { extracted, ofLength, ofRef } = ofCacheValue
     for (let i = 0; i < ofLength; i++) {
-      const valid = ajvInstance.validate(extracted[i], data)
-      if (valid) {
-        optValue += optValue ? `-${i}` : i.toString()
-        const optRef = addRef(ofRef, i.toString())!
-        const optOfCacheValue = ofCache.get(optRef)
-        if (optOfCacheValue) {
-          return getOfOption(data, optRef, ofCache, optValue)
-        }
-        return optValue
+      const validate = extracted[i]
+      if (typeof validate === 'string') {
+        // 展开的 validate 为 string，就是子 oneOf 的 ref
+        const optOfCacheValue = ofCache.get(validate)
+        console.assert(optOfCacheValue)
+        const subOption = getOfOption(data, validate, ofCache)
+        console.assert(subOption !== null)
+        if (subOption) return `${i}-${subOption}`
+      } else {
+        const valid = validate(data)
+        if (valid) return i.toString()
       }
     }
     return false
@@ -217,7 +219,8 @@ const stopBubble = (e: React.SyntheticEvent) => {
 const FieldBase = (props: FieldProps) => {
   const { data, route, field, dataErrors, schemaEntry, short, canNotRename, setDrawer } = props
 
-  const caches = useContext(CacheContext), { ofCache, propertyCache, itemCache, rootSchema } = caches
+  const caches = useContext(CacheContext),
+    { ofCache, propertyCache, itemCache, rootSchema } = caches
 
   // 读取路径上的 schemaMap
   const entrySchemaMap = getRefSchemaMap(schemaEntry, rootSchema) //useMemo(() => {return getRefSchemaMap(schemaEntry, rootSchema)}, [schemaEntry, caches])
@@ -230,17 +233,15 @@ const FieldBase = (props: FieldProps) => {
       setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
     }
     // 确定 valueEntry
-    if (ofCache.get(schemaEntry)) console.time(`ofOpt ${schemaEntry}`)
     ofOption = getOfOption(data, schemaEntry, ofCache)
-    if (ofCache.get(schemaEntry)) console.timeEnd(`ofOpt ${schemaEntry}`)
     valueEntry =
       ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ofCache, schemaEntry, ofOption)
   }
 
-  const valueSchemaMap = getRefSchemaMap(valueEntry, rootSchema) // useMemo(() => {
-  //   return getRefSchemaMap(valueEntry, rootSchema)
-  // }, [valueEntry, caches])
-  
+  const valueSchemaMap = useMemo(() => {
+    return getRefSchemaMap(valueEntry, rootSchema)
+  }, [valueEntry, caches])
+
   if (valueEntry) {
     // 设置 propertyCache
     if (!propertyCache.has(valueEntry)) {
@@ -315,9 +316,9 @@ const FieldBase = (props: FieldProps) => {
             const itemListNoTitle = itemSchema.every((schema, i) => {
               const fieldRef = addRef(itemRef, i.toString())!
               const fieldMap = getRefSchemaMap(fieldRef, rootSchema)
-              return absorbProperties(fieldMap, "title", "first") === undefined
+              return absorbProperties(fieldMap, "title") === undefined
             })
-            const additionalItemHasTitle = absorbProperties(additionalItemSchemaMap, "title", "first") !== undefined
+            const additionalItemHasTitle = absorbProperties(additionalItemSchemaMap, "title") !== undefined
             if (!itemListNoTitle || additionalItemHasTitle) {
               itemCache.set(valueEntry, {
                 shortOpt: ShortOpt.short,
@@ -330,7 +331,10 @@ const FieldBase = (props: FieldProps) => {
               })
             }
           } else {
-            itemCache.set(valueEntry, null)
+            itemCache.set(valueEntry, {
+              shortOpt: ShortOpt.no,
+              itemLength: itemSchema.length,
+            })
           }
         } else {
           const oneTypeArrayShortAble = schemaShortable(itemRef, rootSchema)
@@ -342,7 +346,7 @@ const FieldBase = (props: FieldProps) => {
               itemCache.set(valueEntry, { shortOpt: ShortOpt.extra })
             }
           } else {
-            itemCache.set(valueEntry, null)
+            itemCache.set(valueEntry, { shortOpt: ShortOpt.no })
           }
         }
       } else {
@@ -351,7 +355,7 @@ const FieldBase = (props: FieldProps) => {
     }
   }
 
-  const schemaCache = { ofCache, propertyCache, itemCache, rootSchema, valueSchemaMap, entrySchemaMap }
+  const schemaCache = { ofCache, propertyCache, itemCache, rootSchema, valueEntry, valueSchemaMap, entrySchemaMap }
   // 这里单独拿出来是为防止被undefined
   const doAction = props.doAction!
 
@@ -362,14 +366,14 @@ const FieldBase = (props: FieldProps) => {
   const space = actionSpace(props, schemaCache, errors)
   const valueType = space.has("const") ? "const" : space.has("enum") ? "enum" : dataType
 
-  const title = absorbProperties(entrySchemaMap!, "title", "first") as string | undefined
-  const description = absorbProperties(entrySchemaMap!, "description", "first")
+  const title = absorbProperties(entrySchemaMap!, "title") as string | undefined
+  const description = absorbProperties(entrySchemaMap!, "description")
   const fieldNameRange = canSchemaRename(props, schemaCache)
   const itemCacheValue = itemCache.get(valueEntry!)
 
-  const format = absorbProperties(valueSchemaMap!, "format", "first")
+  const format = absorbProperties(valueSchemaMap!, "format")
   const formatType = getFormatType(format)
-  const types = absorbProperties(entrySchemaMap!, "type", "intersection")
+  const types = absorbProperties(entrySchemaMap!, "type")
 
   // 渲染排错
   if (dataType === "undefined") {
@@ -394,7 +398,11 @@ const FieldBase = (props: FieldProps) => {
     <Space onClick={stopBubble} style={spaceStyle}>
       {
         errors.length > 0 ? (
-          <Tooltip title={errors.map((error: { message: string }) => error.message).join('\n')} placement="topLeft" key="valid">
+          <Tooltip
+            title={errors.map((error: { message: string }) => error.message).join("\n")}
+            placement="topLeft"
+            key="valid"
+          >
             <CloseCircleOutlined style={{ color: "red" }} />
           </Tooltip>
         ) : null
@@ -458,7 +466,7 @@ const FieldBase = (props: FieldProps) => {
       case "row":
       case "uri-reference":
         // 所有使用 row 输入的格式，用这个
-        return <CInput {...allUsedProps} style={{ flex: 1, minWidth: "400px", flexBasis: "400px" }} />
+        return <CInput {...allUsedProps} style={{ flex: 1, minWidth: "400px" }} />
       default:
         return <CInput {...allUsedProps} style={{ flex: 1 }} />
     }
@@ -552,7 +560,7 @@ const FieldBase = (props: FieldProps) => {
       switch (action) {
         case "oneOf":
           const { options, ofRef } = space.get("oneOf") as ofSchemaCache
-          const ofIndex = ofOption || ' '
+          const ofIndex = ofOption || " "
           return (
             <TreeSelect
               key="oneOf"
@@ -796,43 +804,51 @@ const setOfCache = (
     ofCache.set(schemaEntry, null)
   } else if (ofRef) {
     nowOfRefs.push(ofRef)
-    const oneOfKeys = getPathVal(rootSchema, ofRef).map((v: any, i: string) => addRef(ofRef, i.toString())) as string[]
-    const oneOfOptions = oneOfKeys.map((ref, i) => {
+    const oneOfOptRefs = getPathVal(rootSchema, ofRef).map((v: any, i: string) =>
+      addRef(ofRef, i.toString())
+    ) as string[]
+
+    // 得到展开的 schema
+    const oneOfSchemas = getRefSchemaMap(oneOfOptRefs, rootSchema, true)
+    const extracted = extractSchema(oneOfSchemas, rootSchema)
+    const extractedSchemas = [] as (ValidateFunction | string)[]
+
+    const oneOfOptions = oneOfOptRefs.map((ref, i) => {
       const optMap = getRefSchemaMap(ref, rootSchema)
-      const optOfRef = findOfRef(optMap, false)
       const name = toOfName(optMap)
       const result = {
         value: i.toString(),
         title: name ? name : `Option ${i + 1}`,
       } as any
-      if (optOfRef) {
-        const optCache = ofCache.has(ref) ? ofCache.get(ref) : setOfCache(ofCache, ref, optMap, rootSchema, nowOfRefs)
-        if (optCache) {
-          const { options } = optCache
-          // todo: 这里需要变成多层的
-          result.children = options.map((option) => {
-            return deepReplace(_.cloneDeep(option), "value", (prev, key) => {
-              return `${i}-${prev}`
-            })
+      const optCache = ofCache.has(ref) ? ofCache.get(ref) : setOfCache(ofCache, ref, optMap, rootSchema, nowOfRefs)
+      if (optCache) {
+        const { options } = optCache
+        // todo: 这里需要变成多层的
+        result.children = options.map((option) => {
+          return deepReplace(_.cloneDeep(option), "value", (prev, key) => {
+            return `${i}-${prev}`
           })
-          result.disabled = true
-        }
+        })
+        result.disabled = true
+        // 选项有子选项，将子选项ref给他
+        extractedSchemas.push(ref)
+      } else {
+        // 选项没有子选项，直接放置 编译后 validate 函数
+        const s = Date.now()
+        const copy = _.clone(extracted)
+        copy.$ref = "#/definitions/subSchema" + i
+        const validate = ajvInstance.compile(copy)
+        extractedSchemas.push(validate)
+        const e = Date.now()
+        if (e-s > 10) console.warn(`${ref} 编译 ${e-s} ms`, copy)
       }
       return result
     })
 
-    const oneOfSchemas = getRefSchemaMap(oneOfKeys, rootSchema, true)
-    const extracted = extractSchema(oneOfSchemas, rootSchema)
-    const extractedSchemas = []
-    for (let i = 0; i < oneOfKeys.length; i++) {
-      const copy = _.clone(extracted)
-      copy.$ref = "#/definitions/subSchema" + i
-      extractedSchemas.push(copy)
-    }
     ofCache.set(schemaEntry, {
       extracted: extractedSchemas,
       ofRef: ofRef,
-      ofLength: oneOfKeys.length,
+      ofLength: oneOfOptRefs.length,
       options: oneOfOptions,
     })
   } else {

@@ -29,7 +29,7 @@ interface FieldListProps {
 const FieldList = (props: FieldListProps) => {
   const { content, fieldProps, fatherInfo, short, canCreate, view, fieldCache } = props
   const doAction = fieldProps.doAction!
-  const { data, route, field, setDrawer, valueEntry } = fieldProps
+  const { data, route, field, setDrawer } = fieldProps
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
 
@@ -52,8 +52,8 @@ const FieldList = (props: FieldListProps) => {
   switch (view) {
     case "list":
       return (
-        <Layout style={{ height: "100%", flexDirection: "row",  alignItems: 'stretch' }}>
-          <Sider theme={"light"} style={{ height: "100%", position: "sticky" , top: "0" }}>
+        <Layout style={{ height: "100%", flexDirection: "row",  alignItems: 'stretch', display: "flex" }}>
+          <Sider theme={"light"} style={{ height: "100%"}}>
             <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
               <SelectableGroup
                 clickClassName="tick"
@@ -64,7 +64,7 @@ const FieldList = (props: FieldListProps) => {
                 resetOnStart={true}
                 onSelectionFinish={handleSelectable}
                 ignoreList={[".not-selectable"]}
-                style={{ flex: "1", overflow: "auto"}}
+                style={{ flex: "1", overflow: "auto", margin:"3px 0"}}
                 key={'select'}
               >
                 <ItemList items={content} />
@@ -73,14 +73,15 @@ const FieldList = (props: FieldListProps) => {
             </div>
           </Sider>
           <Content style={{ height: "100%", overflow: 'auto' }}>
-            <Field
+            {data.length > 0 ?
+              <Field
               route={access}
               field={currentItem.toString()}
               fatherInfo={fatherInfo.type ? fatherInfo : undefined}
               schemaEntry={getFieldSchema(fieldProps, fieldCache, currentItem.toString())}
               short={short}
               setDrawer={setDrawer}
-            />
+            /> : null}
           </Content>
         </Layout>
       )

@@ -30,6 +30,7 @@ export interface ContextContent {
 
 export interface SchemaCache extends ContextContent {
   entrySchemaMap: Map<string, boolean | Schema>
+  valueEntry: string | undefined
   valueSchemaMap: Map<string, boolean | Schema>
 }
 

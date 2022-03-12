@@ -19,8 +19,8 @@ interface CreateNameProps {
 
 const CreateName = (props: CreateNameProps) => {
   const { fatherInfo, fieldProps, style, fieldCache } = props
-  const { valueEntry, data, doAction, route, field} = fieldProps
-  const { propertyCache, itemCache, valueSchemaMap } = fieldCache
+  const { data, doAction, route, field} = fieldProps
+  const { valueEntry, propertyCache, itemCache, valueSchemaMap } = fieldCache
   const access = concatAccess(route, field)
 
   const [editing, setEditing] = useState(false)
@@ -77,6 +77,7 @@ const CreateName = (props: CreateNameProps) => {
           return
         }
         if (matchedKey instanceof RegExp) {
+          // todo: 这里通过正则判别相等的方式选择
           const regexString = matchedKey.toString()
           const patternRef = findKeyRefs(valueSchemaMap!, 'patternProperties') as string
           newValueEntry = addRef(patternRef, regexString.substring(1, regexString.length-1))
@@ -102,7 +103,7 @@ const CreateName = (props: CreateNameProps) => {
         onChange={handleNameChange}
         style={{flex: '1'}}
       >
-        <Input size="small" addonBefore={"新属性名称"} />
+        <Input size="small" addonBefore={"新属性名称"} onPressEnter={handleCreate}/>
       </AutoComplete>
 
       <Button size="small" shape="circle" onClick={handleCreate} style={{margin: '0 6px'}}>

@@ -5,6 +5,19 @@ import _, { isEqual } from "lodash"
 import { SchemaCache } from ".."
 import { FieldProps } from "../Field"
 
+const KeywordTypes = {
+  intersection: ["type"],
+  merge: ["properties", "patternProperties"]
+} as any
+
+
+const getKeywordType = (keyword: string) => {
+  for (const type in KeywordTypes) {
+    if (KeywordTypes[type].includes(keyword)) return type
+  }
+  return 'first'
+}
+
 const concatAccess = (route: any[], ...args: any[]) => {
   return route.concat(args.filter((value) => !!value))
 }
@@ -262,31 +275,33 @@ const getFieldSchema = (
   const dataType = jsonDataType(data)
   switch (dataType) {
     case "object":
-      const properties = findKeyRefs(valueSchemaMap!, "properties", false) as string | undefined
-      if (properties) {
-        const propertySchema = getPathVal(rootSchema, properties) as object
+      const propertyRefs = findKeyRefs(valueSchemaMap!, "properties", true) as string[]
+      for (const ref of propertyRefs) {
+        const propertySchema = getPathVal(rootSchema, ref) as object
         // debugger
         if (propertySchema.hasOwnProperty(field))
-          return addRef(properties, field)
+          return addRef(ref, field)
       }
-      const patternProperties = findKeyRefs(
+
+      const patternPropertyRefs = findKeyRefs(
         valueSchemaMap!,
         "patternProperties",
-        false
-      ) as string | undefined
-      if (patternProperties) {
+        true
+      ) as string[]
+      for (const ref of patternPropertyRefs) {
         const patternSchema = getPathVal(
           rootSchema,
-          patternProperties
+          ref
         ) as object
         const patternKeys = Object.keys(patternSchema)
         for (const key of patternKeys) {
           const regex = new RegExp(key)
           if (regex.test(field)) {
-            return addRef(patternProperties, key)
+            return addRef(ref, key)
           }
         }
       }
+
       return findKeyRefs(valueSchemaMap!, "additionalProperties", false) as
         | string
         | undefined
@@ -368,20 +383,20 @@ const findKeyRefs = (
 }
 
 /**
- * 吸收 schemaMap 的属性字段值
+ * 吸收 schemaMap 的属性字段值。  
+ * 不同字段的返回方式不同，`first`为返回第一个，若没有返回`undefined`，`intersection`为数组属性返回交集
  * @param filtered 过滤后的schema列表，或者schemaMap
  * @param key 查找的key
- * @param method 返回方式，`first`为返回第一个，若没有返回`undefined`，`intersection`为数组属性返回交集
  * @returns
  */
 const absorbProperties = (
   filtered: any[] | Map<string, Schema | boolean>,
-  key: string,
-  method = "first"
+  key: string
 ) => {
   if (filtered instanceof Map) {
     filtered = filterObjSchema(filtered.values())
   }
+  const method = getKeywordType(key)
   switch (method) {
     case "first": // 取 第一个出现
       for (const schema of filtered) {

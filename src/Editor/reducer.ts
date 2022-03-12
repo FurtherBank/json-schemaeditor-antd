@@ -14,7 +14,7 @@ export enum ShortOpt {
 export interface ofSchemaCache {
   ofRef: string
   ofLength: number
-  extracted: RootSchema[]
+  extracted: (ValidateFunction | string)[]
   options: any[]
 }
 
@@ -54,7 +54,7 @@ export interface State {
 }
 
 const ajv = new Ajv({
-  allErrors: true,
+  allErrors: true
 }) // options can be passed, e.g. {allErrors: true}
 ajv.addMetaSchema(draft6MetaSchema)
 addFormats(ajv)
@@ -112,23 +112,26 @@ const reducer = (
 ) => {
   const { type, route, field, value } = a
   const reValidate = () => {
+    console.time('验证')
     if (typeof s.validate === "function") {
       const validate = s.validate as ValidateFunction
       const valid = validate(s.data)
       localize(validate.errors)
+      
       s.dataErrors = validate.errors ? validate.errors : []
       if (validate.errors) {
         console.log("not valid", validate.errors)
-      } else {
-        console.log("验证成功")
       }
     }
+    
+    console.timeEnd('验证')
   }
 
   // 特殊接口： set强制设置
   if (type === "set") return Object.assign({}, s, value) // set强制设置
   // 初始化
   if (!route) {
+    console.log('初始化验证', a)
     reValidate()
     return Object.assign({}, s)
   }
@@ -150,7 +153,6 @@ const reducer = (
   // 初始化动作修改路径
   s.lastChangedField = []
   s.lastChangedRoute = route
-  console.time('reducer')
 
   switch (type) {
     case "create":
@@ -226,7 +228,6 @@ const reducer = (
   }
   // 重新验证
   reValidate()
-  console.timeEnd('reducer')
 
   return Object.assign({}, s)
 }

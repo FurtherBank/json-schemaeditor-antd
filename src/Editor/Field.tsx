@@ -67,6 +67,7 @@ import ItemList from "./ItemList"
 import { useState } from "react"
 import { DataItemProps } from "./DataItem"
 import { CacheContext, SchemaCache } from "."
+import { time } from "console"
 const { Panel } = Collapse
 
 export interface FieldProps {
@@ -178,8 +179,7 @@ const getOfOption = (
   if (ofCacheValue) {
     const { extracted, ofLength, ofRef } = ofCacheValue
     for (let i = 0; i < ofLength; i++) {
-      extracted.$ref = "#/definitions/subSchema" + i
-      const valid = ajvInstance.validate(_.clone(extracted), data)
+      const valid = ajvInstance.validate(extracted[i], data)
       if (valid) {
         optValue += optValue ? `-${i}` : i.toString()
         const optRef = addRef(ofRef, i.toString())!
@@ -223,13 +223,16 @@ const FieldBase = (props: FieldProps) => {
   const entrySchemaMap = getRefSchemaMap(schemaEntry, rootSchema) //useMemo(() => {return getRefSchemaMap(schemaEntry, rootSchema)}, [schemaEntry, caches])
 
   let valueEntry = undefined as undefined | string
+  let ofOption: string | false | null | undefined = undefined
   if (schemaEntry) {
     // 设置 ofCache (use Entry map ,root)
     if (!ofCache.has(schemaEntry)) {
       setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
     }
     // 确定 valueEntry
-    const ofOption = getOfOption(data, schemaEntry, ofCache)
+    if (ofCache.get(schemaEntry)) console.time(`ofOpt ${schemaEntry}`)
+    ofOption = getOfOption(data, schemaEntry, ofCache)
+    if (ofCache.get(schemaEntry)) console.timeEnd(`ofOpt ${schemaEntry}`)
     valueEntry =
       ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ofCache, schemaEntry, ofOption)
   }
@@ -549,7 +552,7 @@ const FieldBase = (props: FieldProps) => {
       switch (action) {
         case "oneOf":
           const { options, ofRef } = space.get("oneOf") as ofSchemaCache
-          const ofIndex = getOfOption(data, schemaEntry!, ofCache) || " "
+          const ofIndex = ofOption || ' '
           return (
             <TreeSelect
               key="oneOf"
@@ -820,8 +823,14 @@ const setOfCache = (
 
     const oneOfSchemas = getRefSchemaMap(oneOfKeys, rootSchema, true)
     const extracted = extractSchema(oneOfSchemas, rootSchema)
+    const extractedSchemas = []
+    for (let i = 0; i < oneOfKeys.length; i++) {
+      const copy = _.clone(extracted)
+      copy.$ref = "#/definitions/subSchema" + i
+      extractedSchemas.push(copy)
+    }
     ofCache.set(schemaEntry, {
-      extracted,
+      extracted: extractedSchemas,
       ofRef: ofRef,
       ofLength: oneOfKeys.length,
       options: oneOfOptions,

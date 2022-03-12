@@ -10,8 +10,8 @@ import _ from "lodash"
 import Affix from "antd/lib/affix"
 
 
-const datas = [ItemsSchema,Items,  Classes, meta].map((v) => _.cloneDeep(v))
-const schemas = [ meta, ItemsSchema,ClassesSchema, meta].map((v) => _.cloneDeep(v))
+const datas = [[],ItemsSchema,Items,  Classes, meta].map((v) => _.cloneDeep(v))
+const schemas = [true, meta, ItemsSchema,ClassesSchema, meta].map((v) => _.cloneDeep(v))
 
 const App = () => {
   const [id, setId] = useState(0)

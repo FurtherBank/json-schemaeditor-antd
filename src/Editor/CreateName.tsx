@@ -54,7 +54,7 @@ const CreateName = (props: CreateNameProps) => {
         const defaultValue = getDefaultValue(fieldCache, schemaRef)
         doAction!('create', access, nowLength.toString(), defaultValue)
       } else {
-        doAction!('create', access, nowLength.toString(), _.cloneDeep(data[data.length-1]))
+        doAction!('create', access, nowLength.toString(), _.cloneDeep(data[data.length-1] ?? null))
       }
     }
   }

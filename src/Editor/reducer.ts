@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import Ajv, { ValidateFunction } from "ajv"
 import addFormats from "ajv-formats"
 import draft6MetaSchema from "ajv/dist/refs/json-schema-draft-06.json"
@@ -15,7 +14,7 @@ export enum ShortOpt {
 export interface ofSchemaCache {
   ofRef: string
   ofLength: number
-  extracted: RootSchema
+  extracted: RootSchema[]
   options: any[]
 }
 
@@ -151,6 +150,7 @@ const reducer = (
   // 初始化动作修改路径
   s.lastChangedField = []
   s.lastChangedRoute = route
+  console.time('reducer')
 
   switch (type) {
     case "create":
@@ -226,6 +226,8 @@ const reducer = (
   }
   // 重新验证
   reValidate()
+  console.timeEnd('reducer')
+
   return Object.assign({}, s)
 }
 

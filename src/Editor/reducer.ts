@@ -18,12 +18,17 @@ export interface ofSchemaCache {
   options: any[]
 }
 
+export interface PropertyInfo {
+  ref: string
+  shortable: boolean
+
+}
+
 export interface propertySchemaCache {
-  shortProps: (string | RegExp)[]
-  otherProps: (string | RegExp)[]
+  props: {[x: string]: PropertyInfo}
+  patternProps: {[x: string]: PropertyInfo}
   required: string[]
-  additionalShortAble: boolean
-  additionalValid: boolean
+  additional: PropertyInfo | undefined
 }
 
 export interface itemSchemaCache {

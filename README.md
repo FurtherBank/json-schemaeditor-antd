@@ -213,11 +213,11 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 ### ajv的配置相关
 
-### oneOf/anyOf下出现additionalProperties的性能问题
+增加了格式，
 
+增加了后续可能会出现的连接词(暂未实装)
 
-
-### 采用多schema
+### 关注到多个schema
 
 在特定的情况下，一个值是否满足模式，需要通过多个schema进行验证。
 
@@ -226,11 +226,10 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 1. 使用了`$ref`
 2. 一个对象的属性同时匹配`properties`和`patternProperties`
 
-在这里的设置是，一个位置引用了一个模式映射`Map<$ref, schema>`。
-如果只是供这一层，只需要构建直接引用的模式映射即可。
-但是在一些情况下需要深递归找到引用的所有模式，建立映射
+在这里的设置是，一个模式入口引用了一个模式映射`Map<$ref, schema>`。
 
-#### $ref 计算情况缓存机制
+
+#### 性质缓存机制
 
 如果一个模式使用了 oneOf/anyOf，需要用ajv验证是否符合各schema才能确定项。
 但是这样要将当前层的data用于当前层的schema验证才行。

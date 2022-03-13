@@ -22,7 +22,7 @@
     },
     "common": {
       "type": "object",
-      "properties" : {
+      "properties": {
         "$id": {
           "type": "string",
           "format": "uri-reference"
@@ -59,21 +59,71 @@
         "default": true,
         "examples": {
           "type": "array"
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["$ref"],
-      "$ref": "#/definitions/common"
+      "required": ["$ref"]
     },
     "const": {
       "type": "object",
       "title": "const",
       "properties": {
         "const": {
-          "description": "匹配该模式的常量值"
+          "description": "匹配该模式的常量值",
+          "oneOf": [
+            { "type": "object" },
+            { "type": "array" },
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["const"],
-      "$ref": "#/definitions/common"
+      "required": ["const"]
     },
     "enum": {
       "type": "object",
@@ -82,10 +132,31 @@
         "enum": {
           "type": "array",
           "uniqueItems": true
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["enum"],
-      "$ref": "#/definitions/common"
+      "required": ["enum"]
     },
     "oneOf": {
       "type": "object",
@@ -94,10 +165,31 @@
         "default": true,
         "oneOf": {
           "$ref": "#/definitions/schemaArray"
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["oneOf"],
-      "$ref": "#/definitions/common"
+      "required": ["oneOf"]
     },
     "anyOf": {
       "type": "object",
@@ -106,10 +198,31 @@
         "default": true,
         "anyOf": {
           "$ref": "#/definitions/schemaArray"
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["anyOf"],
-      "$ref": "#/definitions/common"
+      "required": ["anyOf"]
     },
     "object": {
       "type": "object",
@@ -144,6 +257,28 @@
         "default": { "type": "object" },
         "examples": {
           "type": "array"
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
       "required": ["type"],
@@ -151,8 +286,7 @@
         "type": "object",
         "properties": {},
         "additionalProperties": false
-      },
-      "$ref": "#/definitions/common"
+      }
     },
     "array": {
       "type": "object",
@@ -176,10 +310,31 @@
         "default": { "type": "array" },
         "examples": {
           "type": "array"
+        },
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["type"],
-      "$ref": "#/definitions/common"
+      "required": ["type"]
     },
     "number": {
       "type": "object",
@@ -208,10 +363,32 @@
         "default": { "type": "number" },
         "examples": {
           "type": "array"
+        },
+
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["type"],
-      "$ref": "#/definitions/common"
+      "required": ["type"]
     },
     "string": {
       "type": "object",
@@ -233,10 +410,32 @@
         },
         "examples": {
           "type": "array"
+        },
+
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["type"],
-      "$ref": "#/definitions/common"
+      "required": ["type"]
     },
     "boolean": {
       "type": "object",
@@ -249,10 +448,32 @@
         "default": {
           "type": "boolean",
           "default": true
+        },
+
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["type"],
-      "$ref": "#/definitions/common"
+      "required": ["type"]
     },
     "null": {
       "type": "object",
@@ -260,14 +481,36 @@
       "properties": {
         "type": {
           "const": "null"
+        },
+
+        "$id": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri"
+        },
+        "title": {
+          "description": "该模式的展示标题",
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "description": "该模式的介绍文本，鼠标移到标题上可以显示",
+          "format": "multiline"
+        },
+        "definitions": {
+          "type": "object",
+          "description": "在这里设置字段定义可能会引用到的模式",
+          "additionalProperties": { "$ref": "#" }
         }
       },
-      "required": ["type"],
-      "$ref": "#/definitions/common"
+      "required": ["type"]
     },
     "additional": {
       "anyOf": [
-        { "const": false },
+        { "title": "assert", "type": "boolean" },
         {
           "$ref": "#/definitions/$ref"
         },
@@ -302,6 +545,7 @@
     }
   },
   "anyOf": [
+    { "title": "assert", "type": "boolean" },
     {
       "$ref": "#/definitions/$ref"
     },

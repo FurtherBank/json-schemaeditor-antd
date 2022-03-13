@@ -35,7 +35,7 @@ import {
   toEnumName,
   toOfName,
 } from "./FieldOptions"
-import { ajvInstance, Caches, doAction, JsonTypes, ofSchemaCache, ShortOpt, State } from "./reducer"
+import { ajvInstance, Caches, doAction, JsonTypes, ofSchemaCache, PropertyInfo, ShortOpt, State } from "./reducer"
 import {
   absorbProperties,
   filterObjSchema,
@@ -53,6 +53,7 @@ import {
   filterIter,
   getError,
   deepReplace,
+  getValueByPattern,
 } from "./utils"
 import Switch from "antd/lib/switch"
 import FieldList from "./FieldList"
@@ -136,19 +137,22 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
     if (index + 1 < fatherInfo.length!) result.set("movedown", true)
   }
 
-  // 按照 enums/oneOf/types 分类
-  const constSchema = absorbProperties(filteredSchemas, "const") as any | undefined
-  const enums = absorbProperties(filteredSchemas, "enum") as any[] | undefined
+  // 先看有没有 Of
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : undefined
+  if (ofCacheValue) {
+    result.set("oneOf", ofCacheValue)
+  }
+  
+  // 然后根据 valueEntry 看情况
+  const constSchema = absorbProperties(valueSchemaMap, "const") as any | undefined
+  const enums = absorbProperties(valueSchemaMap, "enum") as any[] | undefined
   if (constSchema !== undefined) {
     result.set("const", constSchema)
   } else if (enums !== undefined) {
     result.set("enum", enums)
-  } else if (ofCacheValue) {
-    result.set("oneOf", ofCacheValue)
   } else {
     // 如果类型可能性有多种，使用 'type' 切换属性
-    const types = absorbProperties(filteredSchemas, "type")
+    const types = absorbProperties(valueSchemaMap, "type")
     if (hasFalse || types.length !== 1) result.set("type", types.length > 0 ? types : JsonTypes)
   }
 
@@ -173,14 +177,14 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
 const getOfOption = (
   data: any,
   schemaEntry: string,
-  ofCache: Map<string, ofSchemaCache | null>,
+  ofCache: Map<string, ofSchemaCache | null>
 ): string | null | false => {
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null
   if (ofCacheValue) {
     const { extracted, ofLength, ofRef } = ofCacheValue
     for (let i = 0; i < ofLength; i++) {
       const validate = extracted[i]
-      if (typeof validate === 'string') {
+      if (typeof validate === "string") {
         // 展开的 validate 为 string，就是子 oneOf 的 ref
         const optOfCacheValue = ofCache.get(validate)
         console.assert(optOfCacheValue)
@@ -223,14 +227,16 @@ const FieldBase = (props: FieldProps) => {
     { ofCache, propertyCache, itemCache, rootSchema } = caches
 
   // 读取路径上的 schemaMap
-  const entrySchemaMap = getRefSchemaMap(schemaEntry, rootSchema) //useMemo(() => {return getRefSchemaMap(schemaEntry, rootSchema)}, [schemaEntry, caches])
+  const entrySchemaMap = useMemo(() => {return getRefSchemaMap(schemaEntry, rootSchema)}, [schemaEntry, caches])
 
   let valueEntry = undefined as undefined | string
   let ofOption: string | false | null | undefined = undefined
   if (schemaEntry) {
     // 设置 ofCache (use Entry map ,root)
     if (!ofCache.has(schemaEntry)) {
+      console.group("compile")
       setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
+      console.groupEnd()
     }
     // 确定 valueEntry
     ofOption = getOfOption(data, schemaEntry, ofCache)
@@ -253,27 +259,25 @@ const FieldBase = (props: FieldProps) => {
 
       if (propertyRefs.length + patternRefs.length > 0 || additionalRef) {
         // 对字段是否是短字段进行分类
-        const shortProps: (string | RegExp)[] = []
-        const otherProps: (string | RegExp)[] = []
-        propertyRefs.forEach((ref) => {
+        const props = {} as any
+        propertyRefs.reverse().forEach((ref) => {
           const schemas = getPathVal(rootSchema, ref)
-          if (!schemas || schemas === true) return []
+          if (!schemas || schemas === true) return
           for (const key in schemas) {
-            if (schemaShortable(addRef(ref, key)!, rootSchema)) {
-              shortProps.push(key)
-            } else {
-              otherProps.push(key)
+            props[key] = {
+              shortable: schemaShortable(addRef(ref, key)!, rootSchema),
+              ref: addRef(ref, key)!,
             }
           }
         })
-        patternRefs.forEach((ref) => {
+        const patternProps = {} as any
+        patternRefs.reverse().forEach((ref) => {
           const schemas = getPathVal(rootSchema, ref)
-          if (!schemas || schemas === true) return []
+          if (!schemas || schemas === true) return
           for (const key in schemas) {
-            if (schemaShortable(addRef(ref, key)!, rootSchema)) {
-              shortProps.push(new RegExp(key))
-            } else {
-              otherProps.push(new RegExp(key))
+            patternProps[key] = {
+              shortable: schemaShortable(addRef(ref, key)!, rootSchema),
+              ref: addRef(ref, key)!,
             }
           }
         })
@@ -286,11 +290,10 @@ const FieldBase = (props: FieldProps) => {
           return schemas
         })
         propertyCache.set(valueEntry, {
-          shortProps: _.uniq(shortProps),
-          otherProps: _.uniq(otherProps),
+          props,
+          patternProps,
           required,
-          additionalShortAble,
-          additionalValid,
+          additional: additionalValid ? {ref:additionalRef!,shortable: additionalShortAble} : undefined,
         })
       } else {
         propertyCache.set(valueEntry, null)
@@ -568,7 +571,7 @@ const FieldBase = (props: FieldProps) => {
               treeData={options}
               onChange={(value, labellist, extra) => {
                 const schemaRef = getRefByOfChain(ofCache, schemaEntry!, value)
-                const defaultValue = getDefaultValue(schemaCache, schemaRef)
+                const defaultValue = getDefaultValue(schemaCache, schemaRef, data)
                 doAction("change", route, field, defaultValue)
               }}
               style={{ minWidth: "90px" }}
@@ -642,8 +645,19 @@ const FieldBase = (props: FieldProps) => {
       for (const key in data) {
         const value = data[key]
         if (propertyCacheValue) {
-          const { shortProps, otherProps, additionalShortAble } = propertyCacheValue
-          if (matchKeys(shortProps, key) || (!matchKeys(otherProps, key) && additionalShortAble)) {
+          const { props, patternProps, additional } = propertyCacheValue
+          const patternInfo = getValueByPattern(patternProps, key)
+          if (props[key]) {
+            if (props[key].shortable) {
+              shortenProps.push(key)
+              continue
+            }
+          } else if (patternInfo) {
+            if (patternInfo.shortable) {
+              shortenProps.push(key)
+              continue
+            }
+          } else if (additional && additional.shortable) {
             shortenProps.push(key)
             continue
           }
@@ -840,7 +854,9 @@ const setOfCache = (
         const validate = ajvInstance.compile(copy)
         extractedSchemas.push(validate)
         const e = Date.now()
-        if (e-s > 10) console.warn(`${ref} 编译 ${e-s} ms`, copy)
+        if (e - s > 10) {
+          console.log(`${ref} 编译 ${e - s} ms`, copy)
+        }
       }
       return result
     })

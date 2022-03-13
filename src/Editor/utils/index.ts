@@ -4,6 +4,7 @@ import { debug } from "console"
 import _, { isEqual } from "lodash"
 import { SchemaCache } from ".."
 import { FieldProps } from "../Field"
+import { PropertyInfo } from "../reducer"
 
 const KeywordTypes = {
   intersection: ["type"],
@@ -223,17 +224,33 @@ const exactIndexOf = (array: any[], value: any) => {
 
 /**
  * 判断一个 key 是否在匹配列表中，如果是就将其返回
- * @param arr
+ * @param map
  * @param key
  * @returns
  */
-const matchKeys = (arr: (string | RegExp)[], key: string) => {
-  for (const pattern of arr) {
+const matchKeys = (map: Map<(string | RegExp), PropertyInfo>, key: string) => {
+  for (const pattern of map.keys()) {
     if (typeof pattern === "string" ? pattern === key : pattern.test(key)) {
       return pattern
     }
   }
   return false
+}
+
+/**
+ * 查找对象某键的值，但是正则匹配
+ * @param obj
+ * @param key
+ * @returns
+ */
+export const getValueByPattern = (obj: any, key: string) => {
+  for (const key of Object.keys(obj)) {
+    const pattern = new RegExp(key)
+    if (pattern.test(key)) {
+      return obj[key]
+    }
+  }
+  return undefined
 }
 
 /**
@@ -257,7 +274,9 @@ const filterIter = <T>(
 
 /**
  * 对 Array/Object 获取特定字段 schemaEntry。
- * 注意：无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
+ * 注意：  
+ * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。  
+ * 2. 只要给出的 ref 不是 undefined，一定能够找到对应的 schema
  * @param props
  * @param schemaCache
  * @param field
@@ -267,8 +286,7 @@ const filterIter = <T>(
 const getFieldSchema = (
   props: FieldProps,
   schemaCache: SchemaCache,
-  field: string,
-  oneOfChoice: number | null = null
+  field: string
 ) => {
   const { schemaEntry, data } = props
   const { valueSchemaMap, propertyCache, itemCache, rootSchema} = schemaCache
@@ -420,8 +438,6 @@ const absorbProperties = (
       for (const schema of filtered) {
         if (schema.hasOwnProperty(key) && jsonDataType(schema[key]) === 'object') {
           result = Object.assign(result, schema[key])
-        } else {
-          return null
         }
       }
       return result

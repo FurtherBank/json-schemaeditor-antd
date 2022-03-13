@@ -8,7 +8,8 @@ import React, { useState } from "react"
 import { SchemaCache } from "."
 import { FatherInfo, FieldProps } from "./Field"
 import { getDefaultValue } from "./FieldOptions"
-import { addRef, concatAccess, findKeyRefs, matchKeys } from "./utils"
+import { PropertyInfo } from "./reducer"
+import { addRef, concatAccess, findKeyRefs, getValueByPattern, iterToArray, matchKeys } from "./utils"
 
 interface CreateNameProps {
   fatherInfo: FatherInfo
@@ -33,10 +34,10 @@ const CreateName = (props: CreateNameProps) => {
 
   let autoCompleteOptions: any[] = []
   if (propertyCacheValue) {
-    const { shortProps, otherProps } = propertyCacheValue
-    const optionStrings = shortProps.concat(otherProps).filter((key) => {
-      return typeof key === "string" && data[key] === undefined
-    })
+    const { props, patternProps } = propertyCacheValue
+    const optionStrings = props ? Object.keys(props).filter((key) => {
+      return data[key] === undefined
+    }) : []
     autoCompleteOptions = optionStrings.map((key) => {
       return { value: key }
     })
@@ -68,22 +69,17 @@ const CreateName = (props: CreateNameProps) => {
       return
     } else {
       if (propertyCacheValue) {
-        const { shortProps, otherProps, additionalValid } = propertyCacheValue
-        const matchedKey = matchKeys(shortProps, name) || matchKeys(otherProps, name)
-        if (!additionalValid && !matchedKey) {
+        const { props, patternProps, additional } = propertyCacheValue
+        const info = props[name] ?? getValueByPattern(patternProps, name) ?? additional
+        if (!info) {
           message.error(
             `${name} 不匹配 properties 中的名称或 patternProperties 中的正则式`
           )
           return
         }
-        if (matchedKey instanceof RegExp) {
-          // todo: 这里通过正则判别相等的方式选择
-          const regexString = matchedKey.toString()
-          const patternRef = findKeyRefs(valueSchemaMap!, 'patternProperties') as string
-          newValueEntry = addRef(patternRef, regexString.substring(1, regexString.length-1))
-        } else if (matchedKey) {
-          const propertyRef = findKeyRefs(valueSchemaMap!, 'properties') as string
-          newValueEntry = addRef(propertyRef, matchedKey)
+        const {ref, shortable} = info
+        if (ref) {
+          newValueEntry = ref
         } else {
           newValueEntry = findKeyRefs(valueSchemaMap!, 'additionalProperties') as string
         }

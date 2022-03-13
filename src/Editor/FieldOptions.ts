@@ -9,10 +9,11 @@ import {
   findKeyRefs,
   getPathVal,
   getRefSchemaMap,
+  getValueByPattern,
   jsonDataType,
 } from "./utils"
 
-const maxCollapseLayer = 5
+const maxCollapseLayer = 3
 const longFormats = ["row", "uri-reference"]
 const extraLongFormats = ["multiline"]
 
@@ -173,30 +174,28 @@ const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
 const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => {
   const { field, schemaEntry, fatherInfo } = props
   const { entrySchemaMap, itemCache, propertyCache, valueSchemaMap } = schemaCache
+  // 注意，一个模式的 title 看 entryMap，如果有of等不理他
   const title = absorbProperties(entrySchemaMap!, "title") as string | undefined
 
   if (field === null) {
     return title ? title : ''
-  } else if (fatherInfo && fatherInfo.type === "array") {
+  }
+  // 不是根节点，保证 FatherInfo 一定存在。
+  const { valueEntry: fatherValueEntry} = fatherInfo!
+  const propertyCacheValue = fatherValueEntry ? propertyCache.get(fatherValueEntry) : null
+  if (fatherInfo!.type === "array") {
     return title ? title + " " + field : field
-  } else if (schemaEntry === undefined) {
+  } else if (!propertyCacheValue) {
     return ""
   } else {
-    const path = schemaEntry.split("/")
-    switch (path[path.length - 1]) {
-    case "additionalProperties":
-      return ""
-    default:
-      switch (path[path.length - 2]) {
-      case "properties":
-        return title ? title : field
-      case "patternProperties":
-        return new RegExp(path[path.length - 1])
-      default:
-        console.log("意外的判断情况")
-        return ""
-      }
-    }
+    const {props, patternProps} = propertyCacheValue
+
+    if (props[field]) return title ? title : field
+
+    const pattern = getValueByPattern(patternProps, field)
+    if (pattern) return new RegExp(pattern)
+    
+    return ''
   }
 }
 
@@ -248,24 +247,38 @@ const canDelete = (props: FieldProps, schemaCache: SchemaCache) => {
  * @returns
  */
 export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefined, nowData: any = undefined): any => {
-  const { ofCache, itemCache, rootSchema } = schemaCache!
+  const { ofCache, itemCache, propertyCache, rootSchema } = schemaCache!
   if (!entry) return null
   const entryMap = getRefSchemaMap(entry, rootSchema)
+  const nowDataType = jsonDataType(nowData)
+  const propertyCacheValue = propertyCache.get(entry)
+  // 0. 如果nowData是对象，就先剪掉不在列表中的属性，然后进行合并
+  if (nowDataType === 'object' && propertyCacheValue) {
+    const {props, patternProps} = propertyCacheValue
+    for (const key of Object.keys(nowData)) {
+      if (!props[key] && !getValueByPattern(patternProps, key)) delete nowData[key]
+    }
+  }
   // 1. 优先返回规定的 default 字段值(注意深拷贝，否则会形成对象环！)
   const defaultValue = absorbProperties(entryMap, "default")
   if (defaultValue !== undefined) {
+    const defaultType = jsonDataType(defaultValue)
+    if (defaultType === 'object' && nowDataType === 'object') {
+      // 特殊：如果默认是 object，会采取最大合并
+      return Object.assign({}, nowData, _.cloneDeep(defaultValue))
+    }
     return _.cloneDeep(defaultValue)
-  }
-  // 2. 如果有 const/enum，采用其值
-  const constValue = absorbProperties(entryMap, "const")
-  if (constValue !== undefined) return _.cloneDeep(constValue)
-
-  const enumValue = absorbProperties(entryMap, "enum")
-  if (enumValue !== undefined) return _.cloneDeep(enumValue[0])
-  // 3. oneOf/anyOf 选择第0项的schema返回
-  const ofCacheValue = ofCache.get(entry)
-  if (ofCacheValue) {
-    return getDefaultValue(schemaCache, addRef(ofCacheValue.ofRef, "0")!)
+  } else {
+    // 2. 如果有 const/enum，采用其值
+    const constValue = absorbProperties(entryMap, "const")
+    if (constValue !== undefined) return _.cloneDeep(constValue)
+    const enumValue = absorbProperties(entryMap, "enum")
+    if (enumValue !== undefined) return _.cloneDeep(enumValue[0])
+    // 3. oneOf/anyOf 选择第0项的schema返回
+    const ofCacheValue = ofCache.get(entry)
+    if (ofCacheValue) {
+      return getDefaultValue(schemaCache, addRef(ofCacheValue.ofRef, "0")!)
+    }
   }
   // 4. 按照 schema 寻找答案
   const allTypes = absorbProperties(entryMap, "type")
@@ -273,8 +286,11 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
     const type = allTypes[0]
     switch (type) {
     case "object":
-      const result = {} as any
+      const result = jsonDataType(nowData) === 'object' ? _.clone(nowData) : {}
       const allPropsRef = findKeyRefs(entryMap, "properties", true, false) as string[]
+      // const propertyCacheValue = propertyCache.get(entry)
+      // todo: 裁剪不允许出现的属性
+
       for (const ref of allPropsRef) {
         // const properties = getPathVal(rootSchema, addRef(ref, 'properties')!)
         // 仅对 required 中的属性进行创建
@@ -285,13 +301,16 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
       }
       return result
     case "array":
-      const arrayResult = []
       const itemsRef = findKeyRefs(entryMap, "items") as string | undefined
+      const additionalItems = absorbProperties(entryMap, 'additionalItems')
       const itemCacheValue = itemCache.get(entry)
+
+      const arrayResult = jsonDataType(nowData) === 'array' && additionalItems ? _.clone(nowData) : []
+
       if (itemCacheValue && itemCacheValue.itemLength !== undefined) {
         const { itemLength } = itemCacheValue
         for (let i = 0; i < itemLength; i++) {
-          arrayResult.push(getDefaultValue(schemaCache, addRef(itemsRef, i.toString())))
+          arrayResult[i] = getDefaultValue(schemaCache, addRef(itemsRef, i.toString()))
         }
       }
       return arrayResult

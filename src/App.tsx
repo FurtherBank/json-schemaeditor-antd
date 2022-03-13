@@ -10,16 +10,18 @@ import enumsSchema from "./json-example/$schema.test-nums.json"
 import facility from "./json-example/dataFacility.json"
 import $facility from "./json-example/$schema.dataFacility.json"
 
+import $simple from "./json-example/$schema.simple.json"
+
 import meta from "./json-example/$meta.json"
 import Editor from "./Editor"
 import _ from "lodash"
 import Affix from "antd/lib/affix"
 
-const datas = [enums, [], ItemsSchema, Items, Classes, meta].map((v) => _.cloneDeep(v))
-const schemas = [enumsSchema, ItemsSchema, meta, ItemsSchema, ClassesSchema, meta].map((v) => _.cloneDeep(v))
+const datas = [enums, [], ItemsSchema, Items, Classes, meta, $simple].map((v) => _.cloneDeep(v))
+const schemas = [enumsSchema, ItemsSchema, meta, ItemsSchema, ClassesSchema, meta, meta].map((v) => _.cloneDeep(v))
 
 const App = () => {
-  const [id, setId] = useState(1)
+  const [id, setId] = useState(6)
 
   const data = datas[id],
     schema = schemas[id]

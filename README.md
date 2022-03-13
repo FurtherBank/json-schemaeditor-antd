@@ -4,45 +4,10 @@
 直接引用Editor文件夹即可。  
 组件就三个属性：data，schema，onChange: (value: any) => void
 
-## 数据表示
+## JSON Schema 简单说明
 
-js支持的数据类型：
-
-null:带名称不展示，不带名称展示
-
-boolean:使用checkbox进行展示
-
-object:嵌套块状展示
-
-array:数组展示，问题很多
-
-数组展示模式：
-
-- 固定长度，限定类型
-- 长度不定，单类型或额外+null
-- 
-
-number:数字展示。  
-单纯数字问题不是很大。json只支持使用十进制表示数字。  
-展示方式：输入框(带上下点击调节)，滑动条(指定min，max，step)，其它(如生命值图标类似)
-
-string：字符串
-
-字符串涉及到格式问题和长短问题
-
-- 格式问题：不同格式的字符串，可以用正则表达式设计格式
-- 长短问题：长文章使用textarea，短字符串使用一行，小于10的字符串使用小格
-- 展示模式问题：可以按照日期/密码等模式展示，而且可以自定义控件设置特定格式
-
-### meta-schema
-
-本身描述 JSON Schema 的模式称为元模式。元模式用于验证 JSON 模式并指定它们使用的词汇表。
-
-通常，元模式将指定一组词汇，并验证符合这些词汇语法的模式。但是，元模式和词汇表是分开的，以便允许元模式比词汇表的规范要求更严格或更松散地验证模式一致性。元模式还可以描述和验证不属于正式词汇的附加关键字。
-
-## 具体格式与字段
-
-json-schema是一种可递归的文法模式。下列按照数据类型分别来展示其
+json-schema是一种可递归的文法模式。
+该项目使用draft6
 
 [JSON Schema入门 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/355175938)
 
@@ -65,10 +30,8 @@ json-schema是一种可递归的文法模式。下列按照数据类型分别来
 | `enum`              | 限定变量值为枚举值之一。可以使用枚举模式表示<br />枚举的展示模式：下拉框，单选框 | \<type\>[] |      |
 | [`const`](https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.1.3) | 唯一可能性变量 | \<type> | |
 | `$ref` | 对其它schema的引用。<br />此处额外定义的信息会覆盖引用 | uri->schema | |
-| `oneOf` | 变量满足的模式必须是且只是其中之一<br />该项目做了一个假设就是，oneof的schema没有oneof | schema[] | |
+| `oneOf`/`anyOf` | 变量满足的模式必须只满足/至少满足其中之一<br />在项目中涉及到了对满足的模式进行选择的问题。 | schema[] | |
 | `default`             | 变量的默认值。生成时使用                                     | \<type\> | 额外特性 |
-
-
 
 另注：如果schema为布尔值，则直接对应判定的变量是否有效。`true`或者`{}`，任何值都有效。`false`或者`{"not": {}}`任何值都无效
 
@@ -102,14 +65,13 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 
 https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.4
 
-| 关键字                                                       | 作用                                                         | 值类型            | 备注                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------- | ---------------------------- |
-| [`prefixItems`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.1.1) | 认为数组前面的模式需要与该字段中的模式一一匹配。<br />数组超出的长度不关心。 | schema \|schema[] | 2020-12 新增                 |
-| `items`                                                      | 如果是schema，认为数组每一个元素均符合此模式<br />如果是schema[]，认为数组从开头到结尾一个个符合对应index的模式<br />从`prefixItems`匹配结束后的索引开始匹配 | schema \|schema[] | 2020-12 变成了additional功能 |
-| `additionalItems`                                            | `items`设置为数组时，对于数组，仅当项设置为数组时。如果是模式，则该模式在items数组指定的项之后验证项。如果为false，则其他项将导致验证失败。 | schema            |                              |
-| `minItems`,`maxItems`                                        | 长度最小/最大                                                | int               |                              |
-| [`contains`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.1.3) | 数组中必须有元素符合该模式。从开始识别，不受前面的关键词影响<br />该关键词只涉及验证。创建另说 | schema            |                              |
-| `minContains`,`maxContains`                                  | 限制符合`contains`模式元素的个数。                           | int               | 6没有                        |
+| 关键字                                                       | 作用                                                         | 值类型            | 备注                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------- | ------------------------------------------------------------ |
+| `items`                                                      | 如果是schema，认为数组每一个元素均符合此模式<br />如果是schema[]，认为数组从开头到结尾一个个符合对应index的模式<br />从`prefixItems`匹配结束后的索引开始匹配 | schema \|schema[] | 2020-12 变成了additional功能，使用[`prefixItems`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.1.1)替代 |
+| `additionalItems`                                            | `items`设置为数组时，对于数组，仅当项设置为数组时。如果是模式，则该模式在items数组指定的项之后验证项。如果为false，则其他项将导致验证失败。 | schema            |                                                              |
+| `minItems`,`maxItems`                                        | 长度最小/最大                                                | int               |                                                              |
+| [`contains`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.1.3) | 数组中必须有元素符合该模式。从开始识别，不受前面的关键词影响<br />该关键词只涉及验证。创建另说 | schema            |                                                              |
+| `minContains`,`maxContains`                                  | 限制符合`contains`模式元素的个数。                           | int               | 6没有                                                        |
 
 数组短优化：
 
@@ -120,15 +82,15 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 
 https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.5
 
-| 关键字                                                       | 作用                                                         | 值类型                  | 备注 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------- | ---- |
-| [`properties`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.1) | 可以出现的属性字段和字段变量的信息。以key-value形式表示<br />其它属性再通过`patternProperties`和`additionalProperties`验证，不通过则失败 | object<string, schema>  |      |
-| [`patternProperties`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.2) | 认为满足**正则表达式属性名**的字段，满足value的模式          | object<regex, schema>   |      |
-| [`additionalProperties`](https://json-schema.org/draft/2020-12/json-schema-core.html#additionalProperties) | 只对`properties`和`patternProperties`未验证的属性字段进行验证，<br />验证这些字段（注：这些字段不关注字段名。）是否符合值的模式<br />比如，这个属性为false就是不允许其它属性(不设置为true) | schema                  |      |
-| [`propertyNames`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.4) | 对象所有**属性名**必须满足该模式<br />注意属性名一定是字符串 | schema                  |      |
-| `required`                                                   | 对象必须要具有的字段列表。<br />默认按照                     | string[]                |      |
-| `minProperties`,`maxProperties`                              | 限制属性字段数量                                             | int                     |      |
-| `dependencies`                                               | 值属性存在时才可以存在键属性                                 | object<string,string[]> |      |
+| 关键字                                                       | 作用                                                         | 值类型                  | 备注     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------- | -------- |
+| [`properties`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.1) | 可以出现的属性字段和字段变量的信息。以key-value形式表示<br />其它属性再通过`patternProperties`和`additionalProperties`验证，不通过则失败 | object<string, schema>  |          |
+| [`patternProperties`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.2) | 认为满足**正则表达式属性名**的字段，满足value的模式          | object<regex, schema>   |          |
+| [`additionalProperties`](https://json-schema.org/draft/2020-12/json-schema-core.html#additionalProperties) | 只对`properties`和`patternProperties`未验证的属性字段进行验证，<br />验证这些字段（注：这些字段不关注字段名。）是否符合值的模式<br />比如，这个属性为false就是不允许其它属性(不设置为true) | schema                  |          |
+| [`propertyNames`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.4) | 对象所有**属性名**必须满足该模式<br />注意属性名一定是字符串 | schema                  |          |
+| `required`                                                   | 对象必须要具有的字段列表。<br />默认按照                     | string[]                |          |
+| `minProperties`,`maxProperties`                              | 限制属性字段数量                                             | int                     |          |
+| `dependencies`                                               | 值属性存在时才可以存在键属性                                 | object<string,string[]> | 暂未实装 |
 
 schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但是读取对应schema时是`root.properties.layer1.properties.layer2`。每一层属性多读一层`properties`。
 
@@ -140,7 +102,7 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 关于ui嵌入schema里面，这样就可以保持一致。
 但是考虑到别的用uischema，所以我认为，uischema不能和schema扯上联系。uischema应该改成uioptions配置。
 
-## 设计概念
+## 设计概念定义
 
 ### 模式假设
 
@@ -153,21 +115,7 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 5. `properties`和`patternProperties`不能匹配到同一名称
 6. 如果是多模式验证，满足**替换假设**。否则某些特性会无法正常工作。详见 [采用多schema](#采用多schema)
 
-### 字段标题
-
-分为以下情况：
-
-- 父节点通过`property`拿到该对象：优先级排：`title`(schema指定`properties`中别名)，`property`(实际拿到的字段名)。
-  此外如果是`patternProperties`拿到的属性，`title`属性是无效的
-- 父节点为数组，通过索引拿到：`title`+空格+`index`
-
-#### 属性名修改
-
-属性名如果在`properties`内，无法修改。
-属性名如果在`patternProperties`内，只能改成符合正则式的属性名。
-此外可以改成任意不与以上冲突的属性名
-
-### 长字段/短字段
+### 短字段
 
 如果该字段的`type`是`object`或者`array`，或者是长格式展示的`string`；或者是具有`oneOf`字段，那该字段是**长字段**。
 此外，如果该字段的`type`是`integer/number`或者`boolean/null`；或者具有`enum`，该字段是**短字段**。
@@ -184,14 +132,11 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 而且如果数组每一项都没有title属性显示，就默认所有都是extra短优化，所有的项都不显示标题  
 否则还是一行行展示
 
-### 枚举短化
+#### 短字段操作空间
 
-由于`enum`关键字将模式值限定到了具体的有限可能值，所以只用一个选择框来选择，无论枚举的这个变量有多长/多深。
-这样可以将`enum`变短。此外`enum`有一个按钮，按下可以弹出查看枚举项具体值。
+短字段的操作空间放入了字段右侧的按钮中，点击按钮可以选择并作出相应操作。
 
-数组做为枚举项，显示的枚举项名称为`Array[{length}]`。
-
-对象作为枚举项，显示的枚举项名称为`name.toString()`，此外为`Object[keys.length]`
+此外，短字段还可以通过**详细**操作，打开抽屉查看字段的详细值。
 
 ### schema与data容错处理
 
@@ -205,10 +150,6 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 在没有schema约束的情况下，会当作一个普通的json编辑器显示。
 意思就是完善无schema情况下的兼容性
 
-### 根列表展示
-
-如果既定根元素必然是数组，可以以列表方式进行展示
-
 ## 具体问题
 
 ### ajv的配置相关
@@ -216,6 +157,13 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 增加了格式，
 
 增加了后续可能会出现的连接词(暂未实装)
+
+### 模式的模式——元模式
+
+本身描述 JSON Schema 的模式称为元模式。元模式用于验证 JSON 模式是否正确。
+
+该项目中直接使用draft6元模式可以正常工作，不过为更方便编辑，项目对元模式内容进行了拓展，并以一些通用约定做了特殊限制。
+详见`json-example/$meta.json`
 
 ### 关注到多个schema
 
@@ -253,32 +201,7 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 对于`$ref`引用得到模式的最佳实践是，`$ref`引用者不加入任何验证相关属性。最多就是加入title,description等描述性字段替换被引用者这些字段的值。
 
-之后会考虑加入某些属性的合并(暂未实装)
-
-### 字符串格式
-
-https://ajv.js.org/packages/ajv-formats.html
-
-> 注：目前有一些格式的专用编辑组件还未实装，不过验证是有效的
-
-在字符串的format中设置。除此之外，还增加了一些其它格式：
-
-- uri
-- uri-reference
-- base-64
-- color
-- row（加长输入条）
-- multiline（多行编辑）
-
-一些格式并不支持短优化
-
-### 重命名与显示名称
-
-对于一个对象的属性，如果其属于properties中，则不可命名。
-如果位于patternProperties中，命名只能符合对应的正则式。
-此外可以自由命名。如果新的字段名符合上面两种情况，再次进行命名时，依照规则，新字段名的命名空间会受到限制。
-
-位于properties的字段可以作为自动补全的选项。
+### 字段显示名称
 
 显示名称受到字段本身和模式`title`属性的影响
 
@@ -294,7 +217,48 @@ https://ajv.js.org/packages/ajv-formats.html
 会以数据实际类型来显示数据。
 如果数据作为短字段显示且为对象/数组的话，会出现类型错误四个字，可以查看详情更改或者重置
 
-### oneOf/anyOf 自动判别器
+## 模式限制的特性索引
+
+这一篇主要说明在不同的模式限制下，字段编辑器的一些表现，以及其会涉及到的特性。
+其中，很多特性的具体应用条件、参数可以在`FieldOption`脚本文件中找到。
+如果想要对这些特性进行定制设计，可以在其中进行修改。
+
+如果不通过模式对数据进行任何限制，该编辑器只是一个普通的json编辑器。
+
+### const/enum
+
+#### 短字段
+
+`const`和`enum`必然为短字段，无论其值类型。
+
+#### 常量名称
+
+一个数据作为`const`或者`enum`选项的值，由于只使用一个短组件显示，所以需要对应一个名称。称之为**常量名称**`constName`。
+
+数组做为常量，名称为`Array[{length}]`。
+对象名称为`name.toString()`，此外为`Object[keys.length]`
+
+注意将数据的**常量名称**、字段的**标题名称**和模式的**模式名称**区分开来。
+
+### oneOf/anyOf
+
+对于具备 oneOf/anyOf 的字段，会通过一个树选择组件，来处理数据实际满足的模式。
+可以处理 oneOf/anyOf 连续嵌套的情况，但必须要满足对应的 [模式假设](#模式假设)
+
+#### 实际变量入口映射
+
+对于具有 oneOf/anyOf 的模式字段，值满足的实际模式还需要通过选项来映射到实际的入口。
+所以在`Field`中，对于字段的模式入口，有`schemaEntry`和`valueEntry`两个概念。
+
+#### 模式名称
+
+oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称**。
+
+模式优先使用`title`属性作为名称，其次匹配模式限定的数据类型作为名称。`
+
+注意将数据的**常量名称**、字段的**标题名称**和模式的**模式名称**区分开来。
+
+#### 选项判定细节/自动判别器
 
 正常来说，判断一份数据属于 oneOf/anyOf 的哪一个选项时，就是将每一个选项的模式分别对数据进行验证，如果数据匹配一个模式，就认为该数据属于这个模式对应的选项。
 
@@ -305,12 +269,117 @@ https://ajv.js.org/packages/ajv-formats.html
 2. 如果数据并不满足任何模式，但是和某个模式非常相似，那么也无法提供模式对于编辑的确定性支持
 
 因此，这里引入了自动判别器的概念。
+自动判别就是通过数据和各选项模式的一些特征直接匹配到对应的模式选项上，而不是整个的验证，来解决以上的两个问题。
 
-实际上，draft 2019-9 也提供了discrimiator这个关键词，来做这件事情。
+实际上，draft 2019-9 也提供了`discrimiator`这个关键词，来做这件事情。
 
-自动判别就是通过数据的一些特征直接匹配到对应的模式选项上，而不是整个的验证，来解决以上的两个问题。
+- [ ] 具体判别方式和定义
 
+#### 选项切换时数据最大兼容
 
+如果一些选项的类型都是对象，那么在这些选项中进行切换时，会对原有的一些属性进行保留。
+不过只会保留新模式中`properties`和`patternProperties`匹配的指定属性。其它属性(无论`additionalProperties`是否允许这些属性的存在)都会被删除。
+
+### 不确定类型
+
+不确定类型会有一个选择组件来处理该字段的类型。
+实际上，在这里并不建议使用多类型的模式，如果有这样的需求，使用`oneOf`关键字会更好。
+
+### 单一类型
+
+#### object
+
+##### 特殊展示模式(未实装)
+
+可以通过`view`字段规定对象的特殊展示模式。
+
+##### 短字段显示
+
+对象的所有短字段会在列表开头统一展示，独立于其它的字段
+
+##### 属性展示顺序(暂未实装)
+
+会依据模式的`order`作为关键字排序作为属性的展示顺序。
+
+不过需要注意，即使设置了顺序，短字段依然会在开头独立于其它长字段统一展示。
+
+##### 创建
+
+会提前检查是否所有的可创建属性均已创建，如果是这种情况，你将无法看到创建属性按钮并进行属性创建操作。
+
+创建一个属性时，会提示输入新属性的名称然后进行创建。
+通过`propertyCache`，可以读取到所有在模式中定义的属性名，用于创建时输入的自动补全。
+
+会通过模式定义检查输入的属性名是否可以新建，且会检查是否重复。
+
+创建时，会通过属性对应的模式生成默认值。
+
+##### 重命名
+
+属性的重命名有一定的限制。
+
+对于一个对象的属性，如果其属于`properties`中，则不可命名。
+如果位于`patternProperties`中，命名只能符合对应的正则式。
+此外可以自由命名。如果新的字段名符合上面两种情况，再次进行命名时，依照规则，新字段名的命名空间会受到限制。
+
+##### 标题名称
+
+一个字段可能会有别名，该名称取决于对应模式的`title`值。
+不过字段必须**不可重命名**时才会使用别名展示。
+
+此外，数组项也可以使用别名展示。如果设置了标题名称，数组将不可使用`extra`短模式展示。
+
+#### array
+
+##### 特殊展示模式(未实装)
+
+可以通过`view`字段规定数组的特殊展示模式。
+
+- 曲线
+- 
+
+##### 短字段显示
+
+如果一个数组所有的字段都是短字段，那么这个数组的每个项都会通过短字段展示。
+
+此外，如果所有字段都没有设置`title`属性，短字段展示可以省去每项标题占用的空间，从而更密集的展示数据。(称为`extra`短模式)
+
+##### 创建
+
+会提前检查是否可以继续创建项，当不能创建时，你将无法看到创建按钮并进行创建操作。
+创建会自动依据新项目对应的模式生成默认值。
+
+##### 根列表模式
+
+如果根节点在模式中定义为数组，且实际类型也为数组，那么会以**两栏列表**的方式展示数据。
+其中左侧列表可以拖拽选中多个项目进行复制和粘贴操作。(暂未实装)
+
+#### string
+
+##### 字符串格式
+
+https://ajv.js.org/packages/ajv-formats.html
+
+> 注：目前有一些格式的专用编辑组件还未实装，不过验证是有效的
+
+在字符串的`format`中设置。除此之外，还增加了一些其它格式：
+
+- uri
+- uri-reference
+- base-64
+- color
+- row（加长输入条）
+- multiline（多行编辑）
+
+string的一些格式并不支持短优化，这时会作为一个长组件显示。
+长格式分为两种：**单行长格式**`longFormats`和**跨行长格式**`extraLongFormats`。
+
+**单行长格式**的组件仍然在一行展示，但是长度增加。
+**跨行长格式**的组件会另起一行显示，可以跨域多行。
+
+#### number/boolean/null
+
+- 必然为短字段
 
 ## Reducer
 
@@ -324,8 +393,6 @@ https://ajv.js.org/packages/ajv-formats.html
 | rename(route, field)      | route,field    | 改变自己的属性键   |
 | moveup/down(route, field) | route, field   | 将自己上移/下移    |
 |                           |                |                    |
-
-
 
 ## 验证输出格式
 

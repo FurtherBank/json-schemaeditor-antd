@@ -32,7 +32,7 @@ import {
   getFormatType,
   maxCollapseLayer,
   schemaShortable,
-  toEnumName,
+  toConstName,
   toOfName,
 } from "./FieldOptions"
 import { ajvInstance, Caches, doAction, JsonTypes, ofSchemaCache, PropertyInfo, ShortOpt, State } from "./reducer"
@@ -480,7 +480,7 @@ const FieldBase = (props: FieldProps) => {
         const equalConst = _.isEqual(data, space.get("const"))
         return (
           <Space style={{ flex: 1 }}>
-            <Input key="const" size="small" value={toEnumName(data)} disabled allowClear={false} />
+            <Input key="const" size="small" value={toConstName(data)} disabled allowClear={false} />
           </Space>
         )
       case "enum":
@@ -493,7 +493,7 @@ const FieldBase = (props: FieldProps) => {
               options={space.get("enum").map((value: any, i: number) => {
                 return {
                   value: i,
-                  label: toEnumName(value),
+                  label: toConstName(value),
                 }
               })}
               style={{ flex: 1 }}

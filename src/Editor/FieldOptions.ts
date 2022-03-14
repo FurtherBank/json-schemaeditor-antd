@@ -1,9 +1,12 @@
-import _ from "lodash"
+import _, { isEqual } from "lodash"
 import { SchemaCache } from "."
-import { FatherInfo, FieldProps } from "./Field"
+import { FatherInfo, FieldProps, setItemCache, setPropertyCache } from "./Field"
+import { ajvInstance } from "./reducer"
 import {
   absorbProperties,
+  absorbSchema,
   addRef,
+  exactIndexOf,
   filterIter,
   filterObjSchema,
   findKeyRefs,
@@ -33,7 +36,7 @@ export const defaultTypeValue: any = {
 }
 
 /**
- * 确定一个数据的**常量名称**。  
+ * 确定一个数据的**常量名称**。
  * 定义具体详见 [常量名称](https://gitee.com/furtherbank/json-schemaeditor-antd#常量名称)
  * @param v
  * @returns
@@ -41,19 +44,19 @@ export const defaultTypeValue: any = {
 const toConstName = (v: any) => {
   const t = jsonDataType(v)
   switch (t) {
-  case "object":
-    return v.hasOwnProperty("name") ? v.name.toString() : `Object[${Object.keys(v).length}]`
-  case "array":
-    return `Array[${v.length}]`
-  case "null":
-    return "null" // 注意 null 没有 toString
-  default:
-    return v.toString()
+    case "object":
+      return v.hasOwnProperty("name") ? v.name.toString() : `Object[${Object.keys(v).length}]`
+    case "array":
+      return `Array[${v.length}]`
+    case "null":
+      return "null" // 注意 null 没有 toString
+    default:
+      return v.toString()
   }
 }
 
 /**
- * 确定一个模式在 of 选项中展示的**模式名称**。  
+ * 确定一个模式在 of 选项中展示的**模式名称**。
  * 定义具体详见 [模式名称](https://gitee.com/furtherbank/json-schemaeditor-antd#模式名称)
  * @param schemaMap 模式名称
  * @returns
@@ -89,17 +92,17 @@ const schemaShortable = (ref: string, rootSchema: RootSchema | boolean | undefin
   if (types.length === 1) {
     const type = types[0]
     switch (type) {
-    case "string":
-      const format = absorbProperties(schemaMap, "format")
-      if (format && (extraLongFormats.includes(format) || longFormats.includes(format))) return false
-      return true
-    case "number":
-    case "integer":
-    case "boolean":
-    case "null":
-      return true
-    default:
-      return false
+      case "string":
+        const format = absorbProperties(schemaMap, "format")
+        if (format && (extraLongFormats.includes(format) || longFormats.includes(format))) return false
+        return true
+      case "number":
+      case "integer":
+      case "boolean":
+      case "null":
+        return true
+      default:
+        return false
     }
   }
   return false
@@ -113,12 +116,12 @@ export const getFormatType = (format: string | undefined) => {
 
 /**
  * 当前json在既定的schema下是否可以创建新的属性。
- * @param props 
+ * @param props
  * @param schemaCache
  */
 const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
   const { data } = props
-  const {valueSchemaMap} = schemaCache
+  const { valueSchemaMap } = schemaCache
   const dataType = jsonDataType(data)
   for (const schema of valueSchemaMap!.values()) {
     if (schema === false) return false
@@ -126,45 +129,45 @@ const canSchemaCreate = (props: FieldProps, schemaCache: SchemaCache) => {
   const filteredSchemas = filterObjSchema(valueSchemaMap!.values())
   let autoCompleteKeys: string[] = []
   switch (dataType) {
-  case "object":
-    /**
+    case "object":
+      /**
        * object可以创建新属性，需要关注的条件：
        * 1. patternProperties 不为空，我们默认 patternProperties 只要有可用的正则就肯定能再创建。
        * 2. additionalProperties 不为 false
        * 3. 不超过 maxLength
        */
-    const nowKeys = Object.keys(data)
-    return filteredSchemas.every((schema) => {
-      const { maxProperties, properties, additionalProperties, patternProperties } = schema
-      // 1. 长度验证
-      if (maxProperties !== undefined && nowKeys.length >= maxProperties) return false
-      // 在这之前先收集一下可以自动补全的字段。。。
-      let restKeys = []
-      if (properties) {
-        restKeys = Object.keys(properties).filter((key) => !nowKeys.includes(key))
-        autoCompleteKeys = autoCompleteKeys.concat(restKeys)
+      const nowKeys = Object.keys(data)
+      return filteredSchemas.every((schema) => {
+        const { maxProperties, properties, additionalProperties, patternProperties } = schema
+        // 1. 长度验证
+        if (maxProperties !== undefined && nowKeys.length >= maxProperties) return false
+        // 在这之前先收集一下可以自动补全的字段。。。
+        let restKeys = []
+        if (properties) {
+          restKeys = Object.keys(properties).filter((key) => !nowKeys.includes(key))
+          autoCompleteKeys = autoCompleteKeys.concat(restKeys)
+          return restKeys.length > 0
+        }
+        // 2. additionalProperties 验证
+        if (additionalProperties !== false) return true
+        // 3. patternProperties 有键
+        if (patternProperties && Object.keys(patternProperties).length > 0) return true
+        // 4. 有无剩余键
         return restKeys.length > 0
-      }
-      // 2. additionalProperties 验证
-      if (additionalProperties !== false) return true
-      // 3. patternProperties 有键
-      if (patternProperties && Object.keys(patternProperties).length > 0) return true
-      // 4. 有无剩余键
-      return restKeys.length > 0
-    })
-      ? autoCompleteKeys
-      : false
-  case "array":
-    return filteredSchemas.every((schema) => {
-      const { maxItems, items, additionalItems } = schema
-      const itemsLength = items instanceof Array && additionalItems === false ? items.length : +Infinity
-      const maxLength = maxItems === undefined ? +Infinity : maxItems
-      return maxLength < itemsLength ? data.length < maxLength : data.length < itemsLength
-    })
-      ? []
-      : false
-  default:
-    return false
+      })
+        ? autoCompleteKeys
+        : false
+    case "array":
+      return filteredSchemas.every((schema) => {
+        const { maxItems, items, additionalItems } = schema
+        const itemsLength = items instanceof Array && additionalItems === false ? items.length : +Infinity
+        const maxLength = maxItems === undefined ? +Infinity : maxItems
+        return maxLength < itemsLength ? data.length < maxLength : data.length < itemsLength
+      })
+        ? []
+        : false
+    default:
+      return false
   }
 }
 
@@ -180,24 +183,24 @@ const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => {
   const title = absorbProperties(entrySchemaMap!, "title") as string | undefined
 
   if (field === null) {
-    return title ? title : ''
+    return title ? title : ""
   }
   // 不是根节点，保证 FatherInfo 一定存在。
-  const { valueEntry: fatherValueEntry} = fatherInfo!
+  const { valueEntry: fatherValueEntry } = fatherInfo!
   const propertyCacheValue = fatherValueEntry ? propertyCache.get(fatherValueEntry) : null
   if (fatherInfo!.type === "array") {
     return title ? title + " " + field : field
   } else if (!propertyCacheValue) {
     return ""
   } else {
-    const {props, patternProps} = propertyCacheValue
+    const { props, patternProps } = propertyCacheValue
 
     if (props[field]) return title ? title : field
 
     const pattern = getValueByPattern(patternProps, field)
     if (pattern) return new RegExp(pattern)
-    
-    return ''
+
+    return ""
   }
 }
 
@@ -218,24 +221,24 @@ const canDelete = (props: FieldProps, schemaCache: SchemaCache) => {
   if (fatherInfo) {
     const { valueEntry: fatherValueEntry } = fatherInfo
     switch (fatherInfo.type) {
-    case "array":
-      const itemCacheValue = fatherValueEntry ? itemCache.get(fatherValueEntry) : null
-      const index = parseInt(field)
-      if (itemCacheValue) {
-        return itemCacheValue.itemLength ? index >= itemCacheValue.itemLength : true
-      } else {
-        return true
-      }
-    case "object":
-      const propertyCacheValue = fatherValueEntry ? propertyCache.get(fatherValueEntry) : null
-      if (propertyCacheValue) {
-        return !propertyCacheValue.required.includes(field)
-      } else {
-        return true
-      }
-    default:
-      console.log("意外的判断情况")
-      return false
+      case "array":
+        const itemCacheValue = fatherValueEntry ? itemCache.get(fatherValueEntry) : null
+        const index = parseInt(field)
+        if (itemCacheValue) {
+          return itemCacheValue.itemLength ? index >= itemCacheValue.itemLength : true
+        } else {
+          return true
+        }
+      case "object":
+        const propertyCacheValue = fatherValueEntry ? propertyCache.get(fatherValueEntry) : null
+        if (propertyCacheValue) {
+          return !propertyCacheValue.required.includes(field)
+        } else {
+          return true
+        }
+      default:
+        console.log("意外的判断情况")
+        return false
     }
   }
   return false
@@ -255,8 +258,8 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
   const nowDataType = jsonDataType(nowData)
   const propertyCacheValue = propertyCache.get(entry)
   // 0. 如果nowData是对象，就先剪掉不在列表中的属性，然后进行合并
-  if (nowDataType === 'object' && propertyCacheValue) {
-    const {props, patternProps} = propertyCacheValue
+  if (nowDataType === "object" && propertyCacheValue) {
+    const { props, patternProps } = propertyCacheValue
     for (const key of Object.keys(nowData)) {
       if (!props[key] && !getValueByPattern(patternProps, key)) delete nowData[key]
     }
@@ -265,7 +268,7 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
   const defaultValue = absorbProperties(entryMap, "default")
   if (defaultValue !== undefined) {
     const defaultType = jsonDataType(defaultValue)
-    if (defaultType === 'object' && nowDataType === 'object') {
+    if (defaultType === "object" && nowDataType === "object") {
       // 特殊：如果默认是 object，会采取最大合并
       return Object.assign({}, nowData, _.cloneDeep(defaultValue))
     }
@@ -287,41 +290,122 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
   if (allTypes.length > 0) {
     const type = allTypes[0]
     switch (type) {
-    case "object":
-      const result = jsonDataType(nowData) === 'object' ? _.clone(nowData) : {}
-      const allPropsRef = findKeyRefs(entryMap, "properties", true, false) as string[]
-      // const propertyCacheValue = propertyCache.get(entry)
-      // todo: 裁剪不允许出现的属性
+      case "object":
+        const result = jsonDataType(nowData) === "object" ? _.clone(nowData) : {}
+        const allPropsRef = findKeyRefs(entryMap, "properties", true, false) as string[]
+        // const propertyCacheValue = propertyCache.get(entry)
+        // todo: 裁剪不允许出现的属性
 
-      for (const ref of allPropsRef) {
-        // const properties = getPathVal(rootSchema, addRef(ref, 'properties')!)
-        // 仅对 required 中的属性进行创建
-        const required = getPathVal(rootSchema, addRef(ref, "required")!) || []
-        for (const propName of required) {
-          result[propName] = getDefaultValue(schemaCache, addRef(ref, "properties", propName))
+        for (const ref of allPropsRef) {
+          // const properties = getPathVal(rootSchema, addRef(ref, 'properties')!)
+          // 仅对 required 中的属性进行创建
+          const required = getPathVal(rootSchema, addRef(ref, "required")!) || []
+          for (const propName of required) {
+            result[propName] = getDefaultValue(schemaCache, addRef(ref, "properties", propName))
+          }
         }
-      }
-      return result
-    case "array":
-      const itemsRef = findKeyRefs(entryMap, "items") as string | undefined
-      const additionalItems = absorbProperties(entryMap, 'additionalItems')
-      const itemCacheValue = itemCache.get(entry)
+        return result
+      case "array":
+        const itemsRef = findKeyRefs(entryMap, "items") as string | undefined
+        const additionalItems = absorbProperties(entryMap, "additionalItems")
+        const itemCacheValue = itemCache.get(entry)
 
-      const arrayResult = jsonDataType(nowData) === 'array' && additionalItems ? _.clone(nowData) : []
+        const arrayResult = jsonDataType(nowData) === "array" && additionalItems ? _.clone(nowData) : []
 
-      if (itemCacheValue && itemCacheValue.itemLength !== undefined) {
-        const { itemLength } = itemCacheValue
-        for (let i = 0; i < itemLength; i++) {
-          arrayResult[i] = getDefaultValue(schemaCache, addRef(itemsRef, i.toString()))
+        if (itemCacheValue && itemCacheValue.itemLength !== undefined) {
+          const { itemLength } = itemCacheValue
+          for (let i = 0; i < itemLength; i++) {
+            arrayResult[i] = getDefaultValue(schemaCache, addRef(itemsRef, i.toString()))
+          }
         }
-      }
-      return arrayResult
-    default:
-      break
+        return arrayResult
+      default:
+        break
     }
     return _.cloneDeep(defaultTypeValue[type])
   } else {
     return null
   }
 }
+
+/**
+ * 通过对应entry对数据进行浅验证。注意会无视entry的oneOf/anyOf信息。  
+ * 
+ * @param data
+ * @param valueEntry
+ * @param schemaCache
+ * @param deep
+ * @returns
+ */
+export const shallowValidate = (data: any, valueEntry: string, schemaCache: SchemaCache, deep = true): boolean => {
+  const {itemCache, propertyCache, rootSchema} = schemaCache
+  const schemaMap = getRefSchemaMap(valueEntry)
+  const unitedSchema = absorbSchema(schemaMap)
+  if (!unitedSchema) return false
+  const { const: constValue, enum: enumValue, type, format } = unitedSchema
+  const dataType = jsonDataType(data)
+  if (constValue !== undefined) {
+    return isEqual(data, constValue)
+  } else if (enumValue !== undefined) {
+    return exactIndexOf(enumValue, data) > -1
+  } else if (dataType === type) {
+    // 类型相同，进行详细验证
+    switch (type) {
+      case "object":
+        if (deep) {
+          const propertyCacheValue = propertyCache.has(valueEntry)
+            ? propertyCache.get(valueEntry)
+            : setPropertyCache(propertyCache, valueEntry, schemaMap, rootSchema)
+          if (propertyCacheValue) {
+            const { props, patternProps, additional, required } = propertyCacheValue
+            return required.every((key) => {
+              if (data[key] === undefined) return false
+              const propRef = props[key]?.ref
+              if (propRef) {
+                return shallowValidate(data[key], propRef, schemaCache, false)
+              }
+              return true
+            })
+          } else {
+            return true
+          }
+        }
+        return true
+      case "array":
+        if (deep) {
+          const itemCacheValue = itemCache.has(valueEntry)
+            ? itemCache.get(valueEntry)
+            : setItemCache(itemCache, valueEntry, schemaMap, rootSchema)
+          if (itemCacheValue) {
+            const itemRef = findKeyRefs(schemaMap, "items") as string
+            const additionalItemRef = findKeyRefs(schemaMap, "additionalItems") as string
+            const { itemLength } = itemCacheValue
+            return data.every((value: any, i: number) => {
+              if (itemLength !== undefined) {
+                return i >= itemLength
+                  ? shallowValidate(value, additionalItemRef, schemaCache, false)
+                  : shallowValidate(value, addRef(itemRef, i.toString())!, schemaCache, false)
+              } else {
+                return shallowValidate(value, itemRef, schemaCache, false)
+              }
+            })
+          } else {
+            return true
+          }
+        }
+        return true
+      case "string":
+        if (format) {
+          return ajvInstance.validate({ type: "string", format }, data)
+        }
+        return true
+      default:
+        return true
+    }
+  } else if (type) {
+    return false
+  }
+  return true
+}
+
 export { maxCollapseLayer, toConstName, toOfName, schemaShortable, canSchemaCreate, canSchemaRename, canDelete }

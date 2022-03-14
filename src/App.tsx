@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 // import formdata from "./json-example/formdata.json"
-import ItemsSchema from "./schema-example/Itemsv20.json"
+import $Items from "./schema-example/Itemsv20.json"
 import Items from "./json-example/Items.json"
 import ClassesSchema from "./json-example/$schema.Classes.json"
 import Classes from "./json-example/Classes.json"
@@ -17,8 +17,8 @@ import Editor from "./Editor"
 import _ from "lodash"
 import Affix from "antd/lib/affix"
 
-const datas = [enums, [], ItemsSchema, Items, Classes, meta, $simple].map((v) => _.cloneDeep(v))
-const schemas = [enumsSchema, ItemsSchema, meta, ItemsSchema, ClassesSchema, meta, meta].map((v) => _.cloneDeep(v))
+const datas = [enums, [], $Items, Items, Classes, meta, $simple].map((v) => _.cloneDeep(v))
+const schemas = [enumsSchema, $Items, meta, $Items, ClassesSchema, meta, meta].map((v) => _.cloneDeep(v))
 
 const App = () => {
   const [id, setId] = useState(6)

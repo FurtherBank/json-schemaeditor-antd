@@ -14,7 +14,7 @@ export enum ShortOpt {
 export interface ofSchemaCache {
   ofRef: string
   ofLength: number
-  extracted: (ValidateFunction | string)[]
+  extracted: (undefined | string)[]
   options: any[]
 }
 

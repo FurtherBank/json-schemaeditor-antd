@@ -1,7 +1,7 @@
 import _, { isEqual } from "lodash"
-import { SchemaCache } from "."
+import { ContextContent, SchemaCache } from "."
 import { FatherInfo, FieldProps, setItemCache, setPropertyCache } from "./Field"
-import { ajvInstance } from "./reducer"
+import { ajvInstance, Caches } from "./reducer"
 import {
   absorbProperties,
   absorbSchema,
@@ -330,16 +330,16 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
 
 /**
  * 通过对应entry对数据进行浅验证。注意会无视entry的oneOf/anyOf信息。  
- * 
+ * 详情说明见 [浅验证](https://gitee.com/furtherbank/json-schemaeditor-antd#浅验证)
  * @param data
  * @param valueEntry
  * @param schemaCache
  * @param deep
  * @returns
  */
-export const shallowValidate = (data: any, valueEntry: string, schemaCache: SchemaCache, deep = true): boolean => {
+export const shallowValidate = (data: any, valueEntry: string, schemaCache: ContextContent, deep = true): boolean => {
   const {itemCache, propertyCache, rootSchema} = schemaCache
-  const schemaMap = getRefSchemaMap(valueEntry)
+  const schemaMap = getRefSchemaMap(valueEntry, rootSchema)
   const unitedSchema = absorbSchema(schemaMap)
   if (!unitedSchema) return false
   const { const: constValue, enum: enumValue, type, format } = unitedSchema
@@ -348,7 +348,7 @@ export const shallowValidate = (data: any, valueEntry: string, schemaCache: Sche
     return isEqual(data, constValue)
   } else if (enumValue !== undefined) {
     return exactIndexOf(enumValue, data) > -1
-  } else if (dataType === type) {
+  } else if (dataType === type || (type === 'integer' && Number.isInteger(data))) {
     // 类型相同，进行详细验证
     switch (type) {
       case "object":

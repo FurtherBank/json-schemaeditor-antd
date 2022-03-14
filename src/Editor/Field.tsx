@@ -32,6 +32,7 @@ import {
   getFormatType,
   maxCollapseLayer,
   schemaShortable,
+  shallowValidate,
   toConstName,
   toOfName,
 } from "./FieldOptions"
@@ -78,7 +79,7 @@ import { SelectableGroup } from "react-selectable-fast"
 import ItemList from "./ItemList"
 import { useState } from "react"
 import { DataItemProps } from "./DataItem"
-import { CacheContext, SchemaCache } from "."
+import { CacheContext, ContextContent, SchemaCache } from "."
 import { time } from "console"
 import { ValidateFunction } from "ajv"
 const { Panel } = Collapse
@@ -188,8 +189,9 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
 const getOfOption = (
   data: any,
   schemaEntry: string,
-  ofCache: Map<string, ofSchemaCache | null>
+  context: ContextContent
 ): string | null | false => {
+  const {ofCache} = context
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null
   if (ofCacheValue) {
     const { extracted, ofLength, ofRef } = ofCacheValue
@@ -199,11 +201,11 @@ const getOfOption = (
         // 展开的 validate 为 string，就是子 oneOf 的 ref
         const optOfCacheValue = ofCache.get(validate)
         console.assert(optOfCacheValue)
-        const subOption = getOfOption(data, validate, ofCache)
+        const subOption = getOfOption(data, validate, context)
         console.assert(subOption !== null)
         if (subOption) return `${i}-${subOption}`
       } else {
-        const valid = validate(data)
+        const valid = shallowValidate(data, addRef(ofRef, i.toString())!, context)
         if (valid) return i.toString()
       }
     }
@@ -247,12 +249,10 @@ const FieldBase = (props: FieldProps) => {
   if (schemaEntry) {
     // 设置 ofCache (use Entry map ,root)
     if (!ofCache.has(schemaEntry)) {
-      console.group("compile")
       setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
-      console.groupEnd()
     }
     // 确定 valueEntry
-    ofOption = getOfOption(data, schemaEntry, ofCache)
+    ofOption = getOfOption(data, schemaEntry, caches)
     valueEntry =
       ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ofCache, schemaEntry, ofOption)
   }
@@ -739,7 +739,7 @@ export const setOfCache = (
     // 得到展开的 schema
     const oneOfSchemas = getRefSchemaMap(oneOfOptRefs, rootSchema, true)
     const extracted = extractSchema(oneOfSchemas, rootSchema)
-    const extractedSchemas = [] as (ValidateFunction | string)[]
+    const extractedSchemas = [] as (undefined | string)[]
 
     const oneOfOptions = oneOfOptRefs.map((ref, i) => {
       const optMap = getRefSchemaMap(ref, rootSchema)
@@ -762,15 +762,15 @@ export const setOfCache = (
         extractedSchemas.push(ref)
       } else {
         // 选项没有子选项，直接放置 编译后 validate 函数
-        const s = Date.now()
-        const copy = _.clone(extracted)
-        copy.$ref = "#/definitions/subSchema" + i
-        const validate = ajvInstance.compile(copy)
-        extractedSchemas.push(validate)
-        const e = Date.now()
-        if (e - s > 10) {
-          console.log(`${ref} 编译 ${e - s} ms`, copy)
-        }
+        // const s = Date.now()
+        // const copy = _.clone(extracted)
+        // copy.$ref = "#/definitions/subSchema" + i
+        // const validate = ajvInstance.compile(copy)
+        extractedSchemas.push(undefined)
+        // const e = Date.now()
+        // if (e - s > 10) {
+        //   console.log(`${ref} 编译 ${e - s} ms`, copy)
+        // }
       }
       return result
     })

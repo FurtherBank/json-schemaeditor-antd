@@ -9,6 +9,7 @@ import enumsSchema from "./json-example/$schema.test-nums.json"
 
 import facility from "./json-example/dataFacility.json"
 import $facility from "./json-example/$schema.dataFacility.json"
+import { fromJS } from "immutable"
 
 import $simple from "./json-example/$schema.simple.json"
 
@@ -19,6 +20,13 @@ import Affix from "antd/lib/affix"
 
 const datas = [enums, [], $Items, Items, Classes, meta, $simple].map((v) => _.cloneDeep(v))
 const schemas = [enumsSchema, $Items, meta, $Items, ClassesSchema, meta, meta].map((v) => _.cloneDeep(v))
+
+// console.time('switch')
+// const immutableMeta = fromJS(meta)
+// console.timeLog('switch', 'from')
+// const backMeta = immutableMeta.toJS()
+// console.timeEnd('switch')
+
 
 const App = () => {
   const [id, setId] = useState(6)

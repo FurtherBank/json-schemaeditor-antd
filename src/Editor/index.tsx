@@ -83,7 +83,7 @@ const EditorHook = (props: EditorProps) => {
   }
   const validate = useMemo(compileSchema, [schema]) as Function | any
   const caches = useMemo(() => {
-    console.log('caches变化');
+    console.log('caches变化')
     
     return {
       ofCache: new Map(),

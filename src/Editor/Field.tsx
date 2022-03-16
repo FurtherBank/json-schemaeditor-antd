@@ -379,7 +379,7 @@ const FieldBase = (props: FieldProps) => {
     switch (format) {
       case "multiline":
         // 所有需要使用 textarea 输入的格式用这个
-        return <CTextArea {...allUsedProps} style={{ flex: 1 }} autoSize={{ minRows: 3, maxRows: 5 }} />
+        return <CTextArea {...allUsedProps} style={{ flex: 1 }} autoSize={{ minRows: 3, maxRows: 5 }} onPressEnter={undefined}/>
       case "row":
       case "uri-reference":
         // 所有使用 row 输入的格式，用这个

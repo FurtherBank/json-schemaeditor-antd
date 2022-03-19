@@ -3,15 +3,6 @@ import { ajvInstance } from "../../Editor/reducer"
 import { toOfName } from "../../Editor/FieldOptions"
 import { findKeyRefs, getPathVal, addRef, getRefSchemaMap, extractSchema, iterToArray, deepReplace, deepCollect } from "../../Editor/utils"
 
-const ajvValidate = (
-  schema: any,
-  data: any
-): [boolean | PromiseLike<any>, ValidateFunction] => {
-  const validate = ajvInstance.compile(schema)
-
-  const valid = validate(data)
-  return [valid, validate]
-}
 test("deepReplace", () => {
   const data = {
     $ref: 1,

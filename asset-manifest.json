@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "./static/css/main.01c04c43.css",
+    "main.js": "./static/js/main.9c1fe72c.js",
+    "static/js/vendors-node_modules_monaco-editor_esm_vs_language_json_jsonMode_js.4719b1ed.chunk.js": "./static/js/vendors-node_modules_monaco-editor_esm_vs_language_json_jsonMode_js.4719b1ed.chunk.js",
+    "static/js/node_modules_web-vitals_dist_web-vitals_js.a16f18db.chunk.js": "./static/js/node_modules_web-vitals_dist_web-vitals_js.a16f18db.chunk.js",
+    "json.worker.js": "./json.worker.js",
+    "editor.worker.js": "./editor.worker.js",
+    "static/media/codicon.ttf": "./static/media/codicon.ade705761eb7e702770d.ttf",
+    "index.html": "./index.html",
+    "main.01c04c43.css.map": "./static/css/main.01c04c43.css.map",
+    "main.9c1fe72c.js.map": "./static/js/main.9c1fe72c.js.map",
+    "vendors-node_modules_monaco-editor_esm_vs_language_json_jsonMode_js.4719b1ed.chunk.js.map": "./static/js/vendors-node_modules_monaco-editor_esm_vs_language_json_jsonMode_js.4719b1ed.chunk.js.map",
+    "node_modules_web-vitals_dist_web-vitals_js.a16f18db.chunk.js.map": "./static/js/node_modules_web-vitals_dist_web-vitals_js.a16f18db.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.01c04c43.css",
+    "static/js/main.9c1fe72c.js"
+  ]
+}

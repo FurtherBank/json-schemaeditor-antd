@@ -16,7 +16,8 @@
                     "type": "string"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "multiline"
                 },
                 "cost": {
                     "type": "integer"

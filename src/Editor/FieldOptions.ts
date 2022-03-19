@@ -183,12 +183,12 @@ const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => {
   const title = absorbProperties(entrySchemaMap!, "title") as string | undefined
 
   if (field === null) {
-    return title ? title : ""
+    return title ? title : " "
   }
-  // 不是根节点，保证 FatherInfo 一定存在。
-  const { valueEntry: fatherValueEntry } = fatherInfo!
+  // 不是根节点，不保证 FatherInfo 一定存在，因为可能有抽屉！
+  const { valueEntry: fatherValueEntry, type: fatherType } = fatherInfo ?? {}
   const propertyCacheValue = fatherValueEntry ? propertyCache.get(fatherValueEntry) : null
-  if (fatherInfo!.type === "array") {
+  if (fatherType === "array") {
     return title ? title + " " + field : field
   } else if (!propertyCacheValue) {
     return ""

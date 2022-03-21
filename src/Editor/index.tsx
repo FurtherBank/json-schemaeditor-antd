@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { createStore, Store } from "redux"
 import { Provider } from "react-redux"
 import Field from "./Field"
@@ -34,54 +34,55 @@ export interface SchemaCache extends ContextContent {
   valueSchemaMap: Map<string, boolean | Schema>
 }
 
-const EditorHook = (props: EditorProps) => {
+const emptyArray: never[] = []
+
+const EditorHook = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   const { schema, data, onChange } = props
-  let schemaChanged = false
 
   // 编译 schema，并通知 schema 已经改变。
   const compileSchema = () => {
     let validate = undefined
     let schemaErrors = null
-    schemaChanged = true
+    
+    console.time('compile schema')
     try {
       validate = ajvInstance.compile(schema)
-      return validate
     } catch (error) {
       schemaErrors = error
-      return schemaErrors
     }
-  }
+    console.timeEnd('compile schema')
 
-  // 在 store 被更改的时候才会重新渲染，这一步清空 schema 修改标记
+    return validate ? validate : schemaErrors
+  }
+  
   const initStore = () => {
-    schemaChanged = false
     const initialState = {
       data: data,
-      rootSchema: typeof validate === "function" ? schema : true,
-      lastChangedRoute: [],
-      lastChangedField: [],
       dataErrors: [],
-      schemaErrors: typeof validate === "function" ? null : validate,
-      cache: {
-        ofCache: new Map(),
-        propertyCache: new Map(),
-        itemCache: new Map(),
-      },
       validate: typeof validate === "function" ? validate : undefined,
     }
-    const store = createStore(reducer, initialState)
+
+    const store = createStore(reducer, {
+      past: [],
+      present: initialState,
+      future: []
+    })
+
+    const change = () => {
+      const changedData = store.getState().present.data
+      if (onChange && typeof onChange == "function") {
+        onChange(changedData)
+      }
+    }
     store.subscribe(change)
+    
     return store
   }
 
-  const change = () => {
-    const changedData = store.getState().data
-    setNowData(changedData)
-    if (onChange && typeof onChange == "function") {
-      onChange(changedData)
-    }
-  }
   const validate = useMemo(compileSchema, [schema]) as Function | any
+  const store = useMemo(initStore, [schema])
+  useImperativeHandle(ref, () => {return store}, [store])
+
   const caches = useMemo(() => {
     console.log('caches变化')
     return {
@@ -91,27 +92,23 @@ const EditorHook = (props: EditorProps) => {
       rootSchema: validate instanceof Function ? typeof schema !== 'boolean' ? schema : {} : {}
     }
   }, [schema])
+
+  // 如果 data 更新来自外部，通过 setData 与 store 同步
+  const presentData = store.getState().present.data
+  if (data !== presentData) {
+    console.log('检测到外部更新：', data, presentData)
+    store.dispatch({
+      type: 'setData',
+      value: data
+    })
+  }
+
+  // 详细抽屉功能
   const drawerRef = useRef(null) as React.RefObject<any>
-
-  const [nowData, setNowData] = useState(data)  // 通过 nowData 与 data 是否同步检测变化是否来自外部，如果是则重置store
-  const [store, setStore] = useState(initStore)
-
-  const setDrawer = (...args: any[]) => {
+  const setDrawer = useCallback((...args: any[]) => {
     console.log("setDrawer", drawerRef.current)
     if (drawerRef.current) drawerRef.current.setDrawer(...args)
-  }
-
-
-  // 如果 data 更新来自外部，或者 schema 更改，则重置 store
-  if (!_.isEqual(data, nowData) || schemaChanged) {
-    console.log("重置 store", schemaChanged)
-    if (!schemaChanged) {
-      console.log("schema没改：新的data", data, "现在的data", nowData)
-    }
-    setStore(initStore())
-    setNowData(data)
-    return <></>
-  }
+  }, [drawerRef])
 
   return (
     <Provider store={store}>
@@ -119,7 +116,7 @@ const EditorHook = (props: EditorProps) => {
         <Alert message="Error" description={validate.toString()} type="error" showIcon />
       )}
       <CacheContext.Provider value={caches}>
-      <Field route={[]} field={null} schemaEntry="#" setDrawer={setDrawer} />
+      <Field route={emptyArray} field={null} schemaEntry="#" setDrawer={setDrawer} />
       <FieldDrawer ref={drawerRef} />
 
       </CacheContext.Provider>
@@ -127,4 +124,4 @@ const EditorHook = (props: EditorProps) => {
   )
 }
 
-export default React.memo(EditorHook)
+export default React.memo(forwardRef(EditorHook))

@@ -4,6 +4,18 @@
 直接引用Editor文件夹即可。  
 组件就三个属性：data，schema，onChange: (value: any) => void
 
+按照受控用法使用即可。
+
+### ref
+
+Editor组件将store暴露在了`useImperativeHandle`中。如果想要从外部主动更改数据，可以按照redux的store api进行操作。
+
+更多信息详见 [Reducer](#Reducer)
+
+### 使用时注意
+
+1. 状态的修改满足 [immutable 约定](https://www.yuque.com/furtherbank/frontend/react#slACC)
+
 ## JSON Schema 简单说明
 
 json-schema是一种可递归的文法模式。
@@ -13,10 +25,10 @@ json-schema是一种可递归的文法模式。
 
 ### 根
 
-| 关键字    | 作用                                                         | 值类型     | 备注     |
-| --------- | ------------------------------------------------------------ | ---------- | -------- |
-| `$schema` | 采用的jsonschema草稿                                         | url        |          |
-| `$id`     | 不知道有什么用                                               | string     |          |
+| 关键字    | 作用                 | 值类型 | 备注             |
+| --------- | -------------------- | ------ | ---------------- |
+| `$schema` | 采用的jsonschema草稿 | url    | 该项目使用draft6 |
+| `$id`     | 不知道有什么用       | string |                  |
 
 
 ### 通用模式
@@ -25,7 +37,7 @@ json-schema是一种可递归的文法模式。
 
 | 关键字                | 作用                                                         | 值类型   | 备注     |
 | --------------------- | ------------------------------------------------------------ | -------- | -------- |
-| `title`,`description` | 变量展示的名称(如果该变量为一个object的字段，会覆盖其属性名)和介绍 <br />注：如果该变量为一个array的元素，则。。。淦。一般array的元素无名 | string   |          |
+| `title`,`description` | 变量展示的名称(如果该变量为一个object的字段，会覆盖其属性名)和介绍 <br />对于title属性在编辑器中显示的实际影响，请参阅 | string   |          |
 | `type`                | 变量的类型。(number, integer, null, array, object, boolean, string) | string   |          |
 | `enum`              | 限定变量值为枚举值之一。可以使用枚举模式表示<br />枚举的展示模式：下拉框，单选框 | \<type\>[] |      |
 | [`const`](https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.1.3) | 唯一可能性变量 | \<type> | |
@@ -140,9 +152,10 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 粘贴时会进行**浅验证**
 
-#### 撤销恢复(待实装)
+#### 撤销恢复
 
-真的就是一个简单的撤销和恢复操作啊，但是做起来就很难的啊(恼)
+真的就是一个简单的撤销和恢复操作啊。  
+但是，做这个真的是对react和redux给了解透彻了才可以！
 
 ### 浅验证
 
@@ -401,6 +414,20 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 
 ## Reducer
 
+动作是这种格式的：
+
+``` typescript
+const action = {
+    type: "create",
+    route: ["gifts"],
+    field: "1",
+    value: {
+        "name": "gold",
+        "number": 10
+    }
+}
+```
+
 对于一个`Field`组件，自己的访问是`access`，自己父级是`route`，子是`access+sfield`
 
 | 可能调用的动作            | 更新           | 说明               |
@@ -410,7 +437,8 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 | delete(route, field)      | route          | 从父节点删除自己   |
 | rename(route, field)      | route,field    | 改变自己的属性键   |
 | moveup/down(route, field) | route, field   | 将自己上移/下移    |
-|                           |                |                    |
+| setdata(value)            |                | 直接更新           |
+| undo/redo                 |                | 撤销/恢复          |
 
 ## 验证输出格式
 
@@ -557,18 +585,6 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 
 使用cra+react app rewired
 
-### 为什么不使用immutable优化
-
-json编辑器的输入输出都是js object，如果需要更变，回调onchange就需要将immutable转js，data传入又要回转。
-
-这样速度太慢。
-
-简单测试，meta to immutable用时3.5ms左右，回转js需要大概1ms。
-
-这样太慢了
-
-但是话说回来
-
 ## 尚未解决问题
 
 - [ ] `enum`选项很长时，选框会过长导致ui错乱
@@ -580,3 +596,6 @@ json编辑器的输入输出都是js object，如果需要更变，回调onchang
 - [ ] format自验证及默认值生成
 - [ ] anchor
 - [ ] 动作副作用，可以让面板有实际的操作
+- [ ] 面包屑导引局部编辑
+- [ ] 如果可以，让他变成xml/yaml编辑器(误)
+- [ ] 插入文件及文件显示接口

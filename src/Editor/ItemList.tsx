@@ -1,6 +1,6 @@
 import React, { memo, useState } from "react"
 import DataItem from "./DataItem"
-import { ChildData } from "./Field"
+import { ChildData } from "./FieldList"
 import { toConstName } from "./FieldOptions"
 
 type Props = {

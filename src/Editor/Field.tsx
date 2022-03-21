@@ -2,11 +2,11 @@ import React, { useContext, useMemo } from "react"
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
-  CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
   EllipsisOutlined,
-  PlusOutlined,
+  RedoOutlined,
+  UndoOutlined,
 } from "@ant-design/icons"
 
 import "antd/dist/antd.compact.css"
@@ -19,9 +19,8 @@ import TreeSelect from "antd/lib/tree-select"
 import Select from "antd/lib/select"
 import Space from "antd/lib/space"
 import Tooltip from "antd/lib/tooltip"
-import Tabs from "antd/lib/tabs"
-import _ from "lodash"
-import { connect } from "react-redux"
+import _, { isEqual } from "lodash"
+import { connect, useSelector } from "react-redux"
 import cacheInput from "./utils/cacheInput"
 import {
   canDelete,
@@ -36,52 +35,27 @@ import {
   toConstName,
   toOfName,
 } from "./FieldOptions"
-import {
-  ajvInstance,
-  Caches,
-  doAction,
-  itemSchemaCache,
-  JsonTypes,
-  ofSchemaCache,
-  PropertyInfo,
-  propertySchemaCache,
-  ShortOpt,
-  State,
-} from "./reducer"
+import { doAction, itemSchemaCache, JsonTypes, ofSchemaCache, propertySchemaCache, ShortOpt, State } from "./reducer"
 import {
   absorbProperties,
-  filterObjSchema,
   concatAccess,
   exactIndexOf,
-  getFieldSchema,
   getRefSchemaMap,
   jsonDataType,
   findKeyRefs,
   getPathVal,
   addRef,
   extractSchema,
-  matchKeys,
-  iterToArray,
-  filterIter,
   getError,
   deepReplace,
-  getValueByPattern,
 } from "./utils"
 import Switch from "antd/lib/switch"
-import FieldList from "./FieldList"
+import FieldList, { FatherInfo } from "./FieldList"
 import Dropdown from "antd/lib/dropdown"
 import { Menu } from "antd"
 import TextArea from "antd/lib/input/TextArea"
-import Layout, { Content } from "antd/lib/layout/layout"
-import Sider from "antd/lib/layout/Sider"
-import CreateName from "./CreateName"
-import { SelectableGroup } from "react-selectable-fast"
-import ItemList from "./ItemList"
-import { useState } from "react"
-import { DataItemProps } from "./DataItem"
 import { CacheContext, ContextContent, SchemaCache } from "."
-import { time } from "console"
-import { ValidateFunction } from "ajv"
+import { StateWithHistory } from "redux-undo"
 const { Panel } = Collapse
 
 export interface FieldProps {
@@ -96,31 +70,13 @@ export interface FieldProps {
   doAction?: Function
   data?: any
   reRender?: any
-  dataErrors?: any[]
-}
-
-/**
- * 原则上来自于父字段的信息，不具有子字段特异性
- */
-export interface FatherInfo {
-  type?: string // 是父亲的实际类型，非要求类型
-  length?: number // 如果是数组，给出长度
-  schemaEntry: string | undefined // 父亲的 schemaEntry
-  valueEntry: string | undefined // 父亲的 schemaEntry
-}
-
-export interface ChildData {
-  key: string
-  value: any
-  end?: boolean
-  data?: ChildData[]
 }
 
 const CInput = cacheInput(Input),
   CInputNumber = cacheInput(InputNumber),
   CTextArea = cacheInput(TextArea)
 
-const sideActions = ["detail", "moveup", "movedown", "oneOf", "type", "delete"]
+const sideActions = ["detail", "undo", "redo", "moveup", "movedown", "oneOf", "type", "delete"]
 /**
  * 动作空间函数，理应有。
  * 注意：该函数输出的顺序影响侧栏动作按钮的顺序！
@@ -133,7 +89,6 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
   for (const iterator of entrySchemaMap!.values()) {
     schemas.push(iterator)
   }
-  const filteredSchemas = filterObjSchema(schemas)
   const hasFalse = schemas.includes(false)
   const result = new Map()
   // 对象和数组 在schema允许的情况下可以 create
@@ -176,6 +131,11 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
     if (canDelete(props, schemaCache)) result.set("delete", true)
   }
 
+  // 如果是根节点，那么加入撤销和恢复
+  if (field === null) {
+    result.set("undo", true)
+    result.set("redo", true)
+  }
   return result
 }
 
@@ -186,12 +146,8 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
  * @param ofCache
  * @returns `null`为无 oneOf/anyOf，`false`为不符合任何选项，`string`为选项链
  */
-const getOfOption = (
-  data: any,
-  schemaEntry: string,
-  context: ContextContent
-): string | null | false => {
-  const {ofCache} = context
+const getOfOption = (data: any, schemaEntry: string, context: ContextContent): string | null | false => {
+  const { ofCache } = context
   const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null
   if (ofCacheValue) {
     const { extracted, ofLength, ofRef } = ofCacheValue
@@ -234,7 +190,7 @@ const stopBubble = (e: React.SyntheticEvent) => {
 }
 
 const FieldBase = (props: FieldProps) => {
-  const { data, route, field, dataErrors, schemaEntry, short, canNotRename, setDrawer } = props
+  const { data, route, field, schemaEntry, short, canNotRename, setDrawer } = props
 
   const caches = useContext(CacheContext),
     { ofCache, propertyCache, itemCache, rootSchema } = caches
@@ -278,7 +234,12 @@ const FieldBase = (props: FieldProps) => {
 
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
-  const errors = getError(dataErrors!, access)
+
+  const dataErrors = useSelector<StateWithHistory<State>, any[]>((state) => {
+    return state.present.dataErrors
+  })
+
+  const errors = getError(dataErrors, access)
 
   const space = actionSpace(props, schemaCache, errors)
   const valueType = space.has("const") ? "const" : space.has("enum") ? "enum" : dataType
@@ -297,7 +258,7 @@ const FieldBase = (props: FieldProps) => {
     console.log("错误的渲染:", props)
     return null
   }
-  if (field === null) console.log("大框架渲染", data)
+  // console.log("渲染", access.join('/'), data)
 
   // 1. 设置标题组件
   const spaceStyle =
@@ -379,7 +340,14 @@ const FieldBase = (props: FieldProps) => {
     switch (format) {
       case "multiline":
         // 所有需要使用 textarea 输入的格式用这个
-        return <CTextArea {...allUsedProps} style={{ flex: 1 }} autoSize={{ minRows: 3, maxRows: 5 }} onPressEnter={undefined}/>
+        return (
+          <CTextArea
+            {...allUsedProps}
+            style={{ flex: 1 }}
+            autoSize={{ minRows: 3, maxRows: 5 }}
+            onPressEnter={undefined}
+          />
+        )
       case "row":
       case "uri-reference":
         // 所有使用 row 输入的格式，用这个
@@ -440,7 +408,7 @@ const FieldBase = (props: FieldProps) => {
           <Switch
             checkedChildren="true"
             unCheckedChildren="false"
-            defaultChecked={data}
+            checked={data}
             onChange={valueChangeAction}
             size="small"
           />
@@ -467,6 +435,18 @@ const FieldBase = (props: FieldProps) => {
       doAction("delete", route, field)
     },
     type: (value: string) => {
+      doAction("change", route, field, defaultTypeValue[value])
+    },
+    undo: (value: string) => {
+      doAction("undo")
+    },
+    redo: (value: string) => {
+      doAction("redo")
+    },
+    copy: (value: string) => {
+      // todo
+    },
+    paste: (value: string) => {
       doAction("change", route, field, defaultTypeValue[value])
     },
   } as any
@@ -512,6 +492,10 @@ const FieldBase = (props: FieldProps) => {
           return (
             <Button key="delete" icon={<DeleteOutlined />} size="small" shape="circle" onClick={actionEvents.delete} />
           )
+        case "undo":
+          return <Button key="undo" icon={<UndoOutlined />} size="small" shape="circle" onClick={actionEvents.undo} />
+        case "redo":
+          return <Button key="redo" icon={<RedoOutlined />} size="small" shape="circle" onClick={actionEvents.redo} />
         case "type":
           return (
             <Select
@@ -536,66 +520,10 @@ const FieldBase = (props: FieldProps) => {
     const actionComs = actionComKeys.map((value) => sideActionComSpace(value))
 
     // 4. 为 object/array 设置子组件
-    let children: ChildData[] = []
-    const childFatherInfo: FatherInfo = {
-      schemaEntry,
-      valueEntry,
-    }
-
-    if (dataType === "array") {
-      // todo: 短优化筛查并给出子组件
-      childFatherInfo.type = "array"
-      childFatherInfo.length = data.length
-
-      children = data.map((value: any, i: number) => {
-        return { key: i.toString(), value }
-      })
-    } else if (dataType === "object") {
-      childFatherInfo.type = "object"
-
-      const propertyCacheValue = valueEntry ? propertyCache.get(valueEntry) : null
-      const shortenProps: string[] = []
-      // todo: 分开查找可优化的项，然后按顺序排列
-      for (const key in data) {
-        const value = data[key]
-        if (propertyCacheValue) {
-          const { props, patternProps, additional } = propertyCacheValue
-          const patternInfo = getValueByPattern(patternProps, key)
-          if (props[key]) {
-            if (props[key].shortable) {
-              shortenProps.push(key)
-              continue
-            }
-          } else if (patternInfo) {
-            if (patternInfo.shortable) {
-              shortenProps.push(key)
-              continue
-            }
-          } else if (additional && additional.shortable) {
-            shortenProps.push(key)
-            continue
-          }
-        }
-        children.push({ key, value })
-      }
-      if (shortenProps.length > 0) {
-        const shortenChildren = shortenProps.map((key) => {
-          const value = data[key]
-          return {
-            key,
-            value,
-          }
-        })
-        children.unshift({ data: shortenChildren, key: "", value: "" })
-      }
-    }
-
     return access.length === 0 && dataType === "array" && _.isEqual(types, ["array"]) ? (
       <FieldList
         fieldProps={props}
         fieldCache={schemaCache}
-        content={children}
-        fatherInfo={childFatherInfo}
         short={ShortOpt.no}
         canCreate={space.has("create")}
         view={"list"}
@@ -606,8 +534,6 @@ const FieldBase = (props: FieldProps) => {
           <FieldList
             fieldProps={props}
             fieldCache={schemaCache}
-            content={children}
-            fatherInfo={childFatherInfo}
             short={dataType === "array" && itemCacheValue ? itemCacheValue.shortOpt : ShortOpt.no}
             canCreate={space.has("create")}
           />
@@ -671,40 +597,6 @@ const FieldBase = (props: FieldProps) => {
 }
 
 /**
- * 字段组件是否需要重新渲染，条件：
- * 1. access 完全匹配了 lastChangedRoute
- * 2. lastChangedRoute + lastChangedField 一个元素 是 access 的子串
- * 3. 根节点
- * @param access
- * @param lastChangedRoute
- * @param lastChangedField
- * @returns
- */
-const needReRender = (access: string[], lastChangedRoute: null | string[], lastChangedField: string[]) => {
-  if (lastChangedRoute === null) return false
-  if (access.length === 0) return true
-  let i = 0
-  for (const p of lastChangedRoute) {
-    if (access[i] === p) {
-      i++
-    } else if (i === access.length - 1) {
-      return false
-    } else {
-      return false
-    }
-  }
-
-  // 完全匹配 route
-  if (i === access.length) {
-    return true
-  } else if (lastChangedField.length === 0 || lastChangedField.includes(access[i])) {
-    // 下个字符
-    return true
-  }
-  return false
-}
-
-/**
  * 对 设置 ofCache
  * @param ofCache
  * @param schemaEntry
@@ -737,8 +629,6 @@ export const setOfCache = (
     ) as string[]
 
     // 得到展开的 schema
-    const oneOfSchemas = getRefSchemaMap(oneOfOptRefs, rootSchema, true)
-    const extracted = extractSchema(oneOfSchemas, rootSchema)
     const extractedSchemas = [] as (undefined | string)[]
 
     const oneOfOptions = oneOfOptRefs.map((ref, i) => {
@@ -761,16 +651,7 @@ export const setOfCache = (
         // 选项有子选项，将子选项ref给他
         extractedSchemas.push(ref)
       } else {
-        // 选项没有子选项，直接放置 编译后 validate 函数
-        // const s = Date.now()
-        // const copy = _.clone(extracted)
-        // copy.$ref = "#/definitions/subSchema" + i
-        // const validate = ajvInstance.compile(copy)
         extractedSchemas.push(undefined)
-        // const e = Date.now()
-        // if (e - s > 10) {
-        //   console.log(`${ref} 编译 ${e - s} ms`, copy)
-        // }
       }
       return result
     })
@@ -853,10 +734,10 @@ export const setPropertyCache = (
 
 /**
  * 设置 itemCache
- * @param itemCache 
- * @param valueEntry 
- * @param valueSchemaMap 
- * @param rootSchema 
+ * @param itemCache
+ * @param valueEntry
+ * @param valueSchemaMap
+ * @param rootSchema
  */
 export const setItemCache = (
   itemCache: Map<string, itemSchemaCache | null>,
@@ -923,10 +804,28 @@ export const setItemCache = (
 /**
  * 注意，如果一个组件使用自己且使用 react-redux 链接，请注意使用connect后的名字！
  */
+
+const checkMemoChange = (prevProps: any, nextProps: any) => {
+  const { route, field } = nextProps
+  const access = concatAccess(route, field).join("/")
+  let changed = false
+  for (const key in prevProps) {
+    if (Object.prototype.hasOwnProperty.call(prevProps, key)) {
+      if (prevProps[key] !== nextProps[key]) {
+        changed = true
+        console.log(key, "改变", access ? access : "<root>", isEqual(prevProps[key], nextProps[key]))
+      }
+    }
+  }
+  return !changed
+}
+
 const Field = connect(
-  (state: State, props: FieldProps) => {
+  (state: StateWithHistory<State>, props: FieldProps) => {
     const { route, field } = props
-    const { data, lastChangedRoute, lastChangedField, dataErrors } = state
+    const {
+      present: { data },
+    } = state
 
     // 得到确切访问路径，取得数据
     const access = field != null ? route.concat(field) : route
@@ -935,22 +834,11 @@ const Field = connect(
       targetData = targetData[key]
     })
 
-    // 根据上次动作给出的渲染路径 判断
-    const reRender = needReRender(access, lastChangedRoute, lastChangedField)
-
     return {
       data: targetData,
-      dataErrors,
-      reRender: reRender ? {} : null, // 本来在 areEqual 之前还有一个浅比较：相等一定不渲染。这里true用一个空对象(变引用)就可以解决这一个问题
     }
   },
   { doAction }
-)(
-  React.memo(FieldBase, (prevProps, nextProps) => {
-    const { route: prevRoute, field: prevField } = prevProps
-    const { route: nextRoute, field: nextField } = nextProps
-    return !nextProps.reRender && _.isEqual(prevRoute, nextRoute) && prevField === nextField
-  })
-)
+)(React.memo(FieldBase, checkMemoChange))
 
 export default Field

@@ -1,6 +1,7 @@
+import produce from "immer"
 import _, { isEqual } from "lodash"
 import { ContextContent, SchemaCache } from "."
-import { FatherInfo, FieldProps, setItemCache, setPropertyCache } from "./Field"
+import { FieldProps, setItemCache, setPropertyCache } from "./Field"
 import { ajvInstance, Caches } from "./reducer"
 import {
   absorbProperties,
@@ -17,6 +18,7 @@ import {
 } from "./utils"
 
 const maxCollapseLayer = 3
+export const maxItemsPerPageByShortLevel = [16, 32, 48]
 const longFormats = ["row", "uri-reference"]
 const extraLongFormats = ["multiline"]
 
@@ -260,9 +262,11 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
   // 0. 如果nowData是对象，就先剪掉不在列表中的属性，然后进行合并
   if (nowDataType === "object" && propertyCacheValue) {
     const { props, patternProps } = propertyCacheValue
-    for (const key of Object.keys(nowData)) {
-      if (!props[key] && !getValueByPattern(patternProps, key)) delete nowData[key]
-    }
+    nowData = produce(nowData, (draft: any) => {
+      for (const key of Object.keys(draft)) {
+        if (!props[key] && !getValueByPattern(patternProps, key)) delete draft[key]
+      }
+    })
   }
   // 1. 优先返回规定的 default 字段值(注意深拷贝，否则会形成对象环！)
   const defaultValue = absorbProperties(entryMap, "default")
@@ -293,17 +297,15 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
       case "object":
         const result = jsonDataType(nowData) === "object" ? _.clone(nowData) : {}
         const allPropsRef = findKeyRefs(entryMap, "properties", true, false) as string[]
-        // const propertyCacheValue = propertyCache.get(entry)
-        // todo: 裁剪不允许出现的属性
 
         for (const ref of allPropsRef) {
-          // const properties = getPathVal(rootSchema, addRef(ref, 'properties')!)
           // 仅对 required 中的属性进行创建
           const required = getPathVal(rootSchema, addRef(ref, "required")!) || []
           for (const propName of required) {
             result[propName] = getDefaultValue(schemaCache, addRef(ref, "properties", propName))
           }
         }
+        
         return result
       case "array":
         const itemsRef = findKeyRefs(entryMap, "items") as string | undefined

@@ -26,8 +26,8 @@ const loadLocalJson = (key: string) => {
 const App = () => {
   const [mode, setMode] = useState(0)
 
-  const [data, setData] = useState(loadLocalJson("data") ?? cloneDeep(Examples[0][1]))
-  const [schema, setSchema] = useState(loadLocalJson("schema") ?? cloneDeep(Examples[0][2]))
+  const [data, setData] = useState(() => loadLocalJson("data") ?? cloneDeep(Examples[0][1]))
+  const [schema, setSchema] = useState(() => loadLocalJson("schema") ?? cloneDeep(Examples[0][2]))
 
   const dataEditor = useRef<MonacoEditor>(null)
   const schemaEditor = useRef<MonacoEditor>(null)
@@ -43,13 +43,12 @@ const App = () => {
   }
 
   // 自动保存 
-  // todo: 需要解决这里会保存两次的问题(估计原因在于开发模式二次渲染)
+  // 注：开发模式会渲染两次，这里就会保存两遍。生产模式没事
   const save = useCooldown(
     (data, schema) => {
       try {
         localStorage.setItem("data", JSON.stringify(data))
         localStorage.setItem("schema", JSON.stringify(schema))
-        console.log("<保存成功>", data, schema)
       } catch (error) {
         console.error(error)
       }
@@ -59,12 +58,11 @@ const App = () => {
   )
 
   useMemo(() => {
-    console.log("<申请保存>")
     save(data, schema)
   }, [data, schema])
 
   const changeData = (value: any) => {
-    setData(typeof value === 'object' ? Object.assign({}, value) : value)
+    setData(typeof value === 'object' ? value : value)
   }
 
   const changeExample = (data: any, schema: any) => {

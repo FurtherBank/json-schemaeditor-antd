@@ -3,7 +3,9 @@ import addFormats from "ajv-formats"
 import draft6MetaSchema from "ajv/dist/refs/json-schema-draft-06.json"
 import localize from "ajv-i18n/localize/zh"
 
-import _ from "lodash"
+import _, { isEqual } from "lodash"
+import produce from "immer"
+import undoable from "redux-undo"
 
 export enum ShortOpt {
   no,
@@ -21,12 +23,11 @@ export interface ofSchemaCache {
 export interface PropertyInfo {
   ref: string
   shortable: boolean
-
 }
 
 export interface propertySchemaCache {
-  props: {[x: string]: PropertyInfo}
-  patternProps: {[x: string]: PropertyInfo}
+  props: { [x: string]: PropertyInfo }
+  patternProps: { [x: string]: PropertyInfo }
   required: string[]
   additional: PropertyInfo | undefined
 }
@@ -43,23 +44,20 @@ export interface Caches {
 }
 
 export interface Act {
-  type: string;
-  route: string[];
-  field: string | null;
-  value?: string;
+  type: string
+  route: string[]
+  field: string | null
+  value?: string
 }
 
 export interface State {
-  data: any;
-  lastChangedRoute: string[] | null,
-  lastChangedField: string[],
-  dataErrors: any[],
-  schemaErrors?: any,
+  data: any
+  dataErrors: any[]
   validate?: Function
 }
 
 const ajv = new Ajv({
-  allErrors: true
+  allErrors: true,
 }) // options can be passed, e.g. {allErrors: true}
 ajv.addMetaSchema(draft6MetaSchema)
 addFormats(ajv)
@@ -105,137 +103,136 @@ const ajvInstance = ajv
 //   return [valid, validate];
 // };
 
-const reducer = (
-  s: State = {
-    data: null,
-    lastChangedRoute: [],
-    lastChangedField: [],
-    dataErrors: [],
-    validate: null!,
-  },
-  a: Act
-) => {
-  const { type, route, field, value } = a
-  const reValidate = () => {
-    console.time('验证')
-    if (typeof s.validate === "function") {
-      const validate = s.validate as ValidateFunction
-      const valid = validate(s.data)
-      localize(validate.errors)
+const reducer = undoable(
+  produce(
+    (s: State, a: Act) => {
+      const { type, route, field, value } = a
+      const reValidate = () => {
+        console.time("验证")
+        if (typeof s.validate === "function") {
+          const validate = s.validate as ValidateFunction
+          const valid = validate(s.data)
+          localize(validate.errors)
+
+          if (!isEqual(s.dataErrors, validate.errors)) s.dataErrors = validate.errors ? validate.errors : []
+
+          if (validate.errors) {
+            console.warn("not valid", validate.errors)
+          }
+        }
+        console.timeEnd("验证")
+      }
+
+      // 特殊接口：setData 强制设置数据
+      if (type === "setData") {
+        s.data = value
+        return
+      } 
       
-      s.dataErrors = validate.errors ? validate.errors : []
-      if (validate.errors) {
-        console.log("not valid", validate.errors)
+      // 初始化
+      if (!route) {
+        console.log("初始化验证", a)
+        reValidate()
+        return
       }
-    }
-    
-    console.timeEnd('验证')
-  }
+      
+      console.log(type, s, route.join("/") + "+" + field, value)
 
-  // 特殊接口： set强制设置
-  if (type === "set") return Object.assign({}, s, value) // set强制设置
-  // 初始化
-  if (!route) {
-    console.log('初始化验证', a)
-    reValidate()
-    return Object.assign({}, s)
-  }
-  const access = field !== null ? route.concat(field) : route
-  console.log(type, s, route.join("/") + "+" + field, value)
-
-  const logError = (error: string) => {
-    console.log(error, route.join("/") + "+" + field, value, oriNode)
-    s.lastChangedRoute = null
-    return s
-  }
-
-  let data = s.data // 注意这个变量一直是 s 子节点的一个引用
-  for (const key of route) {
-    data = data[key]
-  }
-  const oriNode = data
-
-  // 初始化动作修改路径
-  s.lastChangedField = []
-  s.lastChangedRoute = route
-
-  switch (type) {
-    case "create":
-      if (!field) {
-        logError("未指定field")
-        return s
+      const logError = (error: string) => {
+        console.log(error, route.join("/") + "+" + field, value, fieldData)
       }
-      if (oriNode instanceof Array) {
-        // 给array push 一个新东西
-        const index = parseInt(field!)
-        oriNode[index] = value
-      } else if (oriNode instanceof Object) {
-        // 给对象创建新的属性
-        if (!oriNode.hasOwnProperty(field)) {
-          oriNode[field] = value
-        }
-      } else {
-        logError("对非对象/数组的错误创建请求")
-      }
-      s.lastChangedField = [field]
-      break
-    case "change": // change 是对非对象值的改变
-      if (field === null) {
-        s.data = _.cloneDeep(value)
-      } else if (oriNode instanceof Array || oriNode instanceof Object) oriNode[field] = _.cloneDeep(value)
-      else logError("对非对象/数组的字段修改请求")
 
-      s.lastChangedRoute = access
-      break
-    case "delete":
-      if (!field) return s
-
-      if (oriNode instanceof Array) {
-        // 注意数组删除，后面元素是要前移的
-        const index = parseInt(field)
-        _.remove(oriNode, (value: any, i: number) => i === index)
-      } else if (oriNode instanceof Object) delete oriNode[field]
-      else {
-        logError("对非对象/数组的字段删除请求")
+      let data = s.data // 注意这个变量一直是 s 子节点的一个引用
+      for (const key of route) {
+        data = data[key]
       }
-      break
-    case "rename":
-      if (!field || !value || field === value) break
+      const fieldData = data
 
-      if (oriNode instanceof Object) {
-        // todo: 严查value类型
-        if (!oriNode.hasOwnProperty(value)) {
-          oriNode[value!] = oriNode[field]
-          delete oriNode[field]
-        }
-      } else {
-        logError("对非对象的字段重命名请求")
+      // 初始化动作修改路径
+
+      switch (type) {
+        case "create":
+          if (!field) {
+            logError("未指定field")
+            return
+          }
+          if (fieldData instanceof Array) {
+            // 给array push 一个新东西
+            const index = parseInt(field!)
+            fieldData[index] = value
+          } else if (fieldData instanceof Object) {
+            // 给对象创建新的属性
+            if (!fieldData.hasOwnProperty(field)) {
+              fieldData[field] = value
+            }
+          } else {
+            logError("对非对象/数组的错误创建请求")
+          }
+          break
+        case "change": // change 是对非对象值的改变
+          if (field === null) {
+            s.data = _.cloneDeep(value)
+          } else if (fieldData instanceof Array || fieldData instanceof Object) fieldData[field] = _.cloneDeep(value)
+          else logError("对非对象/数组的字段修改请求")
+
+          break
+        case "delete":
+          if (!field) return
+
+          if (fieldData instanceof Array) {
+            // 注意数组删除，后面元素是要前移的
+            const index = parseInt(field)
+            _.remove(fieldData, (value: any, i: number) => i === index)
+          } else if (fieldData instanceof Object) delete fieldData[field]
+          else {
+            logError("对非对象/数组的字段删除请求")
+          }
+          break
+        case "rename":
+          if (!field || !value || field === value) break
+
+          if (fieldData instanceof Object) {
+            // todo: 严查value类型
+            if (!fieldData.hasOwnProperty(value)) {
+              fieldData[value!] = fieldData[field]
+              delete fieldData[field]
+            }
+          } else {
+            logError("对非对象的字段重命名请求")
+          }
+          break
+        case "moveup":
+        case "movedown":
+          if (fieldData instanceof Array) {
+            if (!field) return
+            const index = parseInt(field)
+            const swapIndex = type === "moveup" ? index - 1 : index + 1
+            if (swapIndex >= 0 && swapIndex < fieldData.length) {
+              const temp = fieldData[index]
+              fieldData[index] = fieldData[swapIndex]
+              fieldData[swapIndex] = temp
+            } else {
+              logError("数组项越界移动")
+            }
+          } else logError("对非数组的移动请求")
+          break
+        default:
+          console.log("错误的动作请求")
       }
-      break
-    case "moveup":
-    case "movedown":
-      if (oriNode instanceof Array) {
-        if (!field) return s
-        const index = parseInt(field)
-        const swapIndex = type === "moveup" ? index - 1 : index + 1
-        if (swapIndex >= 0 && swapIndex < oriNode.length) {
-          const temp = oriNode[index]
-          oriNode[index] = oriNode[swapIndex]
-          oriNode[swapIndex] = temp
-          s.lastChangedField = [field, swapIndex.toString()]
-        } else {
-          logError("数组项越界移动")
-        }
-      } else logError("对非数组的移动请求")
-      break
-    default:
-      console.log("错误的动作请求")
+      // 重新验证
+      reValidate()
+      return
+    },
+    {
+      data: {},
+      dataErrors: [],
+    } as State
+  ),
+  {
+    undoType: "undo",
+    redoType: "redo",
   }
-  // 重新验证
-  reValidate()
-
-  return Object.assign({}, s)
-}
+)
 
 const doAction = (type: string, route = [], field = null, value = undefined) => ({
   type,

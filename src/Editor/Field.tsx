@@ -284,10 +284,6 @@ const FieldBase = (props: FieldProps) => {
             <CloseCircleOutlined style={{ color: "red" }} />
           </Tooltip>
         ) : null
-        // <CheckCircleOutlined
-        //   className="site-result-demo-right-icon"
-        //   style={{ color: "green" }}
-        // />
       }
 
       {short !== ShortOpt.extra ? (
@@ -298,9 +294,10 @@ const FieldBase = (props: FieldProps) => {
               bordered={false}
               style={{
                 textDecoration: "underline",
-                width: "130px",
+                width: "100px",
                 padding: "0",
               }}
+              title={field}
               value={field} // todo: validate the propertyName
               validate={(v) => {
                 return fieldNameRange instanceof RegExp ? fieldNameRange.test(v) : true
@@ -313,7 +310,7 @@ const FieldBase = (props: FieldProps) => {
               }}
             />
           ) : (
-            <span style={{ width: "100px" }}>{titleName}</span>
+            <span style={{ width: "100px" }} title={titleName!}>{titleName}</span>
           )}
         </Tooltip>
       ) : null}
@@ -349,6 +346,7 @@ const FieldBase = (props: FieldProps) => {
           />
         )
       case "row":
+      case "uri":
       case "uri-reference":
         // 所有使用 row 输入的格式，用这个
         return <CInput {...allUsedProps} style={{ flex: 1, minWidth: "400px" }} />
@@ -378,7 +376,7 @@ const FieldBase = (props: FieldProps) => {
                   label: toConstName(value),
                 }
               })}
-              style={{ flex: 1 }}
+              style={{ flex: 1, maxWidth: '185px' }}
               onChange={(value, options) => {
                 doAction("change", route, field, space.get("enum")[value])
               }}

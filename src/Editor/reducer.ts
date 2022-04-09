@@ -231,6 +231,7 @@ const reducer = undoable(
   {
     undoType: "undo",
     redoType: "redo",
+    limit: 35
   }
 )
 

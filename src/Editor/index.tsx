@@ -5,6 +5,7 @@ import Field from "./Field"
 import { ajvInstance, Caches, itemSchemaCache, ofSchemaCache, propertySchemaCache, reducer } from "./reducer"
 import FieldDrawer from "./FieldDrawer"
 import Alert from "antd/lib/alert"
+import { composeWithDevTools } from 'redux-devtools-extension'
 
 import "./css/index.scss"
 import _ from "lodash"
@@ -66,7 +67,7 @@ const EditorHook = (props: EditorProps, ref: React.ForwardedRef<any>) => {
       past: [],
       present: initialState,
       future: []
-    })
+    }, composeWithDevTools())
 
     const change = () => {
       const changedData = store.getState().present.data

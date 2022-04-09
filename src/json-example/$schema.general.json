@@ -179,6 +179,15 @@
           }
         ]
       }
+    },
+    "smellyAndLong": {
+      "enum": [
+        "该项目是一个使用antd写的基于json-schema的json编辑器。 目前还在高速开发迭代中……\n该项目具有简单、可靠等特点。",
+        "123",
+        5
+      ],
+      "title": "又臭又长",
+      "description": "这是一个又臭又长的枚举字符串。"
     }
   },
   "required": ["enumValue", "constValue", "typeError", "newNameTest", "formats"]

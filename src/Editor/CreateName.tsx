@@ -96,6 +96,7 @@ const CreateName = (props: CreateNameProps) => {
         filterOption={(inputValue, option) =>
           option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
         }
+        
         value={name}
         onChange={handleNameChange}
         style={{flex: '1'}}

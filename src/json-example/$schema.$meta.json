@@ -1,0 +1,1178 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Meta",
+    "definitions": {
+        "Meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/MetaDefinitions"
+                },
+                "anyOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AnyOf"
+                    }
+                }
+            },
+            "required": [
+                "anyOf",
+                "definitions",
+                "title"
+            ],
+            "title": "Meta"
+        },
+        "AnyOf": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "$ref": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "AnyOf"
+        },
+        "MetaDefinitions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "schemaArray": {
+                    "$ref": "#/definitions/SchemaArray"
+                },
+                "nonNegativeInteger": {
+                    "$ref": "#/definitions/NonNegativeInteger"
+                },
+                "simpleTypes": {
+                    "$ref": "#/definitions/SimpleTypes"
+                },
+                "stringArray": {
+                    "$ref": "#/definitions/StringArray"
+                },
+                "common": {
+                    "$ref": "#/definitions/Common"
+                },
+                "$ref": {
+                    "$ref": "#/definitions/AnyOfClass"
+                },
+                "const": {
+                    "$ref": "#/definitions/EnumClass"
+                },
+                "enum": {
+                    "$ref": "#/definitions/EnumClass"
+                },
+                "oneOf": {
+                    "$ref": "#/definitions/AnyOfClass"
+                },
+                "anyOf": {
+                    "$ref": "#/definitions/AnyOfClass"
+                },
+                "object": {
+                    "$ref": "#/definitions/Object"
+                },
+                "array": {
+                    "$ref": "#/definitions/Array"
+                },
+                "number": {
+                    "$ref": "#/definitions/Number"
+                },
+                "string": {
+                    "$ref": "#/definitions/String"
+                },
+                "boolean": {
+                    "$ref": "#/definitions/Boolean"
+                },
+                "null": {
+                    "$ref": "#/definitions/Boolean"
+                },
+                "additional": {
+                    "$ref": "#/definitions/Additional"
+                }
+            },
+            "required": [
+                "$ref",
+                "additional",
+                "anyOf",
+                "array",
+                "boolean",
+                "common",
+                "const",
+                "enum",
+                "nonNegativeInteger",
+                "null",
+                "number",
+                "object",
+                "oneOf",
+                "schemaArray",
+                "simpleTypes",
+                "string",
+                "stringArray"
+            ],
+            "title": "MetaDefinitions"
+        },
+        "AnyOfClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/RefProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "AnyOfClass"
+        },
+        "RefProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "$ref": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "default": {
+                    "type": "boolean"
+                },
+                "examples": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                },
+                "anyOf": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "oneOf": {
+                    "$ref": "#/definitions/AnyOfElement"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "default",
+                "definitions",
+                "description",
+                "title"
+            ],
+            "title": "RefProperties"
+        },
+        "ID": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TitleEnum"
+                },
+                "format": {
+                    "$ref": "#/definitions/IDFormat"
+                }
+            },
+            "required": [
+                "format",
+                "type"
+            ],
+            "title": "ID"
+        },
+        "DescriptionClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "$ref": "#/definitions/RefDescription"
+                },
+                "type": {
+                    "$ref": "#/definitions/TitleEnum"
+                },
+                "format": {
+                    "$ref": "#/definitions/RefFormat"
+                }
+            },
+            "required": [
+                "description",
+                "format",
+                "type"
+            ],
+            "title": "DescriptionClass"
+        },
+        "PropertiesClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "description": {
+                    "$ref": "#/definitions/DefinitionsDescription"
+                },
+                "additionalProperties": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/DefaultClass"
+                }
+            },
+            "required": [
+                "additionalProperties",
+                "description",
+                "type"
+            ],
+            "title": "PropertiesClass"
+        },
+        "DefaultClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "DefaultClass"
+        },
+        "TitleClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "$ref": "#/definitions/TitleDescription"
+                },
+                "type": {
+                    "$ref": "#/definitions/TitleEnum"
+                }
+            },
+            "required": [
+                "description",
+                "type"
+            ],
+            "title": "TitleClass"
+        },
+        "Additional": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "anyOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AnyOf"
+                    }
+                }
+            },
+            "required": [
+                "anyOf",
+                "description"
+            ],
+            "title": "Additional"
+        },
+        "Array": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/ArrayProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "Array"
+        },
+        "ArrayProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeClass"
+                },
+                "additionalItems": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "items": {
+                    "$ref": "#/definitions/DependenciesItems"
+                },
+                "maxItems": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "minItems": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "uniqueItems": {
+                    "$ref": "#/definitions/UniqueItems"
+                },
+                "contains": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "not": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "examples": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "additionalItems",
+                "contains",
+                "default",
+                "definitions",
+                "description",
+                "examples",
+                "items",
+                "maxItems",
+                "minItems",
+                "not",
+                "title",
+                "type",
+                "uniqueItems"
+            ],
+            "title": "ArrayProperties"
+        },
+        "DependenciesItems": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "anyOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AnyOfElement"
+                    }
+                }
+            },
+            "required": [
+                "anyOf"
+            ],
+            "title": "DependenciesItems"
+        },
+        "AnyOfElement": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "$ref": {
+                    "$ref": "#/definitions/Ref"
+                }
+            },
+            "required": [
+                "$ref"
+            ],
+            "title": "AnyOfElement"
+        },
+        "TypeClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "const": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "const"
+            ],
+            "title": "TypeClass"
+        },
+        "UniqueItems": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "default": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "default",
+                "type"
+            ],
+            "title": "UniqueItems"
+        },
+        "Boolean": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/BooleanProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "Boolean"
+        },
+        "BooleanProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeClass"
+                },
+                "not": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/UniqueItems"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "definitions",
+                "description",
+                "title",
+                "type"
+            ],
+            "title": "BooleanProperties"
+        },
+        "Common": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "properties": {
+                    "$ref": "#/definitions/CommonProperties"
+                }
+            },
+            "required": [
+                "properties",
+                "type"
+            ],
+            "title": "Common"
+        },
+        "CommonProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                },
+                "const": {
+                    "$ref": "#/definitions/PropertiesConst"
+                },
+                "enum": {
+                    "$ref": "#/definitions/Enum"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "definitions",
+                "description",
+                "title"
+            ],
+            "title": "CommonProperties"
+        },
+        "PropertiesConst": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "oneOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ExamplesElement"
+                    }
+                }
+            },
+            "required": [
+                "description",
+                "oneOf"
+            ],
+            "title": "PropertiesConst"
+        },
+        "ExamplesElement": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "title": "ExamplesElement"
+        },
+        "Enum": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "uniqueItems": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "type",
+                "uniqueItems"
+            ],
+            "title": "Enum"
+        },
+        "EnumClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/CommonProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "EnumClass"
+        },
+        "NonNegativeInteger": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "minimum": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "minimum",
+                "type"
+            ],
+            "title": "NonNegativeInteger"
+        },
+        "Number": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/NumberProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "Number"
+        },
+        "NumberProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/SimpleTypes"
+                },
+                "multipleOf": {
+                    "$ref": "#/definitions/MultipleOf"
+                },
+                "maximum": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "exclusiveMaximum": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "minimum": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "exclusiveMinimum": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "not": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "examples": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "default",
+                "definitions",
+                "description",
+                "examples",
+                "exclusiveMaximum",
+                "exclusiveMinimum",
+                "maximum",
+                "minimum",
+                "multipleOf",
+                "not",
+                "title",
+                "type"
+            ],
+            "title": "NumberProperties"
+        },
+        "MultipleOf": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "exclusiveMinimum": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "exclusiveMinimum",
+                "type"
+            ],
+            "title": "MultipleOf"
+        },
+        "SimpleTypes": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enum": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "enum"
+            ],
+            "title": "SimpleTypes"
+        },
+        "Object": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "properties": {
+                    "$ref": "#/definitions/ObjectProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "default": {
+                    "$ref": "#/definitions/Default"
+                }
+            },
+            "required": [
+                "default",
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "Object"
+        },
+        "Default": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "properties": {
+                    "$ref": "#/definitions/DefaultClass"
+                },
+                "additionalProperties": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "additionalProperties",
+                "properties",
+                "type"
+            ],
+            "title": "Default"
+        },
+        "ObjectProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeClass"
+                },
+                "maxProperties": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "minProperties": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "required": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "additionalProperties": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "properties": {
+                    "$ref": "#/definitions/PropertiesClass"
+                },
+                "patternProperties": {
+                    "$ref": "#/definitions/PatternProperties"
+                },
+                "dependencies": {
+                    "$ref": "#/definitions/Dependencies"
+                },
+                "propertyNames": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "not": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "examples": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "additionalProperties",
+                "default",
+                "definitions",
+                "dependencies",
+                "description",
+                "examples",
+                "maxProperties",
+                "minProperties",
+                "not",
+                "patternProperties",
+                "properties",
+                "propertyNames",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "ObjectProperties"
+        },
+        "Dependencies": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "additionalProperties": {
+                    "$ref": "#/definitions/DependenciesItems"
+                }
+            },
+            "required": [
+                "additionalProperties",
+                "type"
+            ],
+            "title": "Dependencies"
+        },
+        "PatternProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "additionalProperties": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "propertyNames": {
+                    "$ref": "#/definitions/ID"
+                },
+                "default": {
+                    "$ref": "#/definitions/DefaultClass"
+                }
+            },
+            "required": [
+                "additionalProperties",
+                "default",
+                "description",
+                "propertyNames",
+                "type"
+            ],
+            "title": "PatternProperties"
+        },
+        "SchemaArray": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "minItems": {
+                    "type": "integer"
+                },
+                "items": {
+                    "$ref": "#/definitions/AnyOfElement"
+                }
+            },
+            "required": [
+                "items",
+                "minItems",
+                "title",
+                "type"
+            ],
+            "title": "SchemaArray"
+        },
+        "String": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleEnum"
+                },
+                "properties": {
+                    "$ref": "#/definitions/StringProperties"
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "properties",
+                "required",
+                "title",
+                "type"
+            ],
+            "title": "String"
+        },
+        "StringProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/TypeClass"
+                },
+                "format": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "pattern": {
+                    "$ref": "#/definitions/ID"
+                },
+                "maxLength": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "minLength": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "not": {
+                    "$ref": "#/definitions/AnyOfElement"
+                },
+                "default": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "examples": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "$id": {
+                    "$ref": "#/definitions/ID"
+                },
+                "$schema": {
+                    "$ref": "#/definitions/ID"
+                },
+                "title": {
+                    "$ref": "#/definitions/TitleClass"
+                },
+                "description": {
+                    "$ref": "#/definitions/DescriptionClass"
+                },
+                "definitions": {
+                    "$ref": "#/definitions/PropertiesClass"
+                }
+            },
+            "required": [
+                "$id",
+                "$schema",
+                "default",
+                "definitions",
+                "description",
+                "examples",
+                "format",
+                "maxLength",
+                "minLength",
+                "not",
+                "pattern",
+                "title",
+                "type"
+            ],
+            "title": "StringProperties"
+        },
+        "StringArray": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "items": {
+                    "$ref": "#/definitions/ExamplesElement"
+                },
+                "uniqueItems": {
+                    "type": "boolean"
+                },
+                "default": {
+                    "type": "array",
+                    "items": {}
+                }
+            },
+            "required": [
+                "default",
+                "items",
+                "type",
+                "uniqueItems"
+            ],
+            "title": "StringArray"
+        },
+        "IDFormat": {
+            "type": "string",
+            "enum": [
+                "uri-reference",
+                "uri",
+                "regex"
+            ],
+            "title": "IDFormat"
+        },
+        "TitleEnum": {
+            "type": "string",
+            "enum": [
+                "string"
+            ],
+            "title": "TitleEnum"
+        },
+        "RefDescription": {
+            "type": "string",
+            "enum": [
+                "该模式实际指向的 uri 引用",
+                "该模式的介绍文本，鼠标移到标题上可以显示"
+            ],
+            "title": "RefDescription"
+        },
+        "RefFormat": {
+            "type": "string",
+            "enum": [
+                "uri-reference",
+                "multiline"
+            ],
+            "title": "RefFormat"
+        },
+        "Ref": {
+            "type": "string",
+            "enum": [
+                "#",
+                "#/definitions/schemaArray",
+                "#/definitions/additional",
+                "#/definitions/nonNegativeInteger",
+                "#/definitions/stringArray"
+            ],
+            "title": "Ref"
+        },
+        "DefinitionsDescription": {
+            "type": "string",
+            "enum": [
+                "在这里设置字段定义可能会引用到的模式",
+                "在这里定义对象各字段满足的模式。"
+            ],
+            "title": "DefinitionsDescription"
+        },
+        "TypeEnum": {
+            "type": "string",
+            "enum": [
+                "object"
+            ],
+            "title": "TypeEnum"
+        },
+        "TitleDescription": {
+            "type": "string",
+            "enum": [
+                "该模式的展示标题"
+            ],
+            "title": "TitleDescription"
+        }
+    }
+}

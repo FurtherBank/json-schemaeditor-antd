@@ -19,7 +19,7 @@ import {
 
 const maxCollapseLayer = 3
 export const maxItemsPerPageByShortLevel = [16, 32, 48]
-const longFormats = ["row", "uri-reference"]
+const longFormats = ["row", "uri", "uri-reference"]
 const extraLongFormats = ["multiline"]
 
 export const gridOption = [

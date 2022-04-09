@@ -245,6 +245,7 @@ exports[`itemSnapshot 1`] = `
                 >
                   <span
                     style="width: 100px;"
+                    title="0"
                   >
                     0
                   </span>

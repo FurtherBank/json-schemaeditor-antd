@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/DataSolarElement"
+    },
+    "definitions": {
+        "DataSolarElement": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "radius": {
+                    "type": "integer"
+                },
+                "radiusType": {
+                    "type": "integer"
+                },
+                "orbitalRadius": {
+                    "type": "number"
+                },
+                "texture": {
+                    "type": "string"
+                },
+                "ring": {
+                    "type": "string"
+                },
+                "orbitalAngularVelocity": {
+                    "type": "number"
+                },
+                "spinVelocity": {
+                    "type": "number"
+                },
+                "abundance": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "hard": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "required": [
+                "abundance",
+                "hard",
+                "name",
+                "orbitalAngularVelocity",
+                "orbitalRadius",
+                "radius",
+                "radiusType",
+                "ring",
+                "spinVelocity",
+                "texture"
+            ],
+            "title": "DataSolarElement"
+        }
+    }
+}

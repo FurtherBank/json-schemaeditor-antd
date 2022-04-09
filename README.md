@@ -395,12 +395,16 @@ https://ajv.js.org/packages/ajv-formats.html
 
 在字符串的`format`中设置。除此之外，还增加了一些其它格式：
 
-- uri
-- uri-reference
-- base-64
-- color
-- row（加长输入条）
-- multiline（多行编辑）
+| 格式名             | 描述                                                | 格式类型           | 特殊组件                                                     |
+| ------------------ | --------------------------------------------------- | ------------------ | ------------------------------------------------------------ |
+| uri                |                                                     | `longFormats`      |                                                              |
+| uri-reference      |                                                     | `longFormats`      |                                                              |
+| base-64            |                                                     | `extraLongFormats` | 二进制编辑器（未实装）                                       |
+| color              | 颜色。~~支持rgb/rgba/cmyk等多种颜色格式是否可能？~~ |                    | 颜色选择框（未实装）                                         |
+| row                | 单行加长输入                                        | `longFormats`      | input加长版                                                  |
+| multiline          | 多行输入                                            | `extraLongFormats` |                                                              |
+| code: \<language>  | 特定语言代码（未实装）                              | `extraLongFormats` | monaco-editor（未实装）                                      |
+| file: \<file-type> | 文件名（未实装）                                    |                    | 文件上传框（未实装）<br />特殊的文件会读取展示，如图片，但是未实装 |
 
 string的一些格式并不支持短优化，这时会作为一个长组件显示。
 长格式分为两种：**单行长格式**`longFormats`和**跨行长格式**`extraLongFormats`。
@@ -411,6 +415,45 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 #### number/integer/boolean/null
 
 - 必然为短字段
+
+## 自定义 view （仅设计）
+
+在 schema 中可以通过 view 字段
+
+``` json
+{
+    "view": {
+        "type": "your_view_type",
+        "params": {
+            "any": "any"
+        }
+    }
+}
+```
+
+可以自定义 json-schemaeditor 的 view 组件并发布到 npm。
+这样，在使用 json-schemaeditor 时，可以通过配置文件`json-schemaeidtor.json`（是用json引包还是js require引入？）使用自定义的 view 组件。
+
+### 自定义 view 组件
+
+自定义 view 组件需要配置如下：
+
+1. 数据有效条件
+   该配置类型为 schema，表示怎样模式的数据可以使用该组件编辑。
+2. 配置有效条件
+   该配置类型为 schema，表示 view 字段的 params 应该是怎样的。
+3. 组件信息
+   包括组件类type(这个字段是 view 的 type 的值)
+   组件短优化情况(short/long/extralong)
+
+``` json
+{
+    "type": "your_view_type",
+    
+}
+```
+
+然后再加上一些目录约定。。。
 
 ## Reducer
 
@@ -587,7 +630,7 @@ const action = {
 但是这个实际效果测试就很难说，是一个混沌状态。  
 不能绝对的说满足哪一个特征就是ok。(但是可以绝对的说出什么问题不ok)  
 
-目前准备用macaca 来做测试。  
+目前准备用 macaca 来做测试。  
 
 ## 其它问题
 
@@ -599,6 +642,7 @@ const action = {
 
 - [x] `enum`选项很长时，选框会过长导致ui错乱
 - [ ] List组件响应式列表看的是屏幕宽度而非dom宽度，导致有时候一个短优化项过短的问题
+- [ ] 无 default 默认值设置的不是太好
 
 ## 后续更新特性
 

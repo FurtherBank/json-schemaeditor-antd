@@ -30,7 +30,7 @@
     "es",
     "dist"
   ],
-  "main": "dist/umd.min.js",
+  "main": "dist/index.min.js",
   "module": "es/index.js",
   "types": "es/index.d.ts",
   "gitHooks": {

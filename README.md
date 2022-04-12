@@ -12,6 +12,8 @@
 npm install json-schemaeditor-antd
 ```
 
+[![json-schemaeditor-antd](https://nodei.co/npm/json-schemaeditor-antd.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/json-schemaeditor-antd/)
+
 然后在你的 jsx 中引入即可：
 
 ```jsx
@@ -28,7 +30,7 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 
 组件就三个属性：data，schema，onChange: (value: any) => void
 
-按照受控用法使用即可。如果你需要使用 umd 格式的包，可以引入`json-schemaeditor-antd/dist/umd.min.js`
+按照受控用法使用即可。如果你需要使用 umd 格式的包，可以引入`json-schemaeditor-antd/dist`
 
 > 注意：使用时如果 schema ts 报错，在后面加 as any 就 🆗 了。schema 的正确性可以自己先确认好。该项目使用 ajv 来做 schema 的验证和检验。如果 schema 有问题你可以看到报错窗口，且会以无 schema 的方式来展示 editor。
 >
@@ -634,6 +636,18 @@ const action = {
 在这次上传 npm 的大更新之后，使用 [dumi](https://d.umijs.org/zh-CN) 作为开发环境。
 
 虽然 dumi 也有些坑，但还算是可靠的组件库开发方案了。
+
+### antd
+
+该项目并未将 antd 打包进入，使用你自己的 antd 依赖项。
+
+antd 可以通过 babel 简化按需引入，该项目使用了这个特性。  
+所以你的项目必须配置好 less 的加载能力。
+
+同时，项目使用的 antd 主题取决于你使用的 antd 主题。  
+开发时使用了紧凑主题。
+
+测试项目是否可用时，在 umi 项目下该组件可正常导入并生效。
 
 ## 尚未解决问题
 

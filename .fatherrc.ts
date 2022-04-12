@@ -3,7 +3,7 @@
 export default {
   esm: 'babel',
   umd: {
-    file: 'umd',
+    file: 'index',
     sourcemap: true,
   },
   extraBabelPlugins: [

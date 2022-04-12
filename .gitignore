@@ -23,5 +23,5 @@
 .env.local
 
 # ide
-/.vscode
-/.idea
+# /.vscode
+# /.idea

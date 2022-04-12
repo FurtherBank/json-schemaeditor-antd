@@ -1,10 +1,32 @@
 # json-schemaeditor-antd
 ## 使用方法
-核心部分是Editor文件夹的组件。  
-直接引用Editor文件夹即可。  
+老规矩，首先 `npm install`：  
+
+``` bash
+npm install json-schemaeditor-antd
+```
+
+然后在你的 jsx 中引入即可：
+``` jsx
+const { JsonSchemaEditor } = 'json-schemaeditor-antd'
+
+<JsonSchemaEditor  data={data} schema={schema} 
+  onChange={(jsonData) => {
+    console.log(jsonData)
+  }}
+/>
+```
+
 组件就三个属性：data，schema，onChange: (value: any) => void
 
 按照受控用法使用即可。
+
+如果你需要使用 umd 格式的包，可以引入`json-schemaeditor-antd/lib/umd.min.js`
+
+本人前端小白一枚，这还是第一次打包上传npm，实际使用时可能会有很多问题。
+
+如果发现了该项目的bug，或者有什么建议、发现项目的设计缺陷等等，欢迎大家随时提issue！  
+本菜鸟会想办法尽快解决的  
 
 ### ref
 
@@ -19,7 +41,7 @@ Editor组件将store暴露在了`useImperativeHandle`中。如果想要从外部
 ## JSON Schema 简单说明
 
 json-schema是一种可递归的文法模式。
-该项目使用draft6
+该项目使用 draft6
 
 [JSON Schema入门 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/355175938)
 
@@ -197,7 +219,7 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 本身描述 JSON Schema 的模式称为元模式。元模式用于验证 JSON 模式是否正确。
 
 该项目中直接使用draft6元模式可以正常工作，不过为更方便编辑，项目对元模式内容进行了拓展，并以一些通用约定做了特殊限制。
-详见`json-example/$meta.json`
+详见`schema/$meta.json`
 
 ### 关注到多个schema
 
@@ -210,18 +232,17 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 在这里的设置是，一个模式入口引用了一个模式映射`Map<$ref, schema>`。
 
+#### ref: Info 性质缓存机制
 
-#### 性质缓存机制
+UI 组件的表现需要使用 schema 的一些信息。不过这个信息获取的计算量稍微大一点。
+所以对于整个 schema 来说，需要建立 Map 反映对应`$ref`下 schema 的特征信息。
 
-如果一个模式使用了 oneOf/anyOf，需要用ajv验证是否符合各schema才能确定项。
-但是这样要将当前层的data用于当前层的schema验证才行。
+这个 Map 在组件第一次使用到对应`$ref`下信息的时候写入计算值，后续使用信息时会直接读取计算值而不必进行再次计算。
 
-如果把schema直接抽出，验证将在出现`$ref`标签时不起作用。
-所以这里将 oneOf/anyOf 下的所有引用到的模式迁移到`definitions`下，然后更新引用，在选择验证时，root改为`$ref: "#/definitions/subSchema${i}"`，然后放在ajv下验证即可。
+具体来说，Editor 中使用了3个map对象，分别保存对应 schema 的 oneOf/anyOf 信息、对象属性字段信息、数组项信息。
 
-因为有schema不变的假设，如果多个量在这一个路径，我们可以将处理后的schema缓存下来，然后调用，可以防止每个有oneOf的ui都得通过schemamap重建处理后的schema。
-
-于是，这个东西就缓存在了store的状态中，以一个map记录处理后的schema，of选项等等信息。
+需要注意的是，Map 对象存的信息必须只由 schema 决定。可能多个 Field 组件使用了相同`$ref` 的信息。
+而且 Map 对象仅在 schema 更改时变更引用并重新建立。
 
 #### 替换假设
 
@@ -247,15 +268,14 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 
 这一篇主要说明在不同的模式限制下，字段编辑器的一些表现，以及其会涉及到的特性。
 其中，很多特性的具体应用条件、参数可以在`FieldOption`脚本文件中找到。
-如果想要对这些特性进行定制设计，可以在其中进行修改。
+如果想要对这些特性进行定制设计，可以在其中进行修改(后续会对一些选项开放 options 入参)。
 
 如果不通过模式对数据进行任何限制，该编辑器只是一个普通的json编辑器。
 
 ### const/enum
 
-#### 短字段
-
-`const`和`enum`必然为短字段，无论其值类型。
+`const`和`enum`必然为短字段，无论其值类型如何(或者说有多大多长)。  
+仅用一个树选择来选择枚举选项，每个选项用其常量名称作为显示，具体内容通过菜单的详细查看。
 
 #### 常量名称
 
@@ -264,12 +284,16 @@ schema定义一个嵌套的object，读取属性时是`root.layer1.layer2`；但
 数组做为常量，名称为`Array[{length}]`。
 对象名称为`name.toString()`，此外为`Object[keys.length]`
 
+可以设置`constName: string`或`enumName: string[]`来替换默认的常量名称。（未实装）
+
 注意将数据的**常量名称**、字段的**标题名称**和模式的**模式名称**区分开来。
 
 ### oneOf/anyOf
 
 对于具备 oneOf/anyOf 的字段，会通过一个树选择组件，来处理数据实际满足的模式。
 可以正确处理 oneOf/anyOf 连续嵌套的情况，但必须要满足对应的 [模式假设](#模式假设)
+
+注：allOf 仅做验证，在 ui 方面没有特殊支持。
 
 #### 实际变量入口映射
 
@@ -305,15 +329,13 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 ### 不确定类型
 
 不确定类型会有一个选择组件来处理该字段的类型。
-实际上，在这里并不建议使用多类型的模式，如果有这样的需求，使用`oneOf`关键字会更好。
+实际上，在这里并不建议使用多类型的模式，且 ajv 的严格模式也不推荐显式定义字段为多类型。
+
+如果有这样的需求，使用`oneOf`关键字会更好。
 
 ### 单一类型
 
 #### object
-
-##### 特殊展示模式(未实装)
-
-可以通过`view`字段规定对象的特殊展示模式。
 
 ##### 短字段显示
 
@@ -361,13 +383,6 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 在`required`内的字段不可被删除。
 
 #### array
-
-##### 特殊展示模式(未实装)
-
-可以通过`view`字段规定数组的特殊展示模式。
-
-- 曲线
-- 
 
 ##### 短字段显示
 
@@ -434,6 +449,8 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 可以自定义 json-schemaeditor 的 view 组件并发布到 npm。
 这样，在使用 json-schemaeditor 时，可以通过配置文件`json-schemaeidtor.json`（是用json引包还是js require引入？）使用自定义的 view 组件。
 
+> 注：自定义 view 组件和字符串自定义格式组件不一样，前者不限于在字符串类型中使用。
+
 ### 自定义 view 组件
 
 自定义 view 组件需要配置如下：
@@ -454,6 +471,13 @@ string的一些格式并不支持短优化，这时会作为一个长组件显�
 ```
 
 然后再加上一些目录约定。。。
+
+### 内置 view 组件
+
+- 曲线
+- 渐变
+- 可视化图表
+- 
 
 ## Reducer
 
@@ -625,12 +649,16 @@ const action = {
    看[完全输出](D:\Windows\Download\verbose-example.json)
 
 ## 项目测试
+~~我不会告诉你目前本人还不会写测试~~
+
 说实话，这个项目测试也不知道最终写成什么样子去测试比较好，尤其是在界面上。  
 逻辑测试主要测函数写的是否正确，还是比较好做的。  
 但是这个实际效果测试就很难说，是一个混沌状态。  
-不能绝对的说满足哪一个特征就是ok。(但是可以绝对的说出什么问题不ok)  
+不能绝对的说满足哪一个特征就是ok，(但是可以绝对的说出什么问题不ok)  
 
-目前准备用 macaca 来做测试。  
+估计届时需要集思广益多交一些bug，然后汇集成大量的测试用例。
+
+目前准备用 macaca 来做测试，会尽快补全的o(TヘTo)。  
 
 ## 其它问题
 
@@ -646,8 +674,10 @@ const action = {
 
 ## 后续更新特性
 
+在这里畅所欲言，但凡可以的都行。~~能不能实装就永远也不知道了~~
+
 - [ ] 前面写着尚未实装的特性
-- [ ] 说实话大统一之后真的可以读外部的 schema，可以直接读或给一个接口吊起来
+- [ ] 说实话大统一之后真的可以读外部的 schema，可以直接读或给一个接口处理
 - [ ] $ref 跳转
 - [ ] 菜单栏及相应功能(目前设计也未明确)  
 - [ ] list 翻页，如果两页高度不一样，有时候会找不着
@@ -658,3 +688,4 @@ const action = {
 - [ ] 面包屑导引局部编辑
 - [ ] 如果可以，让他变成xml/yaml编辑器(误)
 - [ ] 插入文件及文件显示接口
+- [ ] 支持bson以及非标准jsonschema，以及非json数据的schema(甚至后续有可能还会自己提出一个优化后的schema草案)

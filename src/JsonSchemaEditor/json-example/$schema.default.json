@@ -1,0 +1,12 @@
+{
+  "title": "Default Schema",
+  "description": "a simple object schema by default",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "format": "row"
+    }
+  },
+  "additionalProperties": false
+}

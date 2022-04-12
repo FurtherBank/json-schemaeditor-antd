@@ -27,7 +27,7 @@
   },
   "files": [
     "es",
-    "lib"
+    "dist"
   ],
   "main": "dist/index.js",
   "module": "es/index.js",

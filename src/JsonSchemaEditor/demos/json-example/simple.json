@@ -1,0 +1,9 @@
+{
+  "array": [1, 2, 3, 4],
+  "string": "555sdw",
+  "object": {
+    "number": 5,
+    "boolean": 4,
+    "array": ["dd", "ee", "ff"]
+  }
+}

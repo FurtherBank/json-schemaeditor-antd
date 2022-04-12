@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "array",
+  "items": {
+    "anyOf": [
+      {
+        "$ref": "#/definitions/Class"
+      },
+      {
+        "type": "null"
+      }
+    ]
+  },
+  "definitions": {
+    "Class": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "expParams": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "traits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Trait"
+          }
+        },
+        "learnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Learning"
+          }
+        },
+        "name": {
+          "$ref": "#/definitions/Name"
+        },
+        "note": {
+          "type": "string"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "required": ["expParams", "id", "learnings", "name", "note", "params", "traits"],
+      "title": "Class"
+    },
+    "Learning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "integer"
+        },
+        "note": {
+          "type": "string"
+        },
+        "skillId": {
+          "type": "integer"
+        }
+      },
+      "required": ["level", "note", "skillId"],
+      "title": "Learning"
+    },
+    "Trait": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "dataId": {
+          "type": "integer"
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": ["code", "dataId", "value"],
+      "title": "Trait"
+    },
+    "Name": {
+      "type": "string",
+      "enum": ["", "冒险者（地牢设计）", "系统管理员", "小爱丽丝"],
+      "title": "Name"
+    }
+  }
+}

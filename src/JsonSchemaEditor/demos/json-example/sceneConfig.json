@@ -1,0 +1,9 @@
+{
+  "name": "scene",
+  "responseDelay": 500,
+  "responseCode": 200,
+  "rewriteResponseHeaders": {
+    "cache-control": "no-cache"
+  },
+  "responseData": {}
+}

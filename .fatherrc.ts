@@ -1,17 +1,21 @@
 // https://github.com/umijs/father
 // 注意有些单词的大小写
 export default {
-  esm: 'rollup',
+  esm: 'babel',
   umd: {
     file: 'umd',
-    sourcemap: true
+    sourcemap: true,
   },
-  extraBabelPlugins: [  // https://github.com/umijs/father#extrababelplugins
-    ['babel-plugin-import', {
-      libraryName: 'antd',
-      libraryDirectory: 'es',
-      style: true,
-    }],
+  extraBabelPlugins: [
+    // https://github.com/umijs/father#extrababelplugins
+    [
+      'babel-plugin-import',
+      {
+        libraryName: 'antd',
+        libraryDirectory: 'es',
+        style: true,
+      },
+    ],
   ],
   lessInBabelMode: true, // https://github.com/umijs/father#lessinbabelmode
 };

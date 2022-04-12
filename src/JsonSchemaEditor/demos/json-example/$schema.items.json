@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "array",
+  "items": [
+    {
+      "type": "null"
+    }
+  ],
+  "additionalItems": {
+    "$ref": "#/definitions/Item"
+  },
+  "definitions": {
+    "Item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "animationId": {
+          "title": "动画 id",
+          "type": "integer"
+        },
+        "consumable": {
+          "title": "是否消耗",
+          "type": "boolean"
+        },
+        "damage": {
+          "$ref": "#/definitions/Damage"
+        },
+        "description": {
+          "title": "介绍",
+          "type": "string",
+          "format": "multiline"
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Effect"
+          }
+        },
+        "hitType": {
+          "title": "命中类型",
+          "type": "integer"
+        },
+        "iconIndex": {
+          "title": "图标索引",
+          "type": "integer"
+        },
+        "itypeId": {
+          "title": "物品类型",
+          "type": "integer"
+        },
+        "name": {
+          "title": "名称",
+          "type": "string"
+        },
+        "note": {
+          "title": "备注",
+          "type": "string",
+          "format": "multiline"
+        },
+        "occasion": {
+          "title": "使用场合",
+          "type": "integer"
+        },
+        "price": {
+          "title": "价格",
+          "type": "integer"
+        },
+        "repeats": {
+          "title": "作用次数",
+          "type": "integer"
+        },
+        "scope": {
+          "title": "使用范围",
+          "type": "integer"
+        },
+        "speed": {
+          "title": "速度修正",
+          "type": "integer"
+        },
+        "successRate": {
+          "title": "成功率",
+          "type": "integer"
+        },
+        "tpGain": {
+          "title": "获得TP",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "animationId",
+        "consumable",
+        "damage",
+        "description",
+        "effects",
+        "hitType",
+        "iconIndex",
+        "id",
+        "itypeId",
+        "name",
+        "note",
+        "occasion",
+        "price",
+        "repeats",
+        "scope",
+        "speed",
+        "successRate",
+        "tpGain"
+      ],
+      "title": "物品"
+    },
+    "Damage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "critical": {
+          "title": "可否暴击",
+          "type": "boolean"
+        },
+        "elementId": {
+          "title": "属性",
+          "type": "integer"
+        },
+        "formula": {
+          "title": "伤害公式",
+          "type": "string"
+        },
+        "type": {
+          "title": "伤害类型",
+          "type": "integer"
+        },
+        "variance": {
+          "title": "分散度",
+          "type": "integer"
+        }
+      },
+      "required": ["critical", "elementId", "formula", "type", "variance"],
+      "title": "伤害"
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "dataId": {
+          "type": "integer"
+        },
+        "value1": {
+          "type": "number"
+        },
+        "value2": {
+          "type": "integer"
+        }
+      },
+      "required": ["code", "dataId", "value1", "value2"],
+      "title": "特殊效果"
+    }
+  }
+}

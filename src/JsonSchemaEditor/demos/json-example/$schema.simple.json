@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/Formdata",
+  "definitions": {
+    "Formdata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "array": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "string": {
+          "type": "string"
+        },
+        "object": {
+          "$ref": "#/definitions/Object"
+        }
+      },
+      "required": ["array", "object", "string"],
+      "title": "Formdata"
+    },
+    "Object": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer"
+        },
+        "boolean": {
+          "type": "integer"
+        },
+        "array": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["array", "boolean", "number"],
+      "title": "Object"
+    }
+  }
+}

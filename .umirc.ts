@@ -21,4 +21,10 @@ export default defineConfig({
     ]);
   },
 
+  // dumi 文档发布需要做的事情
+  history: {
+    type: 'hash',
+  },
+  base: '/json-schemaeditor-antd/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/json-schemaeditor-antd/' : '/',
 });

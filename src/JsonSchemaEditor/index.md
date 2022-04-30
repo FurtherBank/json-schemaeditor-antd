@@ -1,7 +1,7 @@
 ---
 nav:
-  title: Components
-  path: /components
+  title: Json Schema Editor
+  path: /JsonSchemaEditor
 ---
 
 ## Json Schema Editor(Antd)

@@ -1,34 +1,33 @@
 /* eslint-disable no-debugger */
-import { JSONSchema6 } from "json-schema"
-import _, { isEqual } from "lodash"
-import { SchemaCache } from ".."
-import { FieldProps } from "../Field"
-import { PropertyInfo } from "../reducer"
+import { JSONSchema6 } from 'json-schema';
+import _, { isEqual } from 'lodash';
+import { SchemaCache } from '..';
+import { FieldProps } from '../Field';
+import { PropertyInfo } from '../reducer';
 
 const KeywordTypes = {
-  intersection: ["type"],
-  merge: ["properties", "patternProperties"]
-} as any
-
+  intersection: ['type'],
+  merge: ['properties', 'patternProperties'],
+} as any;
 
 const getKeywordType = (keyword: string) => {
   for (const type in KeywordTypes) {
-    if (KeywordTypes[type].includes(keyword)) return type
+    if (KeywordTypes[type].includes(keyword)) return type;
   }
-  return 'first'
-}
+  return 'first';
+};
 
 const concatAccess = (route: any[], ...args: any[]) => {
-  return route.concat(args.filter((value) => !!value))
-}
+  return route.concat(args.filter((value) => !!value));
+};
 
 const jsonDataType = (data: any) => {
-  return data === null ? "null" : data instanceof Array ? "array" : typeof data
-}
+  return data === null ? 'null' : data instanceof Array ? 'array' : typeof data;
+};
 
 const logSchemaError = (msg: string) => {
-  return true
-}
+  return true;
+};
 
 /**
  * 简单的迭代器转数组
@@ -36,12 +35,12 @@ const logSchemaError = (msg: string) => {
  * @returns
  */
 const iterToArray = <T>(it: Iterable<T>): T[] => {
-  const r = []
+  const r = [];
   for (const ele of it) {
-    r.push(ele)
+    r.push(ele);
   }
-  return r
-}
+  return r;
+};
 /**
  * 将 uri 字符串解析为数组
  * @param uri
@@ -49,32 +48,32 @@ const iterToArray = <T>(it: Iterable<T>): T[] => {
  */
 const extractURI = (uri: string) => {
   if (typeof uri !== 'string') {
-    debugger
+    debugger;
   }
-  if (uri.startsWith("#")) {
+  if (uri.startsWith('#')) {
     // Decode URI fragment representation.
-    uri = decodeURIComponent(uri.substring(1))
-    return uri.split("/").filter((v) => v)
+    uri = decodeURIComponent(uri.substring(1));
+    return uri.split('/').filter((v) => v);
   } else {
-    throw new Error(`Could not find a definition for ${uri}.`)
+    throw new Error(`Could not find a definition for ${uri}.`);
   }
-}
+};
 
 /**
- * 通过 uri 查找 obj 对象对应路径下的值。  
+ * 通过 uri 查找 obj 对象对应路径下的值。
  * 如果找不到会返回 undefined
  * @param obj 对象
- * @param $ref 
- * @returns 
+ * @param $ref
+ * @returns
  */
 const getPathVal = (obj: any, $ref: string) => {
-  const pathArr = extractURI($ref)
+  const pathArr = extractURI($ref);
   for (let i = 0; i < pathArr.length; i += 1) {
-    if (obj === undefined) return undefined
-    obj = pathArr[i] === "" ? obj : obj[pathArr[i]]
+    if (obj === undefined) return undefined;
+    obj = pathArr[i] === '' ? obj : obj[pathArr[i]];
   }
-  return obj
-}
+  return obj;
+};
 
 /**
  * 给 uri 路径继续添加子路径。
@@ -84,14 +83,14 @@ const getPathVal = (obj: any, $ref: string) => {
  * @returns
  */
 const addRef = (ref: string | undefined, ...path: string[]) => {
-  if (ref === undefined) return undefined
-  if (ref[ref.length - 1] === "/") ref = ref.substring(0, ref.length - 1)
+  if (ref === undefined) return undefined;
+  if (ref[ref.length - 1] === '/') ref = ref.substring(0, ref.length - 1);
 
   path.forEach((v) => {
-    if (v) ref = ref + "/" + v
-  })
-  return ref
-}
+    if (v) ref = ref + '/' + v;
+  });
+  return ref;
+};
 
 /**
  * 找到 $ref 引用的 schemaMap。如果找不到返回一个空 Map
@@ -103,34 +102,31 @@ const addRef = (ref: string | undefined, ...path: string[]) => {
 const getRefSchemaMap = (
   $ref: string | undefined | string[],
   rootSchema = {},
-  deepSearch = false
+  deepSearch = false,
 ): Map<string, JSONSchema6 | boolean> => {
-  const schemaMap = new Map()
-  const refQueue = $ref instanceof Array ? _.clone($ref) : $ref ? [$ref] : []
+  const schemaMap = new Map();
+  const refQueue = $ref instanceof Array ? _.clone($ref) : $ref ? [$ref] : [];
   while (refQueue.length > 0) {
-    const nowRef = addRef(refQueue.shift()!)!
-    const current = getPathVal(rootSchema, nowRef)
+    const nowRef = addRef(refQueue.shift()!)!;
+    const current = getPathVal(rootSchema, nowRef);
     if (current !== undefined) {
-      schemaMap.set(nowRef, current)
+      schemaMap.set(nowRef, current);
       if (deepSearch) {
-        const refs = deepCollect(current, "$ref")
+        const refs = deepCollect(current, '$ref');
         if (refs instanceof Array) {
           for (const ref of refs) {
-            if (typeof ref === 'string' && !schemaMap.has(addRef(ref))) refQueue.push(ref)
+            if (typeof ref === 'string' && !schemaMap.has(addRef(ref))) refQueue.push(ref);
           }
         }
       } else {
-        if (
-          current.hasOwnProperty("$ref") &&
-          !schemaMap.has(addRef(current.$ref))
-        ) {
-          refQueue.push(current.$ref)
+        if (current.hasOwnProperty('$ref') && !schemaMap.has(addRef(current.$ref))) {
+          refQueue.push(current.$ref);
         }
       }
     }
   }
-  return schemaMap
-}
+  return schemaMap;
+};
 
 /**
  * 深度递归收集一个对象某个键的所有属性
@@ -139,19 +135,19 @@ const getRefSchemaMap = (
  * @returns
  */
 export const deepCollect = (obj: any, key: string): any[] => {
-  let collection: any[] = []
+  let collection: any[] = [];
   // js 原型链安全问题
   for (const k in obj) {
     if (k === key) {
-      collection.push(obj[k])
+      collection.push(obj[k]);
     } else {
-      if (obj[k] && typeof obj[k] === "object") {
-        collection = collection.concat(deepCollect(obj[k], key))
+      if (obj[k] && typeof obj[k] === 'object') {
+        collection = collection.concat(deepCollect(obj[k], key));
       }
     }
   }
-  return collection
-}
+  return collection;
+};
 
 /**
  * 深度递归替换一个对象某个键的所有属性。
@@ -161,24 +157,19 @@ export const deepCollect = (obj: any, key: string): any[] => {
  * @param map 替换函数
  * @returns
  */
-export const deepReplace = (
-  obj: any,
-  key: string,
-  map: (value: any, key: any) => any
-) => {
+export const deepReplace = (obj: any, key: string, map: (value: any, key: any) => any) => {
   // console.log('运行',obj, key);
   // js 原型链安全问题
   for (const k in obj) {
     if (k === key) {
-      obj[k] = map(obj[k], k)
+      obj[k] = map(obj[k], k);
       // console.log('替换',obj[k]);
-      
     } else {
-      if (obj[k] && typeof obj[k] === "object") obj[k] = deepReplace(obj[k], key, map)
+      if (obj[k] && typeof obj[k] === 'object') obj[k] = deepReplace(obj[k], key, map);
     }
   }
-  return obj
-}
+  return obj;
+};
 
 /**
  * 设置对象树某一位置的值。
@@ -189,23 +180,23 @@ export const deepReplace = (
  * @returns
  */
 const deepSet = (obj: any, ref: string, value: any) => {
-  const path = extractURI(ref)
-  const oriObj = obj
+  const path = extractURI(ref);
+  const oriObj = obj;
   path.forEach((v, i) => {
     if (obj[v] === undefined || obj[v] === null) {
-      obj[v] = i < path.length - 1 ? {} : value
-      obj = obj[v]
-    } else if (typeof obj[v] === "object" && !(obj[v] instanceof Array)) {
+      obj[v] = i < path.length - 1 ? {} : value;
+      obj = obj[v];
+    } else if (typeof obj[v] === 'object' && !(obj[v] instanceof Array)) {
       if (i < path.length - 1) {
-        obj = obj[v]
+        obj = obj[v];
       } else {
-        obj[v] = value
+        obj[v] = value;
       }
     }
-    return
-  })
-  return oriObj
-}
+    return;
+  });
+  return oriObj;
+};
 
 /**
  * 确定数组中第一个value的位置，但是深拷贝判断
@@ -215,11 +206,11 @@ const deepSet = (obj: any, ref: string, value: any) => {
  */
 const exactIndexOf = (array: any[], value: any) => {
   for (let i = 0; i < array.length; i++) {
-    const element = array[i]
-    if (_.isEqual(element, value)) return i
+    const element = array[i];
+    if (_.isEqual(element, value)) return i;
   }
-  return -1
-}
+  return -1;
+};
 
 /**
  * 判断一个 key 是否在匹配列表中，如果是就将其返回
@@ -227,14 +218,14 @@ const exactIndexOf = (array: any[], value: any) => {
  * @param key
  * @returns
  */
-const matchKeys = (map: Map<(string | RegExp), PropertyInfo>, key: string) => {
+const matchKeys = (map: Map<string | RegExp, PropertyInfo>, key: string) => {
   for (const pattern of map.keys()) {
-    if (typeof pattern === "string" ? pattern === key : pattern.test(key)) {
-      return pattern
+    if (typeof pattern === 'string' ? pattern === key : pattern.test(key)) {
+      return pattern;
     }
   }
-  return false
-}
+  return false;
+};
 
 /**
  * 查找对象某键的值，但是正则匹配
@@ -244,13 +235,13 @@ const matchKeys = (map: Map<(string | RegExp), PropertyInfo>, key: string) => {
  */
 export const getValueByPattern = (obj: any, key: string) => {
   for (const key of Object.keys(obj)) {
-    const pattern = new RegExp(key)
+    const pattern = new RegExp(key);
     if (pattern.test(key)) {
-      return obj[key]
+      return obj[key];
     }
   }
-  return undefined
-}
+  return undefined;
+};
 
 /**
  * 筛选迭代器
@@ -258,23 +249,20 @@ export const getValueByPattern = (obj: any, key: string) => {
  * @param c 条件函数
  * @returns
  */
-const filterIter = <T>(
-  it: Iterable<T>,
-  c: (value: T, i: number) => boolean
-) => {
-  const result = []
-  let i = 0
+const filterIter = <T>(it: Iterable<T>, c: (value: T, i: number) => boolean) => {
+  const result = [];
+  let i = 0;
   for (const obj of it) {
-    if (c(obj, i)) result.push(obj)
-    i++
+    if (c(obj, i)) result.push(obj);
+    i++;
   }
-  return result
-}
+  return result;
+};
 
 /**
  * 对 Array/Object 获取特定字段 schemaEntry。
- * 注意：  
- * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。  
+ * 注意：
+ * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
  * 2. 只要给出的 ref 不是 undefined，一定能够找到对应的 schema
  * @param props
  * @param schemaCache
@@ -282,84 +270,68 @@ const filterIter = <T>(
  * @param oneOfChoice
  * @returns
  */
-const getFieldSchema = (
-  props: FieldProps,
-  schemaCache: SchemaCache,
-  field: string
-) => {
-  const { schemaEntry, data } = props
-  const { valueSchemaMap, propertyCache, itemCache, rootSchema} = schemaCache
-  const dataType = jsonDataType(data)
+const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: string) => {
+  const { schemaEntry, data } = props;
+  const { valueSchemaMap, propertyCache, itemCache, rootSchema } = schemaCache;
+  const dataType = jsonDataType(data);
   switch (dataType) {
-    case "object":
-      const propertyRefs = findKeyRefs(valueSchemaMap!, "properties", true) as string[]
+    case 'object':
+      const propertyRefs = findKeyRefs(valueSchemaMap!, 'properties', true) as string[];
       for (const ref of propertyRefs) {
-        const propertySchema = getPathVal(rootSchema, ref) as object
+        const propertySchema = getPathVal(rootSchema, ref) as object;
         // debugger
-        if (propertySchema.hasOwnProperty(field))
-          return addRef(ref, field)
+        if (propertySchema.hasOwnProperty(field)) return addRef(ref, field);
       }
 
       const patternPropertyRefs = findKeyRefs(
         valueSchemaMap!,
-        "patternProperties",
-        true
-      ) as string[]
+        'patternProperties',
+        true,
+      ) as string[];
       for (const ref of patternPropertyRefs) {
-        const patternSchema = getPathVal(
-          rootSchema,
-          ref
-        ) as object
-        const patternKeys = Object.keys(patternSchema)
+        const patternSchema = getPathVal(rootSchema, ref) as object;
+        const patternKeys = Object.keys(patternSchema);
         for (const key of patternKeys) {
-          const regex = new RegExp(key)
+          const regex = new RegExp(key);
           if (regex.test(field)) {
-            return addRef(ref, key)
+            return addRef(ref, key);
           }
         }
       }
 
-      return findKeyRefs(valueSchemaMap!, "additionalProperties", false) as
-        | string
-        | undefined
-    case "array":
+      return findKeyRefs(valueSchemaMap!, 'additionalProperties', false) as string | undefined;
+    case 'array':
       /**
        * 注意：draft 2020-12 调整了items，删除了additionalItems属性。
        * 个人认为这么做是正确的，但是旧的没改，还需要兼容
        * 详情见：https://json-schema.org/draft/2020-12/release-notes.html
        */
-      const itemsRef = findKeyRefs(valueSchemaMap!, "items", false) as
-        | string
-        | undefined
-      const index = parseInt(field, 10)
+      const itemsRef = findKeyRefs(valueSchemaMap!, 'items', false) as string | undefined;
+      const index = parseInt(field, 10);
       if (isNaN(index) && index < 0) {
-        console.log("出错了！")
-        return undefined
+        console.log('出错了！');
+        return undefined;
       }
       if (itemsRef) {
-        const itemsSchema = getPathVal(rootSchema, itemsRef) as
-          | object
-          | object[]
+        const itemsSchema = getPathVal(rootSchema, itemsRef) as object | object[];
         if (itemsSchema instanceof Array) {
-          const itemLength = itemsSchema.length
+          const itemLength = itemsSchema.length;
           if (index < itemLength) {
-            return addRef(itemsRef, field)
+            return addRef(itemsRef, field);
           } else {
-            return findKeyRefs(valueSchemaMap!, "additionalItems", false) as
-              | string
-              | undefined
+            return findKeyRefs(valueSchemaMap!, 'additionalItems', false) as string | undefined;
           }
         } else {
-          return itemsRef
+          return itemsRef;
         }
       } else {
-        return undefined
+        return undefined;
       }
     default:
-      console.log("出错了！")
-      return undefined
+      console.log('出错了！');
+      return undefined;
   }
-}
+};
 
 /**
  * 过滤掉 boolean 模式
@@ -368,9 +340,9 @@ const getFieldSchema = (
  */
 const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
   return filterIter(it, (schema) => {
-    return schema instanceof Object
-  }) as JSONSchema6[]
-}
+    return schema instanceof Object;
+  }) as JSONSchema6[];
+};
 
 /**
  * 找到 schemaMap 中所有含有某键的 uri 引用
@@ -380,92 +352,84 @@ const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
  * @param add 返回的ref是否加入属性名称，默认加入
  * @returns
  */
-const findKeyRefs = (
-  schemaMap: Map<string, any>,
-  k: string,
-  all = false,
-  add = true
-) => {
-  const allRefs = []
+const findKeyRefs = (schemaMap: Map<string, any>, k: string, all = false, add = true) => {
+  const allRefs = [];
   for (const [ref, schema] of schemaMap) {
     if (schema instanceof Object && schema[k] !== undefined) {
       if (all) {
-        allRefs.push(add ? addRef(ref, k)! : ref)
+        allRefs.push(add ? addRef(ref, k)! : ref);
       } else {
-        return add ? addRef(ref, k)! : ref
+        return add ? addRef(ref, k)! : ref;
       }
     }
   }
-  return all ? allRefs : undefined
-}
+  return all ? allRefs : undefined;
+};
 
 /**
- * 吸收 schemaMap 的属性字段值。  
+ * 吸收 schemaMap 的属性字段值。
  * 不同字段的返回方式不同，`first`为返回第一个，若没有返回`undefined`，`intersection`为数组属性返回交集
  * @param filtered 过滤后的schema列表，或者schemaMap
  * @param key 查找的key
  * @returns
  */
-const absorbProperties = (
-  filtered: any[] | Map<string, JSONSchema6 | boolean>,
-  key: string
-) => {
+const absorbProperties = (filtered: any[] | Map<string, JSONSchema6 | boolean>, key: string) => {
   if (filtered instanceof Map) {
-    filtered = filterObjSchema(filtered.values())
+    filtered = filterObjSchema(filtered.values());
   }
-  const method = getKeywordType(key)
+  const method = getKeywordType(key);
   switch (method) {
-    case "first": // 取 第一个出现
+    case 'first': // 取 第一个出现
       for (const schema of filtered) {
-        if (schema.hasOwnProperty(key)) return schema[key]
+        if (schema.hasOwnProperty(key)) return schema[key];
       }
-      return undefined
-    case "intersection": // 取 数组属性交集
+      return undefined;
+    case 'intersection': // 取 数组属性交集
       const values = filtered
         .map((schema) => {
           if (schema.hasOwnProperty(key)) {
-            return schema[key] instanceof Array ? schema[key] : [schema[key]]
+            return schema[key] instanceof Array ? schema[key] : [schema[key]];
           } else {
-            return null
+            return null;
           }
         })
-        .filter((value) => value !== null)
-      return _.intersection(...values)
-    case "merge": // 取 对象属性merge
-      let result = {}
-      filtered.reverse()
+        .filter((value) => value !== null);
+      return _.intersection(...values);
+    case 'merge': // 取 对象属性merge
+      let result = {};
+      filtered.reverse();
       for (const schema of filtered) {
         if (schema.hasOwnProperty(key) && jsonDataType(schema[key]) === 'object') {
-          result = Object.assign(result, schema[key])
+          result = Object.assign(result, schema[key]);
         }
       }
-      return result
+      return result;
     default:
-      return false
+      return false;
   }
-}
+};
 
 /**
  * 使用替代法合并schemaMap
- * @param schemaMap 
+ * @param schemaMap
  * @returns
  */
 export const absorbSchema = (
-  schemaMap: Map<string, JSONSchema6 | boolean>
+  schemaMap: Map<string, JSONSchema6 | boolean>,
 ): JSONSchema6 | false => {
-  const arrayMap = Array.from(schemaMap.values()).reverse()
-  let resultSchema = {}
+  const arrayMap = Array.from(schemaMap.values()).reverse();
+  let resultSchema = {};
   for (const schema of arrayMap) {
     if (schema === false || resultSchema === false) {
-      return false
+      return false;
     } else if (schema === true) {
-      continue
+      continue;
     } else {
-      resultSchema = Object.assign(resultSchema, schema)
+      resultSchema = Object.assign(resultSchema, schema);
     }
   }
-  return resultSchema
-}
+  return resultSchema;
+};
 
 /**
  * 判断模式是否起到筛选作用。空对象和true没有
@@ -473,9 +437,9 @@ export const absorbSchema = (
  * @returns
  */
 const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
-  if (schemas.indexOf(false) > -1) return true
-  return Object.keys(Object.assign({}, ...schemas)).length !== 0
-}
+  if (schemas.indexOf(false) > -1) return true;
+  return Object.keys(Object.assign({}, ...schemas)).length !== 0;
+};
 
 /**
  * 将深入展开的 subschema 从 rootSchema 中提取出来
@@ -485,58 +449,59 @@ const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
  */
 const extractSchema = (
   schemaMap: Map<string, JSONSchema6 | boolean>,
-  rootSchema: JSONSchema6 | boolean
+  rootSchema: JSONSchema6 | boolean,
 ): JSONSchema6 => {
   // 1. 建立 $ref 映射
-  const pathMap = new Map()
-  let i = 0
+  const pathMap = new Map();
+  let i = 0;
   for (const schema of schemaMap.keys()) {
-    const toName = "#/definitions/subSchema" + i
-    pathMap.set(schema, toName)
-    i++
+    const toName = '#/definitions/subSchema' + i;
+    pathMap.set(schema, toName);
+    i++;
   }
   const newSchema = {
     definitions: {},
-  }
+  };
 
   // 2. 暴力修改 $ref
   for (const [key, schema] of schemaMap) {
-    const newRef = pathMap.get(key)
-    const replacedSchema = deepReplace(_.cloneDeep(schema), "$ref", (ref) => {
-      return typeof ref === 'string' ? pathMap.get(ref) : ref
-    })
-    deepSet(newSchema, newRef, replacedSchema)
+    const newRef = pathMap.get(key);
+    const replacedSchema = deepReplace(_.cloneDeep(schema), '$ref', (ref) => {
+      return typeof ref === 'string' ? pathMap.get(ref) : ref;
+    });
+    deepSet(newSchema, newRef, replacedSchema);
   }
-  return newSchema
-}
+  return newSchema;
+};
 
 /**
  * 得到该字段犯下的错误
  * @param errors 所有的error
  * @param access 字段的access
- * @returns 
+ * @returns
  */
 const getError = (errors: any[], access: string[]): any | undefined => {
-  const foundErrors =  errors.filter((error, i) => {
-    const instancePath = error.instancePath.split("/")
-    instancePath.shift()
-    return isEqual(instancePath, access)
-  })
-  return foundErrors
-}
+  const foundErrors = errors.filter((error, i) => {
+    const instancePath = error.instancePath.split('/');
+    instancePath.shift();
+    return isEqual(instancePath, access);
+  });
+  return foundErrors;
+};
 
 export const mergeValue = (t: any, s: any) => {
-  const tType = jsonDataType(t), sType = jsonDataType(s)
+  const tType = jsonDataType(t),
+    sType = jsonDataType(s);
   if (tType === sType) {
     switch (tType) {
       case 'object':
-        return Object.assign(t, s)
+        return Object.assign(t, s);
       default:
-        break
+        break;
     }
   }
-  return t
-}
+  return t;
+};
 export {
   iterToArray,
   concatAccess,
@@ -553,4 +518,4 @@ export {
   findKeyRefs,
   matchKeys,
   getError,
-}
+};

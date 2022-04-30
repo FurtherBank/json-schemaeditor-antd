@@ -14,7 +14,7 @@ import examples from './examples';
 import { useCooldown } from './hooks';
 import ModalSelect from './ModalSelect';
 
-// 从 localhost 读取 json
+// 从 localStorage 读取 json
 const loadLocalJson = (key: string) => {
   try {
     const value = localStorage.getItem(key);

@@ -1,37 +1,33 @@
-import React, { useImperativeHandle, useState } from "react"
-import Drawer from "antd/lib/drawer"
-import Field from "./Field"
+import React, { useImperativeHandle, useState } from 'react';
+import Drawer from 'antd/lib/drawer';
+import Field from './Field';
 
 interface DrawerAccess {
-  route: string[] | undefined
-  field: string | null
+  route: string[] | undefined;
+  field: string | null;
 }
 
 const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
   const [access, setAccess] = useState({
     route: undefined,
     field: null,
-  } as DrawerAccess)
-  const [visible, setVisible] = useState(false)
+  } as DrawerAccess);
+  const [visible, setVisible] = useState(false);
   useImperativeHandle(ref, () => ({
-    setDrawer: (
-      route: string[] | undefined,
-      field: string | null,
-      visible = true
-    ) => {
-      setVisible(visible)
+    setDrawer: (route: string[] | undefined, field: string | null, visible = true) => {
+      setVisible(visible);
       setAccess({
         route,
         field,
-      })
+      });
     },
-  }))
-  
-  const { route, field } = access
+  }));
+
+  const { route, field } = access;
 
   const onClose = () => {
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   return (
     <Drawer
@@ -41,11 +37,11 @@ const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
       visible={visible}
       extra="在此做出的修改均会自动保存"
     >
-      {route !== undefined ? <Field route={route} field={field} canNotRename/> : null}
+      {route !== undefined ? <Field route={route} field={field} canNotRename /> : null}
     </Drawer>
-  )
-}
+  );
+};
 
-const FieldDrawer = React.forwardRef(FieldDrawerBase)
+const FieldDrawer = React.forwardRef(FieldDrawerBase);
 
-export default FieldDrawer
+export default FieldDrawer;

@@ -1,18 +1,18 @@
-import AutoComplete from "antd/lib/auto-complete"
-import React, { useState } from "react"
+import AutoComplete from 'antd/lib/auto-complete';
+import React, { useState } from 'react';
 
 interface InputComProps {
-  value?: any
-  onChange?: (e: React.SyntheticEvent | any) => void
-  onBlur?: (e: any) => void
-  [x: string]: any
+  value?: any;
+  onChange?: (e: React.SyntheticEvent | any) => void;
+  onBlur?: (e: any) => void;
+  [x: string]: any;
 }
 
 interface CachedComProps {
-  value: any
-  onValueChange?: (e: any) => void
-  validate: boolean | ((v: any) => boolean)
-  [x: string]: any
+  value: any;
+  onValueChange?: (e: any) => void;
+  validate: boolean | ((v: any) => boolean);
+  [x: string]: any;
 }
 
 /**
@@ -21,7 +21,7 @@ interface CachedComProps {
  * @returns
  */
 const cacheInput = (
-  InputComponent: React.ComponentType<InputComProps>
+  InputComponent: React.ComponentType<InputComProps>,
 ): React.FC<CachedComProps> => {
   /**
    * InputComponent: React.ComponentType<InputComProps> 会报错：
@@ -42,37 +42,34 @@ const cacheInput = (
     open,
     ...props
   }) => {
-    const [cache, setCache] = useState(value) // cache总是input的属性
-    const [prev, setPrev] = useState(value)
+    const [cache, setCache] = useState(value); // cache总是input的属性
+    const [prev, setPrev] = useState(value);
 
     // onChange 更新 cache。支持 onChange 事件拿到的是 value 或 DOM事件两种情况
     const onChange = (e: any) => {
       if (e !== null) {
         const value =
-          typeof e === "object" && e.hasOwnProperty("currentTarget")
-            ? e.currentTarget.value
-            : e
-        setCache(value)
+          typeof e === 'object' && e.hasOwnProperty('currentTarget') ? e.currentTarget.value : e;
+        setCache(value);
       }
-    }
+    };
 
     const newOnBlur = (e: { currentTarget: { value: any } }) => {
       if (typeof validate === 'boolean' || validate(cache)) {
-        setPrev(cache)
+        setPrev(cache);
         // 调用 onValueChange，告诉父组件可以改 value 属性了
-        if (onValueChange && typeof onValueChange === "function")
-          onValueChange(cache)
+        if (onValueChange && typeof onValueChange === 'function') onValueChange(cache);
       } else {
-        setCache(value)
+        setCache(value);
       }
       // 如果有 onBlur 一并执行
-      if (onBlur && typeof onBlur === "function") onBlur(e)
-    }
+      if (onBlur && typeof onBlur === 'function') onBlur(e);
+    };
 
     // 如果之前的value不同于现在的value，就是外部属性引起的value更新，此时同步cache
     if (prev !== value) {
-      setPrev(value)
-      setCache(value)
+      setPrev(value);
+      setCache(value);
     }
 
     const autoCompleteFields = {
@@ -80,18 +77,16 @@ const cacheInput = (
       defaultActiveFirstOption,
       options,
       open,
-      filterOption
-    }
+      filterOption,
+    };
     return options ? (
       <AutoComplete {...autoCompleteFields} onChange={onChange} value={cache}>
-        <InputComponent onBlur={newOnBlur} {...props}/>
+        <InputComponent onBlur={newOnBlur} {...props} />
       </AutoComplete>
     ) : (
-      (
-        <InputComponent onBlur={newOnBlur} {...props} onChange={onChange} value={cache}/>
-      )
-    )
-  }
-}
+      <InputComponent onBlur={newOnBlur} {...props} onChange={onChange} value={cache} />
+    );
+  };
+};
 
-export default cacheInput
+export default cacheInput;

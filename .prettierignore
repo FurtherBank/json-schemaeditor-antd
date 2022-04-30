@@ -5,3 +5,7 @@ package.json
 .umi
 .umi-production
 .umi-test
+
+dist/*
+es/*
+docs-dist/*

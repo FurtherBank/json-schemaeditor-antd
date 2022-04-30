@@ -21,6 +21,8 @@ import simple from './json-example/simple.json';
 
 import { metaSchema } from 'json-schemaeditor-antd';
 
+type TestExample = [string, any, any];
+
 export default [
   ['基础', basic, $basic],
   ['一系列测试', general, $general],
@@ -33,4 +35,4 @@ export default [
   ['《星际探索者》科技树示例', dataTechTree, $dataTechTree],
   ['《星际探索者》科技树配置模式编辑', $dataTechTree, metaSchema],
   ['RMMZ 物品数据示例', items, $items],
-];
+] as TestExample[];

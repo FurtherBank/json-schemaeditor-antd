@@ -24,7 +24,8 @@
     "prettier": "prettier --write \"**/*.{js,jsx,tsx,ts,less,md,json}\"",
     "test": "umi-test",
     "test:coverage": "umi-test --coverage",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky install"
   },
   "files": [
     "es",
@@ -81,6 +82,7 @@
     "monaco-editor-webpack-plugin": "^7.0.1",
     "prettier": "^2.2.1",
     "react-monaco-editor": "^0.47.0",
-    "yorkie": "^2.0.0"
+    "yorkie": "^2.0.0",
+    "husky": "^7.0.0"
   }
 }

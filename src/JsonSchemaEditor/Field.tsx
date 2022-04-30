@@ -410,7 +410,8 @@ const FieldBase = (props: FieldProps) => {
                   label: toConstName(value),
                 };
               })}
-              style={{ flex: 1, maxWidth: '185px' }}
+              className='resolve-flex'
+              style={{ flex: 1 }}
               onChange={(value, options) => {
                 doAction('change', route, field, space.get('enum')[value]);
               }}
@@ -650,7 +651,11 @@ const FieldBase = (props: FieldProps) => {
             justifyContent: 'space-between',
           }}
         >
-          {valueCom ? valueCom : <span>类型错误</span>}
+          {valueCom ? valueCom : <span style={{
+            flex: 1,
+            textAlign: 'center',
+            textOverflow: 'ellipsis'
+          }}>类型错误</span>}
           {items.length !== 0 ? (
             <Dropdown overlay={menu} placement="bottomRight" key="actions">
               <Button icon={<EllipsisOutlined />} size="small" shape="circle" />

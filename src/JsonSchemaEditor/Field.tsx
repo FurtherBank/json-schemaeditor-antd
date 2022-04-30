@@ -410,7 +410,7 @@ const FieldBase = (props: FieldProps) => {
                   label: toConstName(value),
                 };
               })}
-              className='resolve-flex'
+              className="resolve-flex"
               style={{ flex: 1 }}
               onChange={(value, options) => {
                 doAction('change', route, field, space.get('enum')[value]);
@@ -487,6 +487,13 @@ const FieldBase = (props: FieldProps) => {
   if (!short) {
     // 3. 设置右上动作栏组件(短优化后改为动作菜单)
     const sideActionComSpace = (action: string) => {
+      const actionIcon = {
+        moveup: <ArrowUpOutlined />,
+        movedown: <ArrowDownOutlined />,
+        delete: <DeleteOutlined />,
+        undo: <UndoOutlined />,
+        redo: <RedoOutlined />,
+      };
       switch (action) {
         case 'oneOf':
           const { options, ofRef } = space.get('oneOf') as ofSchemaCache;
@@ -507,56 +514,6 @@ const FieldBase = (props: FieldProps) => {
               allowClear={false}
             />
           );
-        case 'moveup':
-          return (
-            <Button
-              key="up"
-              icon={<ArrowUpOutlined />}
-              size="small"
-              shape="circle"
-              onClick={actionEvents.moveup}
-            />
-          );
-        case 'movedown':
-          return (
-            <Button
-              key="down"
-              icon={<ArrowDownOutlined />}
-              size="small"
-              shape="circle"
-              onClick={actionEvents.movedown}
-            />
-          );
-        case 'delete':
-          return (
-            <Button
-              key="delete"
-              icon={<DeleteOutlined />}
-              size="small"
-              shape="circle"
-              onClick={actionEvents.delete}
-            />
-          );
-        case 'undo':
-          return (
-            <Button
-              key="undo"
-              icon={<UndoOutlined />}
-              size="small"
-              shape="circle"
-              onClick={actionEvents.undo}
-            />
-          );
-        case 'redo':
-          return (
-            <Button
-              key="redo"
-              icon={<RedoOutlined />}
-              size="small"
-              shape="circle"
-              onClick={actionEvents.redo}
-            />
-          );
         case 'type':
           return (
             <Select
@@ -571,8 +528,23 @@ const FieldBase = (props: FieldProps) => {
               style={{ width: '80px' }}
             />
           );
+        case 'moveup':
+        case 'movedown':
+        case 'delete':
+        case 'undo':
+        case 'redo':
+          return (
+            <Button
+              key={action}
+              icon={actionIcon[action]}
+              size="small"
+              shape="circle"
+              onClick={actionEvents[action]}
+              title={action}
+            />
+          );
         default:
-          break;
+          return null;
       }
     };
     const actionComKeys = sideActions.filter((value) => {
@@ -651,11 +623,19 @@ const FieldBase = (props: FieldProps) => {
             justifyContent: 'space-between',
           }}
         >
-          {valueCom ? valueCom : <span style={{
-            flex: 1,
-            textAlign: 'center',
-            textOverflow: 'ellipsis'
-          }}>类型错误</span>}
+          {valueCom ? (
+            valueCom
+          ) : (
+            <span
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              类型错误
+            </span>
+          )}
           {items.length !== 0 ? (
             <Dropdown overlay={menu} placement="bottomRight" key="actions">
               <Button icon={<EllipsisOutlined />} size="small" shape="circle" />

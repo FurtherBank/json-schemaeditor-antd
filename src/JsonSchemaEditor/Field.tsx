@@ -58,14 +58,15 @@ import {
   findKeyRefs,
   getPathVal,
   addRef,
-  extractSchema,
   getError,
   deepReplace,
 } from './utils';
 import FieldList, { FatherInfo } from './FieldList';
-import { CacheContext, ContextContent, SchemaCache } from '.';
+import { InfoContext, InfoContent, SchemaCache } from '.';
 import { StateWithHistory } from 'redux-undo';
 import { JSONSchema6 } from 'json-schema';
+import { getOfOption, getRefByOfChain, setOfCache } from './info/ofInfo';
+import { setPropertyCache, setItemCache } from './info/valueInfo';
 const { Panel } = Collapse;
 
 export interface FieldProps {
@@ -93,7 +94,7 @@ const sideActions = ['detail', 'undo', 'redo', 'moveup', 'movedown', 'oneOf', 't
  */
 const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | undefined) => {
   const { fatherInfo, field, data, schemaEntry, short } = props;
-  const { ofCache, propertyCache, itemCache, entrySchemaMap, valueSchemaMap } = schemaCache;
+  const { ofCache, entrySchemaMap, valueSchemaMap } = schemaCache;
   const dataType = jsonDataType(data);
   const schemas = [];
   for (const iterator of entrySchemaMap!.values()) {
@@ -101,8 +102,8 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
   }
   const hasFalse = schemas.includes(false);
   const result = new Map();
-  // 对象和数组 在schema允许的情况下可以 create
-  if (data instanceof Array || data instanceof Object) {
+  // 对象和数组 在 schema 允许的情况下可以 create
+  if (dataType === 'array' || dataType === 'object') {
     const autoCompleteFields = canSchemaCreate(props, schemaCache);
     if (autoCompleteFields) result.set('create', autoCompleteFields);
   }
@@ -150,60 +151,6 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
   return result;
 };
 
-/**
- * 验证数据符合 oneOf/anyOf 的哪一个选项
- * @param data
- * @param schemaEntry
- * @param ofCache
- * @returns `null`为无 oneOf/anyOf，`false`为不符合任何选项，`string`为选项链
- */
-const getOfOption = (
-  data: any,
-  schemaEntry: string,
-  context: ContextContent,
-): string | null | false => {
-  const { ofCache } = context;
-  const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null;
-  if (ofCacheValue) {
-    const { extracted, ofLength, ofRef } = ofCacheValue;
-    for (let i = 0; i < ofLength; i++) {
-      const validate = extracted[i];
-      if (typeof validate === 'string') {
-        // 展开的 validate 为 string，就是子 oneOf 的 ref
-        const optOfCacheValue = ofCache.get(validate);
-        console.assert(optOfCacheValue as any); // assert 就是用来在没法推出类型等一定能对的情况先打保证的，这个设置类型需求就有点🐕了
-        const subOption = getOfOption(data, validate, context);
-        console.assert(subOption !== null);
-        if (subOption) return `${i}-${subOption}`;
-      } else {
-        const valid = shallowValidate(data, addRef(ofRef, i.toString())!, context);
-        if (valid) return i.toString();
-      }
-    }
-    return false;
-  }
-  return null;
-};
-
-/**
- * 通过 of 链找到schema经层层选择之后引用的
- * @param ofCache
- * @param schemaEntry
- * @param ofChain
- */
-const getRefByOfChain = (
-  ofCache: Map<string, ofSchemaCache | null>,
-  schemaEntry: string,
-  ofChain: string,
-) => {
-  const ofSelection = ofChain.split('-');
-  for (const opt of ofSelection) {
-    const { ofRef } = ofCache.get(schemaEntry)!;
-    schemaEntry = addRef(ofRef, opt)!;
-  }
-  return schemaEntry;
-};
-
 const stopBubble = (e: React.SyntheticEvent) => {
   e.stopPropagation();
 };
@@ -211,7 +158,7 @@ const stopBubble = (e: React.SyntheticEvent) => {
 const FieldBase = (props: FieldProps) => {
   const { data, route, field, schemaEntry, short, canNotRename, setDrawer } = props;
 
-  const caches = useContext(CacheContext),
+  const caches = useContext(InfoContext),
     { ofCache, propertyCache, itemCache, rootSchema } = caches;
 
   // 读取路径上的 schemaMap
@@ -260,7 +207,7 @@ const FieldBase = (props: FieldProps) => {
     valueSchemaMap,
     entrySchemaMap,
   };
-  // 这里单独拿出来是为防止被undefined
+  // 这里单独拿出来是为防止 ts 认为是 undefined
   const doAction = props.doAction!;
 
   const dataType = jsonDataType(data);
@@ -288,7 +235,6 @@ const FieldBase = (props: FieldProps) => {
 
   // 渲染排错
   if (dataType === 'undefined') {
-    console.log('错误的渲染:', props);
     return null;
   }
   // console.log("渲染", access.join('/'), data)
@@ -391,7 +337,7 @@ const FieldBase = (props: FieldProps) => {
   const getValueCom = (valueType: string) => {
     switch (valueType) {
       case 'const':
-        const equalConst = _.isEqual(data, space.get('const'));
+        // const equalConst = _.isEqual(data, space.get('const'));
         return (
           <Space style={{ flex: 1 }}>
             <Input key="const" size="small" value={toConstName(data)} disabled allowClear={false} />
@@ -648,239 +594,29 @@ const FieldBase = (props: FieldProps) => {
 };
 
 /**
- * 对 设置 ofCache
- * @param ofCache
- * @param schemaEntry
- * @param entrySchemaMap
- * @param rootSchema
- * @param nowOfRefs
- * @returns
- */
-export const setOfCache = (
-  ofCache: Map<string, ofSchemaCache | null>,
-  schemaEntry: string,
-  entrySchemaMap: Map<string, JSONSchema6 | boolean>,
-  rootSchema: JSONSchema6,
-  nowOfRefs: string[] = [],
-) => {
-  const findOfRef = (schemaMap: Map<string, JSONSchema6 | boolean>, add = true) => {
-    return (findKeyRefs(schemaMap, 'oneOf', false, add) ||
-      findKeyRefs(schemaMap, 'anyOf', false, add)) as string | undefined;
-  };
-  // 设置 ofCache (use Entry map ,root)
-  const ofRef = findOfRef(entrySchemaMap);
-  if (ofRef && nowOfRefs.includes(ofRef)) {
-    console.error('你进行了oneOf/anyOf的循环引用，这会造成无限递归，危', nowOfRefs, ofRef);
-    ofCache.set(schemaEntry, null);
-  } else if (ofRef) {
-    nowOfRefs.push(ofRef);
-    const oneOfOptRefs = getPathVal(rootSchema, ofRef).map((v: any, i: string) =>
-      addRef(ofRef, i.toString()),
-    ) as string[];
-
-    // 得到展开的 schema
-    const extractedSchemas = [] as (undefined | string)[];
-
-    const oneOfOptions = oneOfOptRefs.map((ref, i) => {
-      const optMap = getRefSchemaMap(ref, rootSchema);
-      const name = toOfName(optMap);
-      const result = {
-        value: i.toString(),
-        title: name ? name : `Option ${i + 1}`,
-      } as any;
-      const optCache = ofCache.has(ref)
-        ? ofCache.get(ref)
-        : setOfCache(ofCache, ref, optMap, rootSchema, nowOfRefs);
-      if (optCache) {
-        const { options } = optCache;
-        // todo: 这里需要变成多层的
-        result.children = options.map((option) => {
-          return deepReplace(_.cloneDeep(option), 'value', (prev, key) => {
-            return `${i}-${prev}`;
-          });
-        });
-        result.disabled = true;
-        // 选项有子选项，将子选项ref给他
-        extractedSchemas.push(ref);
-      } else {
-        extractedSchemas.push(undefined);
-      }
-      return result;
-    });
-
-    ofCache.set(schemaEntry, {
-      extracted: extractedSchemas,
-      ofRef: ofRef,
-      ofLength: oneOfOptRefs.length,
-      options: oneOfOptions,
-    });
-  } else {
-    ofCache.set(schemaEntry, null);
-  }
-  return ofCache.get(schemaEntry);
-};
-
-/**
- * 设置 propCache
- * @param propertyCache
- * @param valueEntry
- * @param valueSchemaMap
- * @param rootSchema
- * @returns
- */
-export const setPropertyCache = (
-  propertyCache: Map<string, propertySchemaCache | null>,
-  valueEntry: string,
-  valueSchemaMap: Map<string, JSONSchema6 | boolean>,
-  rootSchema: JSONSchema6,
-) => {
-  // 得到以下属性的 ref
-  const propertyRefs = findKeyRefs(valueSchemaMap, 'properties', true) as string[];
-  const patternRefs = findKeyRefs(valueSchemaMap, 'patternProperties', true) as string[];
-  const additionalRef = findKeyRefs(valueSchemaMap, 'additionalProperties', false) as
-    | string
-    | undefined;
-  const requiredRefs = findKeyRefs(valueSchemaMap, 'required', true) as string[];
-
-  if (propertyRefs.length + patternRefs.length > 0 || additionalRef) {
-    // 对字段是否是短字段进行分类
-    const props = {} as any;
-    propertyRefs.reverse().forEach((ref) => {
-      const schemas = getPathVal(rootSchema, ref);
-      if (!schemas || schemas === true) return;
-      for (const key in schemas) {
-        props[key] = {
-          shortable: schemaShortable(addRef(ref, key)!, rootSchema),
-          ref: addRef(ref, key)!,
-        };
-      }
-    });
-    const patternProps = {} as any;
-    patternRefs.reverse().forEach((ref) => {
-      const schemas = getPathVal(rootSchema, ref);
-      if (!schemas || schemas === true) return;
-      for (const key in schemas) {
-        patternProps[key] = {
-          shortable: schemaShortable(addRef(ref, key)!, rootSchema),
-          ref: addRef(ref, key)!,
-        };
-      }
-    });
-    const additionalValid = additionalRef ? getPathVal(rootSchema, additionalRef) !== false : false;
-    const additionalShortAble = additionalRef ? schemaShortable(additionalRef, rootSchema) : false;
-    // 得到 required 字段
-    const required = requiredRefs.flatMap((ref) => {
-      const schemas = getPathVal(rootSchema, ref);
-      if (!schemas || schemas === true) return [];
-      return schemas;
-    });
-    propertyCache.set(valueEntry, {
-      props,
-      patternProps,
-      required,
-      additional: additionalValid
-        ? { ref: additionalRef!, shortable: additionalShortAble }
-        : undefined,
-    });
-  } else {
-    propertyCache.set(valueEntry, null);
-  }
-  return propertyCache.get(valueEntry);
-};
-
-/**
- * 设置 itemCache
- * @param itemCache
- * @param valueEntry
- * @param valueSchemaMap
- * @param rootSchema
- */
-export const setItemCache = (
-  itemCache: Map<string, itemSchemaCache | null>,
-  valueEntry: string,
-  valueSchemaMap: Map<string, JSONSchema6 | boolean>,
-  rootSchema: JSONSchema6,
-) => {
-  // 先进行对象的 itemCache 设置
-  const itemRef = findKeyRefs(valueSchemaMap, 'items') as string;
-  const additionalItemRef = findKeyRefs(valueSchemaMap, 'additionalItems') as string;
-  if (itemRef) {
-    const itemSchema = getPathVal(rootSchema, itemRef);
-    // 如果所有 schema 没有 title，认为是extra 短优化，此外是普通短优化
-    if (itemSchema instanceof Array) {
-      const additionalItemSchemaMap = getRefSchemaMap(additionalItemRef, rootSchema);
-      const itemListShort = itemSchema.every((schema, i) => {
-        return schemaShortable(addRef(itemRef, i.toString())!, rootSchema);
-      });
-      const additionalItemShort = schemaShortable(additionalItemRef, rootSchema);
-      if (itemListShort && additionalItemShort) {
-        // 判断是否是extra短优化(true/false 不能shortable，故不需要先过滤)
-        const itemListNoTitle = itemSchema.every((schema, i) => {
-          const fieldRef = addRef(itemRef, i.toString())!;
-          const fieldMap = getRefSchemaMap(fieldRef, rootSchema);
-          return absorbProperties(fieldMap, 'title') === undefined;
-        });
-        const additionalItemHasTitle =
-          absorbProperties(additionalItemSchemaMap, 'title') !== undefined;
-        if (!itemListNoTitle || additionalItemHasTitle) {
-          itemCache.set(valueEntry, {
-            shortOpt: ShortOpt.short,
-            itemLength: itemSchema.length,
-          });
-        } else {
-          itemCache.set(valueEntry, {
-            shortOpt: ShortOpt.extra,
-            itemLength: itemSchema.length,
-          });
-        }
-      } else {
-        itemCache.set(valueEntry, {
-          shortOpt: ShortOpt.no,
-          itemLength: itemSchema.length,
-        });
-      }
-    } else {
-      const oneTypeArrayShortAble = schemaShortable(itemRef, rootSchema);
-      const itemHasTitle = itemSchema.title !== undefined;
-      if (oneTypeArrayShortAble) {
-        if (itemHasTitle) {
-          itemCache.set(valueEntry, { shortOpt: ShortOpt.short });
-        } else {
-          itemCache.set(valueEntry, { shortOpt: ShortOpt.extra });
-        }
-      } else {
-        itemCache.set(valueEntry, { shortOpt: ShortOpt.no });
-      }
-    }
-  } else {
-    itemCache.set(valueEntry, null);
-  }
-  return itemCache.get(valueEntry);
-};
-
-/**
  * 注意，如果一个组件使用自己且使用 react-redux 链接，请注意使用connect后的名字！
  */
 
-const checkMemoChange = (prevProps: any, nextProps: any) => {
-  const { route, field } = nextProps;
-  const access = concatAccess(route, field).join('/');
-  let changed = false;
-  for (const key in prevProps) {
-    if (Object.prototype.hasOwnProperty.call(prevProps, key)) {
-      if (prevProps[key] !== nextProps[key]) {
-        changed = true;
-        console.log(
-          key,
-          '改变',
-          access ? access : '<root>',
-          isEqual(prevProps[key], nextProps[key]),
-        );
-      }
-    }
-  }
-  return !changed;
-};
+// const checkMemoChange = (prevProps: any, nextProps: any) => {
+//   // 这个函数可以用来 debug 渲染是否有问题
+//   const { route, field } = nextProps;
+//   const access = concatAccess(route, field).join('/');
+//   let changed = false;
+//   for (const key in prevProps) {
+//     if (Object.prototype.hasOwnProperty.call(prevProps, key)) {
+//       if (prevProps[key] !== nextProps[key]) {
+//         changed = true;
+//         console.log(
+//           key,
+//           '改变',
+//           access ? access : '<root>',
+//           isEqual(prevProps[key], nextProps[key]),
+//         );
+//       }
+//     }
+//   }
+//   return !changed;
+// };
 
 const Field = connect(
   (state: StateWithHistory<State>, props: FieldProps) => {
@@ -901,6 +637,6 @@ const Field = connect(
     };
   },
   { doAction },
-)(React.memo(FieldBase, checkMemoChange));
+)(React.memo(FieldBase));
 
 export default Field;

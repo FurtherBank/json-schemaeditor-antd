@@ -5,11 +5,11 @@ import Input from 'antd/lib/input';
 import message from 'antd/lib/message';
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { SchemaCache } from '.';
-import { FieldProps } from './Field';
-import { FatherInfo } from './FieldList';
-import { getDefaultValue } from './FieldOptions';
-import { PropertyInfo } from './reducer';
+import { SchemaCache } from '..';
+import { FieldProps } from '../Field';
+import { FatherInfo } from '../FieldList';
+import { getDefaultValue } from '../FieldOptions';
+import { PropertyInfo } from '../reducer';
 import {
   addRef,
   concatAccess,
@@ -17,7 +17,7 @@ import {
   getValueByPattern,
   iterToArray,
   matchKeys,
-} from './utils';
+} from '../utils';
 
 interface CreateNameProps {
   fatherInfo: FatherInfo;

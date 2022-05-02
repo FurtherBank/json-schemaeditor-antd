@@ -5,23 +5,24 @@ import { SchemaCache } from '..';
 import { FieldProps } from '../Field';
 import { PropertyInfo } from '../reducer';
 
-const KeywordTypes = {
+export const KeywordTypes = {
   intersection: ['type'],
   merge: ['properties', 'patternProperties'],
 } as any;
 
-const getKeywordType = (keyword: string) => {
+export const getKeywordType = (keyword: string) => {
   for (const type in KeywordTypes) {
     if (KeywordTypes[type].includes(keyword)) return type;
   }
   return 'first';
 };
 
-const concatAccess = (route: any[], ...args: any[]) => {
-  return route.concat(args.filter((value) => !!value));
+export const concatAccess = (route: string[], ...args: (string | null)[]) => {
+  const filtered = args.filter(value => typeof value === 'string' && value) as string[]
+  return route.concat(filtered);
 };
 
-const jsonDataType = (data: any) => {
+export const jsonDataType = (data: any) => {
   return data === null ? 'null' : data instanceof Array ? 'array' : typeof data;
 };
 
@@ -34,19 +35,20 @@ const logSchemaError = (msg: string) => {
  * @param it 迭代器
  * @returns
  */
-const iterToArray = <T>(it: Iterable<T>): T[] => {
+export const iterToArray = <T>(it: Iterable<T>): T[] => {
   const r = [];
   for (const ele of it) {
     r.push(ele);
   }
   return r;
 };
+
 /**
  * 将 uri 字符串解析为数组
  * @param uri
  * @returns
  */
-const extractURI = (uri: string) => {
+export const extractURI = (uri: string) => {
   if (typeof uri !== 'string') {
     debugger;
   }
@@ -66,7 +68,7 @@ const extractURI = (uri: string) => {
  * @param $ref
  * @returns
  */
-const getPathVal = (obj: any, $ref: string) => {
+export const getPathVal = (obj: any, $ref: string) => {
   const pathArr = extractURI($ref);
   for (let i = 0; i < pathArr.length; i += 1) {
     if (obj === undefined) return undefined;
@@ -82,7 +84,7 @@ const getPathVal = (obj: any, $ref: string) => {
  * @param path 需要添加的子路径
  * @returns
  */
-const addRef = (ref: string | undefined, ...path: string[]) => {
+export const addRef = (ref: string | undefined, ...path: string[]) => {
   if (ref === undefined) return undefined;
   if (ref[ref.length - 1] === '/') ref = ref.substring(0, ref.length - 1);
 
@@ -99,7 +101,7 @@ const addRef = (ref: string | undefined, ...path: string[]) => {
  * @param deepSearch 深入搜索：深递归加入所有schema引用，否则只递归到浅一层
  * @returns
  */
-const getRefSchemaMap = (
+export const getRefSchemaMap = (
   $ref: string | undefined | string[],
   rootSchema = {},
   deepSearch = false,
@@ -158,7 +160,6 @@ export const deepCollect = (obj: any, key: string): any[] => {
  * @returns
  */
 export const deepReplace = (obj: any, key: string, map: (value: any, key: any) => any) => {
-  // console.log('运行',obj, key);
   // js 原型链安全问题
   for (const k in obj) {
     if (k === key) {
@@ -179,21 +180,21 @@ export const deepReplace = (obj: any, key: string, map: (value: any, key: any) =
  * @param value
  * @returns
  */
-const deepSet = (obj: any, ref: string, value: any) => {
+export const deepSet = (obj: any, ref: string, value: any) => {
   const path = extractURI(ref);
   const oriObj = obj;
-  path.forEach((v, i) => {
-    if (obj[v] === undefined || obj[v] === null) {
-      obj[v] = i < path.length - 1 ? {} : value;
+  path.every((v, i) => {
+    if (i === path.length - 1) {
+      obj[v] = value;
+    } else if (obj[v] === undefined || obj[v] === null) {
+      obj[v] = {}
       obj = obj[v];
     } else if (typeof obj[v] === 'object' && !(obj[v] instanceof Array)) {
-      if (i < path.length - 1) {
-        obj = obj[v];
-      } else {
-        obj[v] = value;
-      }
+      obj = obj[v];
+    } else {
+      return false
     }
-    return;
+    return true;
   });
   return oriObj;
 };
@@ -204,7 +205,7 @@ const deepSet = (obj: any, ref: string, value: any) => {
  * @param value
  * @returns
  */
-const exactIndexOf = (array: any[], value: any) => {
+export const exactIndexOf = (array: any[], value: any) => {
   for (let i = 0; i < array.length; i++) {
     const element = array[i];
     if (_.isEqual(element, value)) return i;
@@ -218,7 +219,7 @@ const exactIndexOf = (array: any[], value: any) => {
  * @param key
  * @returns
  */
-const matchKeys = (map: Map<string | RegExp, PropertyInfo>, key: string) => {
+export const matchKeys = (map: Map<string | RegExp, PropertyInfo>, key: string) => {
   for (const pattern of map.keys()) {
     if (typeof pattern === 'string' ? pattern === key : pattern.test(key)) {
       return pattern;
@@ -229,15 +230,15 @@ const matchKeys = (map: Map<string | RegExp, PropertyInfo>, key: string) => {
 
 /**
  * 查找对象某键的值，但是正则匹配
- * @param obj
- * @param key
+ * @param obj 查找的对象
+ * @param key 待匹配的字符串/正则式
  * @returns
  */
-export const getValueByPattern = (obj: any, key: string) => {
-  for (const key of Object.keys(obj)) {
+export const getValueByPattern = (obj: any, key: string | RegExp) => {
+  for (const k of Object.keys(obj)) {
     const pattern = new RegExp(key);
-    if (pattern.test(key)) {
-      return obj[key];
+    if (pattern.test(k)) {
+      return obj[k];
     }
   }
   return undefined;
@@ -249,7 +250,7 @@ export const getValueByPattern = (obj: any, key: string) => {
  * @param c 条件函数
  * @returns
  */
-const filterIter = <T>(it: Iterable<T>, c: (value: T, i: number) => boolean) => {
+export const filterIter = <T>(it: Iterable<T>, c: (value: T, i: number) => boolean) => {
   const result = [];
   let i = 0;
   for (const obj of it) {
@@ -267,12 +268,11 @@ const filterIter = <T>(it: Iterable<T>, c: (value: T, i: number) => boolean) => 
  * @param props
  * @param schemaCache
  * @param field
- * @param oneOfChoice
  * @returns
  */
-const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: string) => {
-  const { schemaEntry, data } = props;
-  const { valueSchemaMap, propertyCache, itemCache, rootSchema } = schemaCache;
+export const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: string) => {
+  const { data } = props;
+  const { valueSchemaMap, rootSchema } = schemaCache;
   const dataType = jsonDataType(data);
   switch (dataType) {
     case 'object':
@@ -309,8 +309,7 @@ const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: stri
       const itemsRef = findKeyRefs(valueSchemaMap!, 'items', false) as string | undefined;
       const index = parseInt(field, 10);
       if (isNaN(index) && index < 0) {
-        console.log('出错了！');
-        return undefined;
+        throw new Error(`获取字段模式错误：在数组中获取非法索引 ${field}\n辅助信息：${valueSchemaMap}`)
       }
       if (itemsRef) {
         const itemsSchema = getPathVal(rootSchema, itemsRef) as object | object[];
@@ -328,8 +327,7 @@ const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: stri
         return undefined;
       }
     default:
-      console.log('出错了！');
-      return undefined;
+      throw new Error(`获取字段模式错误：在非对象中获取字段模式 ${field}\n辅助信息：${valueSchemaMap}`)
   }
 };
 
@@ -338,7 +336,7 @@ const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: stri
  * @param it
  * @returns
  */
-const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
+export const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
   return filterIter(it, (schema) => {
     return schema instanceof Object;
   }) as JSONSchema6[];
@@ -352,7 +350,7 @@ const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
  * @param add 返回的ref是否加入属性名称，默认加入
  * @returns
  */
-const findKeyRefs = (schemaMap: Map<string, any>, k: string, all = false, add = true) => {
+export const findKeyRefs = (schemaMap: Map<string, any>, k: string, all = false, add = true) => {
   const allRefs = [];
   for (const [ref, schema] of schemaMap) {
     if (schema instanceof Object && schema[k] !== undefined) {
@@ -373,7 +371,7 @@ const findKeyRefs = (schemaMap: Map<string, any>, k: string, all = false, add = 
  * @param key 查找的key
  * @returns
  */
-const absorbProperties = (filtered: any[] | Map<string, JSONSchema6 | boolean>, key: string) => {
+export const absorbProperties = (filtered: any[] | Map<string, JSONSchema6 | boolean>, key: string) => {
   if (filtered instanceof Map) {
     filtered = filterObjSchema(filtered.values());
   }
@@ -436,7 +434,7 @@ export const absorbSchema = (
  * @param schemas
  * @returns
  */
-const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
+export const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
   if (schemas.indexOf(false) > -1) return true;
   return Object.keys(Object.assign({}, ...schemas)).length !== 0;
 };
@@ -447,32 +445,32 @@ const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
  * @param rootSchema
  * @returns
  */
-const extractSchema = (
-  schemaMap: Map<string, JSONSchema6 | boolean>,
-  rootSchema: JSONSchema6 | boolean,
-): JSONSchema6 => {
-  // 1. 建立 $ref 映射
-  const pathMap = new Map();
-  let i = 0;
-  for (const schema of schemaMap.keys()) {
-    const toName = '#/definitions/subSchema' + i;
-    pathMap.set(schema, toName);
-    i++;
-  }
-  const newSchema = {
-    definitions: {},
-  };
+// export const extractSchema = (
+//   schemaMap: Map<string, JSONSchema6 | boolean>,
+//   rootSchema: JSONSchema6 | boolean,
+// ): JSONSchema6 => {
+//   // 1. 建立 $ref 映射
+//   const pathMap = new Map();
+//   let i = 0;
+//   for (const schema of schemaMap.keys()) {
+//     const toName = '#/definitions/subSchema' + i;
+//     pathMap.set(schema, toName);
+//     i++;
+//   }
+//   const newSchema = {
+//     definitions: {},
+//   };
 
-  // 2. 暴力修改 $ref
-  for (const [key, schema] of schemaMap) {
-    const newRef = pathMap.get(key);
-    const replacedSchema = deepReplace(_.cloneDeep(schema), '$ref', (ref) => {
-      return typeof ref === 'string' ? pathMap.get(ref) : ref;
-    });
-    deepSet(newSchema, newRef, replacedSchema);
-  }
-  return newSchema;
-};
+//   // 2. 暴力修改 $ref
+//   for (const [key, schema] of schemaMap) {
+//     const newRef = pathMap.get(key);
+//     const replacedSchema = deepReplace(_.cloneDeep(schema), '$ref', (ref) => {
+//       return typeof ref === 'string' ? pathMap.get(ref) : ref;
+//     });
+//     deepSet(newSchema, newRef, replacedSchema);
+//   }
+//   return newSchema;
+// };
 
 /**
  * 得到该字段犯下的错误
@@ -480,7 +478,7 @@ const extractSchema = (
  * @param access 字段的access
  * @returns
  */
-const getError = (errors: any[], access: string[]): any | undefined => {
+export const getError = (errors: any[], access: string[]): any | undefined => {
   const foundErrors = errors.filter((error, i) => {
     const instancePath = error.instancePath.split('/');
     instancePath.shift();
@@ -489,6 +487,12 @@ const getError = (errors: any[], access: string[]): any | undefined => {
   return foundErrors;
 };
 
+/**
+ * 合并变量，暂时未用到
+ * @param t 
+ * @param s 
+ * @returns 
+ */
 export const mergeValue = (t: any, s: any) => {
   const tType = jsonDataType(t),
     sType = jsonDataType(s);
@@ -501,21 +505,4 @@ export const mergeValue = (t: any, s: any) => {
     }
   }
   return t;
-};
-export {
-  iterToArray,
-  concatAccess,
-  jsonDataType,
-  addRef,
-  getPathVal,
-  getFieldSchema,
-  getRefSchemaMap,
-  exactIndexOf,
-  filterObjSchema,
-  absorbProperties,
-  extractSchema,
-  filterIter,
-  findKeyRefs,
-  matchKeys,
-  getError,
 };

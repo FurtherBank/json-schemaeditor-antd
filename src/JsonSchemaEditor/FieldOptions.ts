@@ -1,15 +1,15 @@
 import produce from 'immer';
 import { JSONSchema6 } from 'json-schema';
 import _, { isEqual } from 'lodash';
-import { ContextContent, SchemaCache } from '.';
-import { FieldProps, setItemCache, setPropertyCache } from './Field';
-import { ajvInstance, Caches } from './reducer';
+import { InfoContent, SchemaCache } from '.';
+import { FieldProps } from './Field';
+import { setPropertyCache, setItemCache } from './info/valueInfo';
+import { ajvInstance } from './reducer';
 import {
   absorbProperties,
   absorbSchema,
   addRef,
   exactIndexOf,
-  filterIter,
   filterObjSchema,
   findKeyRefs,
   getPathVal,
@@ -351,7 +351,7 @@ export const getDefaultValue = (
 export const shallowValidate = (
   data: any,
   valueEntry: string,
-  schemaCache: ContextContent,
+  schemaCache: InfoContent,
   deep = true,
 ): boolean => {
   const { itemCache, propertyCache, rootSchema } = schemaCache;

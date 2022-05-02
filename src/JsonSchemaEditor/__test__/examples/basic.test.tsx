@@ -1,9 +1,8 @@
 import '@testing-library/jest-dom';
 import React, { useRef } from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import JsonSchemaEditor from '..';
-import metaSchema from '../$meta.json';
-import examples from '../demos/examples';
+import JsonSchemaEditor, { metaSchema } from '../../..';
+import examples from '../../demos/examples';
 
 // json 配置
 
@@ -52,16 +51,11 @@ import examples from '../demos/examples';
 //   // });
 // });
 
-describe('<JsonSchemaEditor />', () => {
-  afterEach(cleanup);
-
-  it('should not crash', () => {
-    const [_, basic, $basic] = examples[0];
-    const { asFragment } = render(<JsonSchemaEditor data={basic} schema={$basic} />);
-    const input = screen.getByDisplayValue(basic);
-    expect(input);
-    expect(asFragment()).toMatchSnapshot();
-
-    // expect(screen.queryByText(basic)).toBeInTheDocument();
-  });
+test('basic', () => {
+  const exampleJson = examples(metaSchema)
+  const [name, data, schema] = exampleJson[0];
+  const { asFragment } = render(<JsonSchemaEditor data={data} schema={schema} />);
+  expect(name).toBe('基础')
+  // 
 });
+

@@ -2,9 +2,11 @@ import { Modal, Select } from 'antd';
 import { cloneDeep } from 'lodash';
 import React, { useState } from 'react';
 import examples from './examples';
+import { metaSchema } from 'json-schemaeditor-antd';
 
 // 接下来是示例选择功能的定义
-const options = examples.map((example, i) => {
+const exampleJson = examples(metaSchema)
+const options = exampleJson.map((example, i) => {
   return { label: example[0], value: i.toString() };
 }) as unknown as { label: string; value: string }[];
 
@@ -22,8 +24,8 @@ const ModalSelect = (props: {
       okText="选择"
       cancelText="取消"
       onOk={() => {
-        const data = cloneDeep(examples[item][1]),
-          schema = cloneDeep(examples[item][2]);
+        const data = cloneDeep(exampleJson[item][1]),
+          schema = cloneDeep(exampleJson[item][2]);
         cb(data, schema);
       }}
       onCancel={() => {

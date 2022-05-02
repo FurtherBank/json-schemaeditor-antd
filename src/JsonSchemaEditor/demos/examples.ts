@@ -19,11 +19,10 @@ import basic from './json-example/basic.json';
 import $simple from './json-example/$schema.simple.json';
 import simple from './json-example/simple.json';
 
-import { metaSchema } from 'json-schemaeditor-antd';
 
 type TestExample = [string, any, any];
 
-export default [
+export default (metaSchema: any) => [
   ['基础', basic, $basic],
   ['一系列测试', general, $general],
   ['小型示例', Default, $default],

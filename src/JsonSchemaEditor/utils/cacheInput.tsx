@@ -16,19 +16,17 @@ interface CachedComProps {
 }
 
 /**
- * 构建缓存 input 组件。具有验证和自动补全功能。使用
+ * 构建缓存式 input 组件的 HOC。  
+ * 传入 input 组件，输出后，得到缓存式的 input 组件。  
+ * 缓存式组件在失去焦点(onBlur)后才会发出状态更新请求。  
+ * 这时可以对输入进行验证，不通过可以阻止其更新，回到之前的输入。  
  * @param InputComponent Input 组件。可以是普通的 input，也可以是封装的 input React.ComponentType<InputComProps>
  * @returns
  */
 const cacheInput = (
   InputComponent: React.ComponentType<InputComProps>,
 ): React.FC<CachedComProps> => {
-  /**
-   * InputComponent: React.ComponentType<InputComProps> 会报错：
-   * react +ts类型复杂了 确实让人难受
-   * “InputComponent”不能用作 JSX 组件。其元素类型 "ReactElement<any, any> | Component<InputComProps, any, any> | null" 不是有效的 JSX 元素。
-   * 19：38 得到结论为 react-redux 导致的对 react 的类型污染
-   */
+
   return ({
     value,
     onValueChange,

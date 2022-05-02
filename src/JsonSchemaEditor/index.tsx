@@ -30,21 +30,21 @@ interface EditorProps {
   data?: any;
   schema: JSONSchema6 | true;
 }
-export const CacheContext = React.createContext({
+export const InfoContext = React.createContext({
   ofCache: new Map(),
   propertyCache: new Map(),
   itemCache: new Map(),
   rootSchema: {},
-} as ContextContent);
+} as InfoContent);
 
-export interface ContextContent {
+export interface InfoContent {
   ofCache: Map<string, ofSchemaCache | null>;
   propertyCache: Map<string, propertySchemaCache | null>;
   itemCache: Map<string, itemSchemaCache | null>;
   rootSchema: JSONSchema6;
 }
 
-export interface SchemaCache extends ContextContent {
+export interface SchemaCache extends InfoContent {
   entrySchemaMap: Map<string, boolean | JSONSchema6>;
   valueEntry: string | undefined;
   valueSchemaMap: Map<string, boolean | JSONSchema6>;
@@ -106,7 +106,6 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   );
 
   const caches = useMemo(() => {
-    console.log('caches变化');
     return {
       ofCache: new Map(),
       propertyCache: new Map(),
@@ -118,7 +117,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   // 如果 data 更新来自外部，通过 setData 与 store 同步
   const presentData = store.getState().present.data;
   if (data !== presentData) {
-    console.log('检测到外部更新：', data, presentData);
+    // console.log('检测到外部更新：', data, presentData);
     store.dispatch({
       type: 'setData',
       value: data,
@@ -129,7 +128,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   const drawerRef = useRef(null) as React.RefObject<any>;
   const setDrawer = useCallback(
     (...args: any[]) => {
-      console.log('setDrawer', drawerRef.current);
+      // console.log('setDrawer', drawerRef.current);
       if (drawerRef.current) drawerRef.current.setDrawer(...args);
     },
     [drawerRef],
@@ -140,10 +139,10 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
       {validate instanceof Function ? null : (
         <Alert message="Error" description={validate.toString()} type="error" showIcon />
       )}
-      <CacheContext.Provider value={caches}>
+      <InfoContext.Provider value={caches}>
         <Field route={emptyArray} field={null} schemaEntry="#" setDrawer={setDrawer} />
         <FieldDrawer ref={drawerRef} />
-      </CacheContext.Provider>
+      </InfoContext.Provider>
     </Provider>
   );
 };

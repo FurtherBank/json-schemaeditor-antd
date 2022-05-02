@@ -37,12 +37,6 @@ export interface itemSchemaCache {
   itemLength?: number;
 }
 
-export interface Caches {
-  ofCache: Map<string, ofSchemaCache | null>;
-  propertyCache: Map<string, propertySchemaCache | null>;
-  itemCache: Map<string, itemSchemaCache | null>;
-}
-
 export interface Act {
   type: string;
   route: string[];
@@ -92,17 +86,6 @@ ajv.addKeyword({
 
 const ajvInstance = ajv;
 
-// let validate: ValidateFunction = null!
-// const ajvValidate = (
-//   schema: any,
-//   data: any
-// ): [boolean | PromiseLike<any>, ValidateFunction] => {
-//   const validate = ajv.compile(schema);
-
-//   const valid = validate(data);
-//   return [valid, validate];
-// };
-
 const reducer = undoable(
   produce(
     (s: State, a: Act) => {
@@ -132,12 +115,10 @@ const reducer = undoable(
 
       // 初始化
       if (!route) {
-        console.log('初始化验证', a);
+        // console.log('初始化验证', a);
         reValidate();
         return;
       }
-
-      console.log(type, s, route.join('/') + '+' + field, value);
 
       const logError = (error: string) => {
         console.log(error, route.join('/') + '+' + field, value, fieldData);
@@ -219,7 +200,7 @@ const reducer = undoable(
           } else logError('对非数组的移动请求');
           break;
         default:
-          console.log('错误的动作请求');
+          logError('错误的动作请求');
       }
       // 重新验证
       reValidate();

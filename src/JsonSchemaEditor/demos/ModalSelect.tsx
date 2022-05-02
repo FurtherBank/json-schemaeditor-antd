@@ -6,7 +6,7 @@ import { metaSchema } from 'json-schemaeditor-antd';
 
 // 接下来是示例选择功能的定义
 const exampleJson = examples(metaSchema)
-const options = exampleJson.map((example, i) => {
+const options = Object.keys(exampleJson).map((example, i) => {
   return { label: example[0], value: i.toString() };
 }) as unknown as { label: string; value: string }[];
 
@@ -16,7 +16,7 @@ const ModalSelect = (props: {
   visible: boolean;
 }) => {
   const { cb, cancelCb, visible } = props;
-  const [item, setItem] = useState(0);
+  const [item, setItem] = useState('基础');
 
   return (
     <Modal
@@ -24,8 +24,8 @@ const ModalSelect = (props: {
       okText="选择"
       cancelText="取消"
       onOk={() => {
-        const data = cloneDeep(exampleJson[item][1]),
-          schema = cloneDeep(exampleJson[item][2]);
+        const data = cloneDeep(exampleJson[item][0]),
+          schema = cloneDeep(exampleJson[item][1]);
         cb(data, schema);
       }}
       onCancel={() => {
@@ -38,7 +38,7 @@ const ModalSelect = (props: {
         placeholder="选择示例"
         optionFilterProp="label"
         onChange={(value) => {
-          setItem(parseInt(value));
+          setItem(value);
         }}
         filterOption={(input, option) => {
           return !!option && option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;

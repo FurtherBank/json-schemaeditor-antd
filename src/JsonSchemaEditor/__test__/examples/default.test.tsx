@@ -6,7 +6,6 @@ import examples from '../../demos/examples';
 
 test('default', () => {
   const exampleJson = examples(metaSchema);
-  const [name, data, schema] = exampleJson[2];
+  const [data, schema] = exampleJson['默认示例'];
   const { asFragment } = render(<JsonSchemaEditor data={data} schema={schema} />);
-  expect(name).toBe('小型示例');
 });

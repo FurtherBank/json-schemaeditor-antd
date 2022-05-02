@@ -30,8 +30,8 @@ const loadLocalJson = (key: string) => {
 export default () => {
   const [mode, setMode] = useState(0);
 
-  const [data, setData] = useState(() => loadLocalJson('data') ?? cloneDeep(exampleJson[0][1]));
-  const [schema, setSchema] = useState(() => loadLocalJson('schema') ?? cloneDeep(exampleJson[0][2]));
+  const [data, setData] = useState(() => loadLocalJson('data') ?? cloneDeep(exampleJson['基础'][0]));
+  const [schema, setSchema] = useState(() => loadLocalJson('schema') ?? cloneDeep(exampleJson['基础'][1]));
 
   const dataEditor = useRef<MonacoEditor>(null);
   const schemaEditor = useRef<MonacoEditor>(null);

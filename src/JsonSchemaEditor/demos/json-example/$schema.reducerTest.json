@@ -1,0 +1,95 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/ReducerTest",
+    "definitions": {
+        "ReducerTest": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "arr": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "obj": {
+                    "$ref": "#/definitions/Obj"
+                },
+                "needToRename": {
+                    "$ref": "#/definitions/NeedToRename"
+                },
+                "moveUpAndDown": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/MoveUpAndDownElement"
+                    }
+                }
+            },
+            "required": [
+                "arr",
+                "moveUpAndDown",
+                "needToRename",
+                "obj"
+            ],
+            "title": "ReducerTest"
+        },
+        "MoveUpAndDownClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "key": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "key"
+            ],
+            "title": "MoveUpAndDownClass"
+        },
+        "NeedToRename": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "num": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "num"
+            ],
+            "title": "NeedToRename"
+        },
+        "Obj": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "a": {
+                    "type": "string"
+                },
+                "b": {
+                    "type": "boolean"
+                },
+                "c": {
+                    "type": "null"
+                }
+            },
+            "required": [
+                "a",
+                "b",
+                "c"
+            ],
+            "title": "Obj"
+        },
+        "MoveUpAndDownElement": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/MoveUpAndDownClass"
+                },
+                {
+                    "type": "integer"
+                }
+            ],
+            "title": "MoveUpAndDownElement"
+        }
+    }
+}

@@ -13,7 +13,7 @@ export default defineConfig({
     dark: true,
     // compact: true,
   },
-
+  mfsu: { production: { output: '.mfsu-production' } },
   // https://umijs.org/zh-CN/guide/boost-compile-speed#monaco-editor-%E7%BC%96%E8%BE%91%E5%99%A8%E6%89%93%E5%8C%85
   chainWebpack: (config, { webpack }) => {
     config.plugin('monaco-editor-webpack-plugin').use(MonacoWebpackPlugin, [

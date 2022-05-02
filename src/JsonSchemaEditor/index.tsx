@@ -25,7 +25,7 @@ import './css/index.less';
 import _ from 'lodash';
 import { JSONSchema6 } from 'json-schema';
 
-interface EditorProps {
+export interface EditorProps {
   onChange?: (data: any) => void | null;
   data?: any;
   schema: JSONSchema6 | true;

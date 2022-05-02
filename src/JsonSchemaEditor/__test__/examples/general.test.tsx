@@ -6,9 +6,8 @@ import examples from '../../demos/examples';
 
 test('general', () => {
   const exampleJson = examples(metaSchema);
-  const [name, data, schema] = exampleJson[1];
+  const [data, schema] = exampleJson['一系列测试'];
   const { asFragment } = render(<JsonSchemaEditor data={data} schema={schema} />);
-  expect(name).toBe('一系列测试');
   // asserts
   const textCanSeen = [
     '一系列测试',

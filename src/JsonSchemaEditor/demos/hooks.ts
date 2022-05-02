@@ -22,7 +22,7 @@ export const useCooldown = <T extends (...args: any[]) => void>(
         if (newArgs) func(...newArgs);
         newArgs = undefined;
         cd = 0;
-      }, interval);
+      }, interval) as unknown as number;
     } else {
       newArgs = args;
     }

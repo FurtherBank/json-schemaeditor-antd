@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import JsonSchemaEditor, { metaSchema } from '../../..';
 import examples from '../demos/examples';
 
-test('simple', () => {
+test('reducer', () => {
   const exampleJson = examples(metaSchema);
   const [data, schema] = exampleJson[3];
   const { asFragment } = render(<JsonSchemaEditor data={data} schema={schema} />);

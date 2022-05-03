@@ -6,8 +6,8 @@ import { metaSchema } from 'json-schemaeditor-antd';
 
 // 接下来是示例选择功能的定义
 const exampleJson = examples(metaSchema)
-const options = Object.keys(exampleJson).map((example, i) => {
-  return { label: example[0], value: i.toString() };
+const options = Object.keys(exampleJson).map((key, i) => {
+  return { label: key, value: key };
 }) as unknown as { label: string; value: string }[];
 
 const ModalSelect = (props: {
@@ -43,7 +43,7 @@ const ModalSelect = (props: {
         filterOption={(input, option) => {
           return !!option && option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
         }}
-        defaultValue={'0'}
+        defaultValue={'基础'}
         options={options}
         style={{ width: '100%' }}
       />

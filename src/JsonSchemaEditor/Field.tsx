@@ -241,11 +241,7 @@ const FieldBase = (props: FieldProps) => {
 
   // 1. 设置标题组件
   const spaceStyle =
-    short === ShortOpt.extra
-      ? {
-          marginRight: '6px',
-        }
-      : short === ShortOpt.short
+    short === ShortOpt.short
       ? {
           width: '9.5em',
         }
@@ -253,14 +249,14 @@ const FieldBase = (props: FieldProps) => {
   const titleName =
     fieldNameRange === '' || fieldNameRange instanceof RegExp ? field : fieldNameRange;
   const titleCom = (
-    <Space onClick={stopBubble} style={spaceStyle}>
+    <div onClick={stopBubble} style={spaceStyle}>
       {errors.length > 0 ? (
         <Tooltip
           title={errors.map((error: { message: string }) => error.message).join('\n')}
           placement="topLeft"
           key="valid"
         >
-          <CloseCircleOutlined style={{ color: 'red' }} />
+          <CloseCircleOutlined style={{ color: 'red', marginRight: '0.25em' }} />
         </Tooltip>
       ) : null}
 
@@ -289,12 +285,13 @@ const FieldBase = (props: FieldProps) => {
             />
           ) : (
             <span style={{ width: '100px' }} title={titleName!}>
+              <span style={{ color: 'red', width: '0.75em', display: 'inline-block' }}>*</span>
               {titleName}
             </span>
           )}
         </Tooltip>
       ) : null}
-    </Space>
+    </div>
   );
 
   const valueChangeAction = (value: any) => {

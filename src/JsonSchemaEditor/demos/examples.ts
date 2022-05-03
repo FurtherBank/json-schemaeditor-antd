@@ -29,12 +29,12 @@ type TestExamples = {
 
 export default (metaSchema: any) => {
   return {
-    基础: [basic, $basic],
-    一系列测试: [general, $general],
-    小型示例: [Default, $default],
-    简单示例: [simple, $simple],
-    模式编辑: [$default, metaSchema],
-    元模式自编辑: [metaSchema, metaSchema],
+    '基础': [basic, $basic],
+    '一系列测试': [general, $general],
+    '小型示例': [Default, $default],
+    '简单示例': [simple, $simple],
+    '模式编辑': [$default, metaSchema],
+    '元模式自编辑': [metaSchema, metaSchema],
     '《星际探索者》设施配置示例': [dataFacility, $dataFacility],
     '《星际探索者》设施配置模式编辑': [$dataFacility, metaSchema],
     '《星际探索者》科技树示例': [dataTechTree, $dataTechTree],

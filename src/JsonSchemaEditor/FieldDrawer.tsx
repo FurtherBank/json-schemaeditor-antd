@@ -1,5 +1,5 @@
 import React, { useImperativeHandle, useState } from 'react';
-import Drawer from 'antd/lib/drawer';
+import { Drawer } from 'antd';
 import Field from './Field';
 
 interface DrawerAccess {

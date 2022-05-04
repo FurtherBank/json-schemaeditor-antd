@@ -22,10 +22,10 @@
     "build": "father-build",
     "deploy": "npm run docs:build && npm run docs:deploy",
     "prettier": "prettier --write \"**/*.{js,jsx,tsx,ts,less,md,json}\"",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test": "jest --config .jest.config.ts",
+    "cov": "jest --config .jest.config.ts --coverage",
     "prepublishOnly": "npm run build",
-    "version": "conventional-changelog -p angular -i changelog.md -s",
+    "version": "conventional-changelog -p angular -i changelog.md -s && git add changelog.md",
     "prepare": "husky install"
   },
   "files": [

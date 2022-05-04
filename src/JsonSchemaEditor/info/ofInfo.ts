@@ -27,8 +27,6 @@ export const getOfOption = (data: any, schemaEntry: string, context: InfoContent
       const subOfRef = subOfRefs[i]
       if (typeof subOfRef === 'string') {
         // 展开的 validate 为 string，就是子 oneOf 的 ref
-        const optOfCacheValue = ofCache.get(subOfRef)!
-        console.assert(optOfCacheValue)
         const subOption = getOfOption(data, subOfRef, context)
         console.assert(subOption !== null)
         if (subOption) return `${i}-${subOption}`

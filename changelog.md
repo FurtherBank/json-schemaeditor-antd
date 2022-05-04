@@ -1,3 +1,14 @@
+## [0.1.3](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.2...v0.1.3) (2022-05-04)
+
+### Bug Fixes
+
+- 修复若干 bug ([2618816](https://github.com/FurtherBank/json-schemaeditor-antd/commit/2618816e063afd0417628786f8aeb2bd3d06a933))
+- 修复正则属性名修改验证无效的 bug ([3be7ed6](https://github.com/FurtherBank/json-schemaeditor-antd/commit/3be7ed6d5322564cbb11d176346f799ca2d896d2))
+
+### Features
+
+- 加入 id 功能 ([b29bc98](https://github.com/FurtherBank/json-schemaeditor-antd/commit/b29bc9856a38b838aa2b9adeef03124f9e97e09d))
+
 ## [0.1.2](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.1...v0.1.2) (2022-05-04)
 
 ### Bug Fixes

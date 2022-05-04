@@ -17,7 +17,8 @@ import {
   getPathVal,
   getRefSchemaMap,
   getValueByPattern,
-  jsonDataType
+  jsonDataType,
+  matchRegexKey
 } from './utils'
 
 export const maxCollapseLayer = 3
@@ -205,8 +206,9 @@ export const canSchemaRename = (props: FieldProps, schemaCache: SchemaCache) => 
 
     if (properties[field]) return title ? title : field
 
-    const pattern = getValueByPattern(patternProps, field)
-    if (pattern) return new RegExp(pattern)
+    const pattern = matchRegexKey(patternProps, field)
+
+    if (pattern) return pattern
 
     return ''
   }

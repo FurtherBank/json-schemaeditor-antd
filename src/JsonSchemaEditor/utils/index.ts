@@ -3,7 +3,6 @@ import { JSONSchema6 } from 'json-schema'
 import _, { isEqual } from 'lodash'
 import { SchemaCache } from '..'
 import { FieldProps } from '../Field'
-import { PropertyInfo } from '../info/valueInfo'
 
 export const KeywordTypes = {
   intersection: ['type'],
@@ -242,30 +241,33 @@ export const exactIndexOf = (array: any[], value: any) => {
 }
 
 /**
- * 判断一个 key 是否在匹配列表中，如果是就将其返回
+ * 将对象或map的keys当作正则表达式来匹配 key，如果匹配到返回这个正则表达式
  * @param map
  * @param key
  * @returns
  */
-export const matchKeys = (map: Map<string | RegExp, PropertyInfo>, key: string) => {
-  for (const pattern of map.keys()) {
-    if (typeof pattern === 'string' ? pattern === key : pattern.test(key)) {
+export const matchRegexKey = (map: Map<string | RegExp, any> | { [x: string]: any }, key: string) => {
+  const keys = map instanceof Map ? map.keys() : Object.keys(map)
+
+  for (const k of keys) {
+    const pattern = typeof k === 'string' ? new RegExp(k) : k
+    if (pattern.test(key)) {
       return pattern
     }
   }
-  return false
+  return undefined
 }
 
 /**
  * 查找对象某键的值，但是正则匹配
- * @param obj 查找的对象
- * @param key 待匹配的字符串/正则式
+ * @param obj 查找的对象，对象的键作为正则式与 key 匹配
+ * @param key 待匹配的字符串
  * @returns
  */
-export const getValueByPattern = (obj: any, key: string | RegExp) => {
+export const getValueByPattern = (obj: any, key: string) => {
   for (const k of Object.keys(obj)) {
-    const pattern = new RegExp(key)
-    if (pattern.test(k)) {
+    const pattern = new RegExp(k)
+    if (pattern.test(key)) {
       return obj[k]
     }
   }

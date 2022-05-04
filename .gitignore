@@ -22,6 +22,9 @@
 .umi-test
 .env.local
 
+# mfsu
+.mfsu-production
+
 # ide
 # /.vscode
 # /.idea

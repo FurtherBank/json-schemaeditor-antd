@@ -35,11 +35,20 @@ import {
   defaultTypeValue,
   getDefaultValue,
   getFormatType,
+  isFieldRequired,
   maxCollapseLayer,
   toConstName
 } from './FieldOptions'
 import { doAction, JsonTypes, ShortOpt, State } from './reducer'
-import { absorbProperties, concatAccess, exactIndexOf, getRefSchemaMap, jsonDataType, getError } from './utils'
+import {
+  absorbProperties,
+  concatAccess,
+  exactIndexOf,
+  getRefSchemaMap,
+  jsonDataType,
+  getError,
+  getAccessRef
+} from './utils'
 import FieldList, { FatherInfo } from './FieldList'
 import { InfoContext, SchemaCache } from '.'
 import { StateWithHistory } from 'redux-undo'
@@ -110,7 +119,9 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
   } else {
     // 如果类型可能性有多种，使用 'type' 切换属性
     const types = absorbProperties(valueSchemaMap, 'type')
-    if (hasFalse || types.length !== 1) result.set('type', types.length > 0 ? types : JsonTypes)
+    if (hasFalse || types.length !== 1) {
+      result.set('type', types.length > 0 ? types : JsonTypes)
+    }
   }
 
   // 短优化时，如果有 const/enum 或者类型错误，加入detail
@@ -134,7 +145,7 @@ const stopBubble = (e: React.SyntheticEvent) => {
 }
 
 const FieldBase = (props: FieldProps) => {
-  const { data, route, field, schemaEntry, short, canNotRename, setDrawer } = props
+  const { data, route, field, schemaEntry, short, canNotRename, fatherInfo, setDrawer } = props
 
   const caches = useContext(InfoContext),
     { ofCache, propertyCache, itemCache, rootSchema } = caches
@@ -214,10 +225,13 @@ const FieldBase = (props: FieldProps) => {
   const spaceStyle =
     short === ShortOpt.short
       ? {
-          width: '9.5em'
+          width: '9.5em',
+          display: 'flex',
+          alignItems: 'center'
         }
       : {}
   const titleName = fieldNameRange === '' || fieldNameRange instanceof RegExp ? field : fieldNameRange
+  const isRequired = isFieldRequired(field, fatherInfo)
   const titleCom = (
     <div onClick={stopBubble} style={spaceStyle}>
       {errors.length > 0 ? (
@@ -236,11 +250,7 @@ const FieldBase = (props: FieldProps) => {
             <CInput
               size="small"
               bordered={false}
-              style={{
-                textDecoration: 'underline',
-                width: '100px',
-                padding: '0'
-              }}
+              className="prop-name"
               title={field}
               value={field} // todo: validate the propertyName
               validate={(v) => {
@@ -255,7 +265,7 @@ const FieldBase = (props: FieldProps) => {
             />
           ) : (
             <span style={{ width: '100px' }} title={titleName!}>
-              <span style={{ color: 'orange', width: '0.75em', display: 'inline-block' }}>*</span>
+              {isRequired ? <span style={{ color: 'orange', width: '0.75em', display: 'inline-block' }}>*</span> : null}
               {titleName}
             </span>
           )}
@@ -473,6 +483,7 @@ const FieldBase = (props: FieldProps) => {
         short={ShortOpt.no}
         canCreate={space.has('create')}
         view={'list'}
+        id={getAccessRef(access)}
       />
     ) : dataType === 'object' || dataType === 'array' ? (
       <Collapse defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}>
@@ -482,6 +493,7 @@ const FieldBase = (props: FieldProps) => {
             fieldCache={schemaCache}
             short={dataType === 'array' && itemCacheValue ? itemCacheValue.shortOpt : ShortOpt.no}
             canCreate={space.has('create')}
+            id={getAccessRef(access)}
           />
         </Panel>
       </Collapse>
@@ -496,6 +508,7 @@ const FieldBase = (props: FieldProps) => {
           </Space>
         }
         bodyStyle={formatType !== 2 ? { display: 'none' } : {}}
+        id={getAccessRef(access)}
       >
         {formatType === 2 ? valueCom : null}
       </Card>
@@ -518,7 +531,7 @@ const FieldBase = (props: FieldProps) => {
 
     const compact = valueType !== 'boolean'
     return (
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex' }} id={getAccessRef(access)}>
         {titleCom}
         <Input.Group
           compact={compact}

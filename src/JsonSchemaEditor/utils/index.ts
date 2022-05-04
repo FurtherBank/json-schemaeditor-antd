@@ -75,7 +75,7 @@ export const getPathVal = (obj: any, $ref: string) => {
 
 /**
  * 给 uri 路径继续添加子路径。
- * 不提供子路径也可以当作格式化工具
+ * 不提供子路径也可以当作去末尾 / 的格式化工具
  * @param ref uri 路径
  * @param path 需要添加的子路径
  * @returns
@@ -88,6 +88,16 @@ export const addRef = (ref: string | undefined, ...path: string[]) => {
     if (v) ref = ref + '/' + v
   })
   return ref
+}
+
+/**
+ * 通过 data access 得到 data 的 ref 字符串，用作 id
+ * todo: 只要有需要对这个输出字符串分割的可能，必须要转义
+ * @param access
+ * @returns
+ */
+export const getAccessRef = (access: string[]) => {
+  return access.join('/')
 }
 
 /**

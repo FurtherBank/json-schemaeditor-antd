@@ -4,6 +4,7 @@ import { JSONSchema6 } from 'json-schema'
 import _, { isEqual } from 'lodash'
 import { InfoContent, SchemaCache } from '.'
 import { FieldProps } from './Field'
+import { FatherInfo } from './FieldList'
 import { setPropertyCache, setItemCache } from './info/valueInfo'
 import { ajvInstance } from './reducer'
 import {
@@ -333,6 +334,18 @@ export const getDefaultValue = (schemaCache: SchemaCache, entry: string | undefi
   } else {
     return null
   }
+}
+
+/**
+ * 字段是否为 required 字段
+ * @param field
+ * @param fatherInfo
+ * @returns
+ */
+export const isFieldRequired = (field: string | null, fatherInfo?: FatherInfo | undefined) => {
+  if (!fatherInfo || !field) return false
+  const { required } = fatherInfo
+  return required instanceof Array && required.indexOf(field) > -1
 }
 
 /**

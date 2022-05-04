@@ -22,7 +22,7 @@
 
 目前没做代码分片，所以带着 monaco-editor 加载时间会长一些~请耐心等待
 
-## 使用方法
+## 使用方法/功能介绍
 
 老规矩，首先 `npm install`：
 
@@ -70,6 +70,17 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外部主动更改数据，可以按照 redux 的 store api 进行操作。
 
 更多信息详见 [Reducer](#Reducer)
+
+### id
+
+每个字段的组件，都有一个 id 属性与之对应，可以通过 id 属性得到该字段组件的 root dom。  
+如`rootdata.user.abc[1]`，对应的 id 为`user/abc/1`。
+
+注意：
+
+1. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入`/`字符，会出错。
+2. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
+3. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
 
 ### 使用时注意
 
@@ -715,6 +726,7 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 - [ ] 部分样式需要好好优化
 - [ ] 短优化项展示列数响应式增加(但是不能直接用 antd list 的响应式，它只看窗口宽度不看 dom 宽度)
 - [ ] 无 default 默认值设置的不是太好
+- [ ] 转义特殊字符属性名
 - [ ] 测试补全（~~我不会告诉你目前本人还不会写测试~~）
 
 ## 后续更新特性

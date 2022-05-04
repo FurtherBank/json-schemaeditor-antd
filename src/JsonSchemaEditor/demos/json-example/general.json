@@ -37,7 +37,8 @@
       "type": "string"
     },
     "#ffffff",
-    "2022-03-14"
+    "2022-03-14",
+    null
   ],
   "smellyAndLong": "该项目是一个使用antd写的基于json-schema的json编辑器。 目前还在高速开发迭代中……\n该项目具有简单、可靠等特点。"
 }

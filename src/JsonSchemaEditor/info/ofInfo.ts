@@ -53,7 +53,7 @@ export const getRefByOfChain = (ofCache: Map<string, ofSchemaCache | null>, sche
     const { ofRef } = ofCache.get(entry)!
     entry = addRef(ofRef, opt)!
   }
-  return schemaEntry
+  return entry
 }
 
 /**

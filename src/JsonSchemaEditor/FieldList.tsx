@@ -16,6 +16,7 @@ interface FieldListProps {
   short: ShortOpt
   canCreate?: boolean
   view?: string
+  id: string
 }
 
 /**
@@ -24,6 +25,7 @@ interface FieldListProps {
 export interface FatherInfo {
   type?: string // 是父亲的实际类型，非要求类型
   length?: number // 如果是数组，给出长度
+  required?: string[] // 如果是对象，给出 required 属性
   schemaEntry: string | undefined // 父亲的 schemaEntry
   valueEntry: string | undefined // 父亲的 schemaEntry
 }
@@ -36,9 +38,10 @@ export interface ChildData {
 }
 
 const FieldList = (props: FieldListProps) => {
-  const { fieldProps, short, canCreate, view, fieldCache } = props
+  const { fieldProps, short, canCreate, view, fieldCache, id } = props
   const { data, route, field, setDrawer, schemaEntry } = fieldProps
   const { valueEntry, propertyCache } = fieldCache
+  const propertyCacheValue = valueEntry ? propertyCache.get(valueEntry) : null
   const dataType = jsonDataType(data)
   const access = useMemo(() => {
     return concatAccess(route, field)
@@ -56,10 +59,11 @@ const FieldList = (props: FieldListProps) => {
         break
       default:
         childFatherInfo.type = 'object'
+        if (propertyCacheValue) childFatherInfo.required = propertyCacheValue.required
         break
     }
     return childFatherInfo
-  }, [schemaEntry, valueEntry, dataType === 'array' ? data.length : -1])
+  }, [schemaEntry, valueEntry, data])
 
   const content = useMemo(() => {
     let children: ChildData[] = []
@@ -68,7 +72,6 @@ const FieldList = (props: FieldListProps) => {
         return { key: i.toString(), value }
       })
     } else if (dataType === 'object') {
-      const propertyCacheValue = valueEntry ? propertyCache.get(valueEntry) : null
       const shortenProps: string[] = []
       // todo: 分开查找可优化的项，然后按顺序排列
       for (const key in data) {
@@ -129,7 +132,7 @@ const FieldList = (props: FieldListProps) => {
   switch (view) {
     case 'list':
       return (
-        <Layout style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }}>
+        <Layout style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }} id={id}>
           <Sider style={{ height: '100%' }}>
             <div
               className="ant-card-bordered"
@@ -270,6 +273,7 @@ const FieldList = (props: FieldListProps) => {
               : undefined
           }
           renderItem={renderItem(short)}
+          id={id}
         />
       )
   }

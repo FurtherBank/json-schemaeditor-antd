@@ -1,4 +1,4 @@
-import { Layout, List } from 'antd'
+import { List } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { SelectableGroup } from 'react-selectable-fast'
 import { SchemaCache } from '.'
@@ -8,7 +8,6 @@ import { gridOption, maxItemsPerPageByShortLevel } from './FieldOptions'
 import { ItemList, DataItemProps } from './components/ItemList'
 import { ShortOpt } from './reducer'
 import { concatAccess, getFieldSchema, getValueByPattern, jsonDataType } from './utils'
-const { Content, Sider } = Layout
 
 interface FieldListProps {
   fieldProps: FieldProps
@@ -16,7 +15,7 @@ interface FieldListProps {
   short: ShortOpt
   canCreate?: boolean
   view?: string
-  id: string
+  id: string | undefined
 }
 
 /**
@@ -132,8 +131,8 @@ const FieldList = (props: FieldListProps) => {
   switch (view) {
     case 'list':
       return (
-        <Layout style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }} id={id}>
-          <Sider style={{ height: '100%' }}>
+        <div style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }} id={id}>
+          <aside style={{ height: '100%', minWidth: '15em' }}>
             <div
               className="ant-card-bordered"
               style={{
@@ -152,7 +151,6 @@ const FieldList = (props: FieldListProps) => {
                 resetOnStart={true}
                 onSelectionFinish={handleSelectable}
                 ignoreList={['.not-selectable']}
-                // className='ant-menu'
                 style={{ flex: '1', overflow: 'auto', margin: '3px 0' }}
                 key={'select'}
               >
@@ -168,8 +166,8 @@ const FieldList = (props: FieldListProps) => {
                 />
               ) : null}
             </div>
-          </Sider>
-          <Content style={{ height: '100%', overflow: 'auto' }}>
+          </aside>
+          <main style={{ height: '100%', overflow: 'auto', flex: 'auto' }}>
             {data.length > 0 ? (
               <Field
                 route={access}
@@ -180,8 +178,8 @@ const FieldList = (props: FieldListProps) => {
                 setDrawer={setDrawer}
               />
             ) : null}
-          </Content>
-        </Layout>
+          </main>
+        </div>
       )
     default:
       const renderItem = (shortLv: ShortOpt) => {

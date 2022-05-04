@@ -148,7 +148,7 @@ const FieldBase = (props: FieldProps) => {
   const { data, route, field, schemaEntry, short, canNotRename, fatherInfo, setDrawer } = props
 
   const caches = useContext(InfoContext),
-    { ofCache, propertyCache, itemCache, rootSchema } = caches
+    { ofCache, propertyCache, itemCache, rootSchema, id } = caches
 
   // 读取路径上的 schemaMap
   const entrySchemaMap = useMemo(() => {
@@ -483,7 +483,7 @@ const FieldBase = (props: FieldProps) => {
         short={ShortOpt.no}
         canCreate={space.has('create')}
         view={'list'}
-        id={getAccessRef(access)}
+        id={getAccessRef(access) || id}
       />
     ) : dataType === 'object' || dataType === 'array' ? (
       <Collapse defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}>
@@ -493,7 +493,7 @@ const FieldBase = (props: FieldProps) => {
             fieldCache={schemaCache}
             short={dataType === 'array' && itemCacheValue ? itemCacheValue.shortOpt : ShortOpt.no}
             canCreate={space.has('create')}
-            id={getAccessRef(access)}
+            id={getAccessRef(access) || id}
           />
         </Panel>
       </Collapse>
@@ -508,7 +508,7 @@ const FieldBase = (props: FieldProps) => {
           </Space>
         }
         bodyStyle={formatType !== 2 ? { display: 'none' } : {}}
-        id={getAccessRef(access)}
+        id={getAccessRef(access) || id}
       >
         {formatType === 2 ? valueCom : null}
       </Card>
@@ -531,7 +531,7 @@ const FieldBase = (props: FieldProps) => {
 
     const compact = valueType !== 'boolean'
     return (
-      <div style={{ display: 'flex' }} id={getAccessRef(access)}>
+      <div style={{ display: 'flex' }} id={getAccessRef(access) || id}>
         {titleCom}
         <Input.Group
           compact={compact}

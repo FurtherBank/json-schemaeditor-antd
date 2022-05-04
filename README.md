@@ -74,13 +74,14 @@ Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外
 ### id
 
 每个字段的组件，都有一个 id 属性与之对应，可以通过 id 属性得到该字段组件的 root dom。  
-如`rootdata.user.abc[1]`，对应的 id 为`user/abc/1`。
+如`rootdata.user.abc[1]`，对应的 id 为`user.abc.1`。
 
 注意：
 
-1. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入`/`字符，会出错。
-2. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
-3. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
+1. 根节点的 id 由传入 editor 的 id 属性决定，且不应用前缀
+1. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入`.`或`/`字符，会出错。
+1. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
+1. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
 
 ### 使用时注意
 
@@ -466,14 +467,21 @@ https://ajv.js.org/packages/ajv-formats.html
 | uri-reference |  | `longFormats` |  |
 | base-64 |  | `extraLongFormats` | 二进制编辑器（未实装） |
 | color | 颜色。~~支持 rgb/rgba/cmyk 等多种颜色格式是否可能？~~ |  | 颜色选择框（未实装） |
-| row | 单行加长输入 | `longFormats` | input 加长版 |
-| multiline | 多行输入 | `extraLongFormats` |  |
+| row | 单行加长输入，不做验证 | `longFormats` | input 加长版 |
+| multiline | 多行输入，不做验证 | `extraLongFormats` |  |
 | code: \<language> | 特定语言代码（未实装） | `extraLongFormats` | monaco-editor（未实装） |
 | file: \<file-type> | 文件名（未实装） |  | 文件上传框（未实装）<br />特殊的文件会读取展示，如图片，但是未实装 |
 
 string 的一些格式并不支持短优化，这时会作为一个长组件显示。长格式分为两种：**单行长格式**`longFormats`和**跨行长格式**`extraLongFormats`。
 
 **单行长格式**的组件仍然在一行展示，但是长度增加。 **跨行长格式**的组件会另起一行显示，可以跨域多行。
+
+> 目前格式的一个 issue：
+>
+> 格式的验证可以是一个函数或者正则表达式。  
+> 说实话，格式除了它搞的之外，应该自己重定义。格式必须有一个验证函数和默认值。  
+> 默认值为什么必须要？如果你一个字段有`oneOf`，每个选项对应一种字符串格式。  
+> 那你切换的时候，没有换过去格式的默认字符串值，你就无了。换成空字符串，你就不知道哪一项了。
 
 #### number/integer/boolean/null
 

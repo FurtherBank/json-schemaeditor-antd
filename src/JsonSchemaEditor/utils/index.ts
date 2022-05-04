@@ -97,7 +97,7 @@ export const addRef = (ref: string | undefined, ...path: string[]) => {
  * @returns
  */
 export const getAccessRef = (access: string[]) => {
-  return access.join('/')
+  return access.join('.')
 }
 
 /**

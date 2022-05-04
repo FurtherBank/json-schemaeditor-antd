@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import React, { CSSProperties, forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import Field from './Field'
@@ -16,6 +16,8 @@ export interface EditorProps {
   onChange?: (data: any) => void | null
   data?: any
   schema: JSONSchema6 | true
+  id?: string | undefined
+  style?: CSSProperties
 }
 export const InfoContext = React.createContext({
   ofCache: new Map(),
@@ -29,9 +31,10 @@ export interface InfoContent {
   propertyCache: Map<string, propertySchemaCache | null>
   itemCache: Map<string, itemSchemaCache | null>
   rootSchema: JSONSchema6
+  id: string | undefined
 }
 
-export interface SchemaCache extends InfoContent {
+export type SchemaCache = Omit<InfoContent, 'id'> & {
   entrySchemaMap: Map<string, boolean | JSONSchema6>
   valueEntry: string | undefined
   valueSchemaMap: Map<string, boolean | JSONSchema6>
@@ -40,7 +43,7 @@ export interface SchemaCache extends InfoContent {
 const emptyArray: never[] = []
 
 const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
-  const { schema, data, onChange } = props
+  const { schema, data, onChange, id } = props
 
   // useMemo 编译 schema
   const validate = useMemo(() => {
@@ -97,7 +100,8 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
       ofCache: new Map(),
       propertyCache: new Map(),
       itemCache: new Map(),
-      rootSchema: validate instanceof Function ? (typeof schema !== 'boolean' ? schema : {}) : {}
+      rootSchema: validate instanceof Function ? (typeof schema !== 'boolean' ? schema : {}) : {},
+      id
     }
   }, [schema])
 

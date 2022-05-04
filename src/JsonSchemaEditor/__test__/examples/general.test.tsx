@@ -3,6 +3,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import JsonSchemaEditor, { metaSchema } from '../../..'
 import examples from '../../demos/examples'
+import { countNullId } from '../testUtils'
 
 test('general', () => {
   const exampleJson = examples(metaSchema)
@@ -33,4 +34,5 @@ test('general', () => {
   displayValueCanSeen.forEach((text) => {
     expect(screen.getByDisplayValue(text)).toBeTruthy()
   })
+  expect(countNullId(data)).toBe(9) // enumValue(Array[5]) + constValue(Object[2]) + typeError(Object[2]) = 9
 })

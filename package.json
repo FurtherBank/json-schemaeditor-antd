@@ -35,8 +35,10 @@
   "main": "dist/index.min.js",
   "module": "es/index.js",
   "types": "es/index.d.ts",
-  "gitHooks": {
-    "pre-commit": "lint-staged"
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "lint-staged": {
     "*.{js,jsx,less,md,json}": [

@@ -1,138 +1,125 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import Field from './Field';
-import {
-  ajvInstance,
-  itemSchemaCache,
-  ofSchemaCache,
-  propertySchemaCache,
-  reducer,
-} from './reducer';
-import FieldDrawer from './FieldDrawer';
-import { Alert } from 'antd';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import { createStore } from 'redux'
+import { Provider } from 'react-redux'
+import Field from './Field'
+import { ajvInstance, reducer } from './reducer'
+import FieldDrawer from './FieldDrawer'
+import { Alert } from 'antd'
+import { JSONSchema6 } from 'json-schema'
+import { ofSchemaCache } from './info/ofInfo'
+import { itemSchemaCache, propertySchemaCache } from './info/valueInfo'
+import { ValidateFunction } from 'ajv'
 
-import './css/index.less';
-import _ from 'lodash';
-import { JSONSchema6 } from 'json-schema';
+import './css/index.less'
 
 export interface EditorProps {
-  onChange?: (data: any) => void | null;
-  data?: any;
-  schema: JSONSchema6 | true;
+  onChange?: (data: any) => void | null
+  data?: any
+  schema: JSONSchema6 | true
 }
 export const InfoContext = React.createContext({
   ofCache: new Map(),
   propertyCache: new Map(),
   itemCache: new Map(),
-  rootSchema: {},
-} as InfoContent);
+  rootSchema: {}
+} as InfoContent)
 
 export interface InfoContent {
-  ofCache: Map<string, ofSchemaCache | null>;
-  propertyCache: Map<string, propertySchemaCache | null>;
-  itemCache: Map<string, itemSchemaCache | null>;
-  rootSchema: JSONSchema6;
+  ofCache: Map<string, ofSchemaCache | null>
+  propertyCache: Map<string, propertySchemaCache | null>
+  itemCache: Map<string, itemSchemaCache | null>
+  rootSchema: JSONSchema6
 }
 
 export interface SchemaCache extends InfoContent {
-  entrySchemaMap: Map<string, boolean | JSONSchema6>;
-  valueEntry: string | undefined;
-  valueSchemaMap: Map<string, boolean | JSONSchema6>;
+  entrySchemaMap: Map<string, boolean | JSONSchema6>
+  valueEntry: string | undefined
+  valueSchemaMap: Map<string, boolean | JSONSchema6>
 }
 
-const emptyArray: never[] = [];
+const emptyArray: never[] = []
 
 const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
-  const { schema, data, onChange } = props;
+  const { schema, data, onChange } = props
 
   // useMemo 编译 schema
   const validate = useMemo(() => {
-    let validate = undefined;
-    let schemaErrors = null;
+    let validate = undefined
+    let schemaErrors = null
 
-    console.time('compile schema');
+    console.time('compile schema')
     try {
-      validate = ajvInstance.compile(schema);
+      validate = ajvInstance.compile(schema)
     } catch (error) {
-      schemaErrors = error;
+      schemaErrors = error
     }
-    console.timeEnd('compile schema');
+    console.timeEnd('compile schema')
 
-    return validate ? validate : schemaErrors;
-  }, [schema]) as Function | any;
+    return validate ? validate : schemaErrors
+  }, [schema]) as ValidateFunction | any
 
   // useMemo 初始化 store
   const store = useMemo(() => {
     const initialState = {
       data: data,
       dataErrors: [],
-      validate: typeof validate === 'function' ? validate : undefined,
-    };
+      validate: typeof validate === 'function' ? validate : undefined
+    }
 
     const store = createStore(reducer, {
       past: [],
       present: initialState,
-      future: [],
-    });
+      future: []
+    })
 
     const change = () => {
-      const changedData = store.getState().present.data;
-      if (onChange && typeof onChange == 'function') {
-        onChange(changedData);
+      const changedData = store.getState().present.data
+      if (onChange && typeof onChange === 'function') {
+        onChange(changedData)
       }
-    };
-    store.subscribe(change);
+    }
+    store.subscribe(change)
 
-    return store;
-  }, [schema]);
+    return store
+  }, [schema])
 
   // 暴露一下 api
   useImperativeHandle(
     ref,
     () => {
-      return store;
+      return store
     },
-    [store],
-  );
+    [store]
+  )
 
   const caches = useMemo(() => {
     return {
       ofCache: new Map(),
       propertyCache: new Map(),
       itemCache: new Map(),
-      rootSchema: validate instanceof Function ? (typeof schema !== 'boolean' ? schema : {}) : {},
-    };
-  }, [schema]);
+      rootSchema: validate instanceof Function ? (typeof schema !== 'boolean' ? schema : {}) : {}
+    }
+  }, [schema])
 
   // 如果 data 更新来自外部，通过 setData 与 store 同步
-  const presentData = store.getState().present.data;
+  const presentData = store.getState().present.data
   if (data !== presentData) {
     // console.log('检测到外部更新：', data, presentData);
     store.dispatch({
       type: 'setData',
-      value: data,
-    });
+      value: data
+    })
   }
 
   // 详细抽屉功能
-  const drawerRef = useRef(null) as React.RefObject<any>;
+  const drawerRef = useRef(null) as React.RefObject<any>
   const setDrawer = useCallback(
     (...args: any[]) => {
       // console.log('setDrawer', drawerRef.current);
-      if (drawerRef.current) drawerRef.current.setDrawer(...args);
+      if (drawerRef.current) drawerRef.current.setDrawer(...args)
     },
-    [drawerRef],
-  );
+    [drawerRef]
+  )
 
   return (
     <Provider store={store}>
@@ -144,7 +131,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
         <FieldDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>
-  );
-};
+  )
+}
 
-export default React.memo(forwardRef(Editor));
+export default React.memo(forwardRef(Editor))

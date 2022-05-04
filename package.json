@@ -25,6 +25,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build",
+    "version": "conventional-changelog",
     "prepare": "husky install"
   },
   "files": [
@@ -76,6 +77,7 @@
     "@umijs/preset-react": "^2.1.2",
     "@umijs/test": "^3.0.5",
     "babel-plugin-import": "^1.13.3",
+    "conventional-changelog": "^3.1.25",
     "dumi": "^1.1.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",

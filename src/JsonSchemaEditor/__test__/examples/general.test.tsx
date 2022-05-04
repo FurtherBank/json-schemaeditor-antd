@@ -1,13 +1,14 @@
-import '@testing-library/jest-dom';
-import React, { useRef } from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
-import JsonSchemaEditor, { metaSchema } from '../../..';
-import examples from '../../demos/examples';
+import '@testing-library/jest-dom'
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+import JsonSchemaEditor, { metaSchema } from '../../..'
+import examples from '../../demos/examples'
 
 test('general', () => {
-  const exampleJson = examples(metaSchema);
-  const [data, schema] = exampleJson['一系列测试'];
-  const { asFragment } = render(<JsonSchemaEditor data={data} schema={schema} />);
+  const exampleJson = examples(metaSchema)
+  const [data, schema] = exampleJson['一系列测试']
+  // const { asFragment } =
+  render(<JsonSchemaEditor data={data} schema={schema} />)
   // asserts
   const textCanSeen = [
     '一系列测试',
@@ -23,18 +24,13 @@ test('general', () => {
     '混乱',
     '格式测试',
     'oneOf套娃 0',
-    'oneOf套娃 6',
-  ];
+    'oneOf套娃 6'
+  ]
   textCanSeen.forEach((text) => {
-    expect(screen.getByText(text));
-  });
-  const displayValueCanSeen = [
-    '如果你不喜欢现在的生活，那么你快去考研吧！',
-    'pattern567',
-    'balabala',
-    '#ffffff',
-  ];
+    expect(screen.getByText(text)).toBeTruthy()
+  })
+  const displayValueCanSeen = ['如果你不喜欢现在的生活，那么你快去考研吧！', 'pattern567', 'balabala', '#ffffff']
   displayValueCanSeen.forEach((text) => {
-    expect(screen.getByDisplayValue(text));
-  });
-});
+    expect(screen.getByDisplayValue(text)).toBeTruthy()
+  })
+})

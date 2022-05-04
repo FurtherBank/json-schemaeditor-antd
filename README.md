@@ -1,5 +1,19 @@
 # json-schemaeditor-antd
 
+[![NPM version][npm-image]][npm-url] [![Package quality][quality-image]][quality-url] [![npm download][download-image]][download-url]
+
+[npm-image]: https://img.shields.io/npm/v/json-schemaeditor-antd.svg?logo=npm
+[npm-url]: https://npmjs.org/package/json-schemaeditor-antd
+[quality-image]: https://packagequality.com/shield/json-schemaeditor-antd.svg
+[quality-url]: https://packagequality.com/#?package=json-schemaeditor-antd
+[node-url]: http://nodejs.org/download/
+[download-image]: https://img.shields.io/npm/dm/json-schemaeditor-antd.svg?logo=npm
+[download-url]: https://npmjs.org/package/json-schemaeditor-antd
+
+该项目是一个基于 antd 搭建的可使用 JSON Schema 约束的 JSON 编辑器。  
+主要面向 json 编辑，对 JSON Schema 的各类特性支持友好，对各种特性组合的情况考虑深入，支持很多特性组合用法。  
+相对其它一些同类产品，支持 oneOf/anyOf 嵌套且组合 $ref、编辑元模式等特性功能。
+
 ## 预览
 
 [github pages](https://furtherbank.github.io/json-schemaeditor-antd)
@@ -68,14 +82,16 @@ json-schema 是一种可递归的文法模式，来描述一个 json 文件应�
 
 [JSON Schema 入门 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/355175938)
 
-### 根
+### 关键字说明
 
-| 关键字 | 作用 | 值类型 | 备注 |
-| --- | --- | --- | --- |
-| `$schema` | 采用的 jsonschema 草稿 | url | 该项目使用 draft6 |
-| `$id` | 作为该 schema 的 uri 地址<br>(不过实际使用时一般不写该字段) | string |  |
+#### 根
 
-### 通用模式
+| 关键字    | 作用                                                        | 值类型 | 备注              |
+| --------- | ----------------------------------------------------------- | ------ | ----------------- |
+| `$schema` | 采用的 jsonschema 草稿                                      | url    | 该项目使用 draft6 |
+| `$id`     | 作为该 schema 的 uri 地址<br>(不过实际使用时一般不写该字段) | string |                   |
+
+#### 通用模式
 
 这个就是 schema 类型的 schema 定义。
 
@@ -91,18 +107,18 @@ json-schema 是一种可递归的文法模式，来描述一个 json 文件应�
 
 另注：如果 schema 为布尔值，则直接对应判定的变量是否有效。`true`或者`{}`，任何值都有效。`false`或者`{"not": {}}`任何值都无效
 
-### 布尔/null
+#### 布尔/null
 
 null 是不需要显示的。
 
-### 数字/整数
+#### 数字/整数
 
 | 关键字 | 作用 | 值类型 | 备注 |
 | --- | --- | --- | --- |
 | `mininum`,`maxinum`<br />`exclusiveMinimum`<br />`exclusiveMaximum` | 数字最小值/最大值<br />`exclusive`为不包括该值的 | number |  |
 | `multipleOf` | 整数专用，可以被其整除 | int |  |
 
-### 字符串
+#### 字符串
 
 https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.3
 
@@ -112,7 +128,7 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 | `pattern`               | 符合的正则     | regex  |      |
 | `format`                | 格式，就是正则 | string |      |
 
-### 数组
+#### 数组
 
 `type`为`"array"`
 
@@ -130,7 +146,7 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 
 如果数组 items 的所有可能只有 string/number/boolean/null 其中之一，且 string 不使用长模式，则数组会使用列表短模式，缩小显示空间进行优化。
 
-### 对象
+#### 对象
 
 https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.5
 
@@ -151,6 +167,34 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 验证并不冲突。
 
 关于 ui 嵌入 schema 里面，这样就可以保持一致。但是考虑到别的用 uischema，所以我认为，uischema 不能和 schema 扯上联系。uischema 应该改成 uioptions 配置。
+
+### JSON Schema 各版本介绍及区别
+
+可以从 [Specification | JSON Schema (json-schema.org)](http://json-schema.org/specification.html) 查看目前广泛应用的 JSON Schema 版本的说明。  
+所有的版本可以通过这个链接查询 [Specification Links | JSON Schema (json-schema.org)](http://json-schema.org/specification-links.html)
+
+按照规范所说，目前得到广泛应用的有这些版本：
+
+- 2020-12
+- 2019-09
+- draft-07
+- draft-06
+- draft-04
+
+其中，这里给出了兼容性表格：
+
+| 版本 | 与上一个版本兼容 | 迁移链接 | 备注 |
+| --- | --- | --- | --- |
+| draft-04 | / |  |  |
+| draft-06 | 否 | [JSON Schema Draft-06 Release Notes (json-schema.org)](http://json-schema.org/draft-06/json-schema-release-notes.html) |  |
+| draft-07 | 是 | [JSON Schema Draft-07 Release Notes (json-schema.org)](http://json-schema.org/draft-07/json-schema-release-notes.html) |  |
+| 2019-09 | 否 | [JSON Schema 2019-09 Release Notes (json-schema.org)](http://json-schema.org/draft/2019-09/release-notes.html) |  |
+| 2020-12 | 否 | [JSON Schema 2020-12 Release Notes (json-schema.org)](http://json-schema.org/draft/2020-12/release-notes.html) |  |
+
+该应用默认使用 draft 6 作为使用的 schema。  
+对于低版本的 schema，可以通过一些工具转译到高版本 schema。
+
+不过该编辑器不提供自动转到高等级 schema 的方式(如果以后真的非常需要会转)。
 
 ## 设计概念定义
 
@@ -461,6 +505,8 @@ string 的一些格式并不支持短优化，这时会作为一个长组件显�
 
 ### 内置 view 组件
 
+- 根列表(已实现，但未抽象成 view)
+- 根目录
 - 曲线
 - 渐变
 - 可视化图表
@@ -472,16 +518,16 @@ Editor 组件通过`useImperativeHandle`将 store 给暴露了出来，可以拿
 下面主要介绍动作：
 
 ```typescript
-// 示例：在 gifts 下新建字段 1，其值为 { "name": "gold", "number": 10 }
+// 示例：在 gifts 下新建字段 1(数组push入第二个数组元素)，其值为 { "name": "gold", "number": 10 }
 const action = {
   type: 'create',
   route: ['gifts'],
   field: '1',
   value: {
     name: 'gold',
-    number: 10,
-  },
-};
+    number: 10
+  }
+}
 ```
 
 对于一个`Field`组件，自己的访问是`access`，自己父级是`route`，子是`access+sfield`
@@ -495,6 +541,9 @@ const action = {
 | moveup/down(route, field) | route, field   | 将自己上移/下移      |
 | setdata(value)            |                | 直接更新             |
 | undo/redo                 |                | 撤销/恢复            |
+
+注意，向`reducer`传入动作后，仅对动作是否可以在 json 层面上直接执行做一次验证，不会在 schema 层面上判断对应动作是否应当执行。  
+如果向`reducer`传入的动作不可执行，会通过控制台输出错误。
 
 ## 验证输出格式
 
@@ -674,7 +723,7 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 
 - [ ] 前面写着尚未实装的特性
 - [ ] order 和 dependence 关键字支持
-- [ ] 说实话大统一之后真的可以读外部和网上的 schema，可以直接读或给一个接口处理。
+- [ ] 可以读外部文件和网络上的 schema，可以直接读或给一个接口处理。
 - [ ] $ref 跳转
 - [ ] 菜单栏及相应功能(目前设计也未明确)
 - [ ] list 翻页，如果两页高度不一样，有时候会找不着
@@ -686,7 +735,10 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 - [ ] 如果可以，让他变成 xml/yaml 编辑器(误)
 - [ ] 插入文件及文件显示接口
 - [ ] 支持 bson 以及非标准 jsonschema，以及非 json 数据的 schema(甚至后续有可能还会自己提出一个优化后的 schema 草案)
+- [ ] 低版本 schema 兼容性(通过转移到高版本 schema 解决)
+
 # 关于 json-schema 生态
-json-schema 的编辑器实际上可以整一个很大的生态。因为世界上有很大比例的配置都是json的格式。  
+
+json-schema 的编辑器实际上可以整一个很大的生态。因为世界上有很大比例的配置都是 json 的格式。  
 作者在下面收集一些关于 json-schema 生态的一些内容：  
-https://www.schemastore.org/json/  
+常用 json-schema 收集：https://www.schemastore.org/json/

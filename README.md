@@ -160,7 +160,7 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 
 #### 对象
 
-https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.5
+[draft 2020-12](https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.5) [draft 6](https://datatracker.ietf.org/doc/html/draft-wright-json-schema-validation-01#section-6.15)
 
 | 关键字 | 作用 | 值类型 | 备注 |
 | --- | --- | --- | --- |
@@ -170,7 +170,7 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 | [`propertyNames`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.4) | 对象所有**属性名**必须满足该模式<br />注意属性名一定是字符串 | schema |  |
 | `required` | 对象必须要具有的字段列表。<br />默认按照 | string[] |  |
 | `minProperties`,`maxProperties` | 限制属性字段数量 | int |  |
-| `dependencies` | 值属性存在时才可以存在键属性 | object<string,string[]> | 暂未实装 |
+| `dependencies` | 表明特定属性存在时才可以存在键属性。<br />如果值为`string[]`，数组中属性名对应属性都存在才会显示键属性。<br />如果值为`Schema`，数据需要有满足这个`Schema`的属性，才会显示键属性。<br />这意味着，可以通过`dependencies=false`隐藏一个对象的属性。 | object<string,string[]> \|object<string, Schema> | 暂未实装 |
 
 schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；但是读取对应 schema 时是`root.properties.layer1.properties.layer2`。每一层属性多读一层`properties`。
 
@@ -746,7 +746,7 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 - [ ] 可以读外部文件和网络上的 schema，可以直接读或给一个接口处理。
 - [ ] $ref 跳转
 - [ ] 菜单栏及相应功能(目前设计也未明确)
-- [ ] list 翻页，如果两页高度不一样，有时候会找不着
+- [ ] list 翻页+虚拟列表
 - [ ] 键盘无缝跳转
 - [ ] format 自验证及默认值生成
 - [ ] anchor

@@ -31,3 +31,7 @@ export const countNullId = (data: any) => {
   const [, allElements] = getKeysAndIds(data)
   return allElements.filter((element) => !element).length
 }
+
+// export const extractSchemaMap = (schema: any) => {
+
+// }

@@ -29,6 +29,6 @@ export default defineConfig({
   history: {
     type: 'hash'
   },
-  base: '/json-schemaeditor-antd/',
+  // base: '/json-schemaeditor-antd/',
   publicPath: process.env.NODE_ENV === 'production' ? '/json-schemaeditor-antd/' : '/'
 })

@@ -1,12 +1,9 @@
 ---
 nav:
-  title: Json Schema Editor
-  path: /JsonSchemaEditor
+  title: 预览
 ---
 
-## Json Schema Editor(Antd)
-
-Demo:
+## JSON Schema Editor
 
 <code src="./demos/App.tsx"></code>
 
@@ -14,3 +11,7 @@ Demo:
 More skills for writing demo: https://d.umijs.org/guide/basic#write-component-demo
 
 第一个问题：`@umijs/plugin-antd`对 dumi 的 md 编译的 jsx 不过 babel，没有按需引入优化。
+
+## demo2
+
+我是谁？

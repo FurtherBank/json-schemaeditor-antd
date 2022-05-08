@@ -3,7 +3,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import JsonSchemaEditor, { metaSchema } from '../../..'
 import examples from '../../demos/examples'
-import { countNullId } from '../testUtils'
+import { countNullId } from '../test-utils'
 
 test('general', () => {
   const exampleJson = examples(metaSchema)

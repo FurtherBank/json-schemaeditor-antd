@@ -8,7 +8,7 @@
       "type": "pwa-msedge",
       "request": "launch",
       "name": "Launch Edge against localhost",
-      "url": "http://localhost:8000/~demos/jsonschemaeditor-app#/json-schemaeditor-antd/~demos/jsonschemaeditor-app",
+      "url": "http://localhost:8000/#/~demos/jsonschemaeditor-app",
       "webRoot": "${workspaceFolder}"
     },
     {

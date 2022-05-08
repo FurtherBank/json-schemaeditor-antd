@@ -50,28 +50,30 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 
 按照受控用法使用即可。如果你需要使用 umd 格式的包，可以引入`json-schemaeditor-antd/dist`
 
-> 注意：使用时如果 schema ts 报错，在后面加 as any 就 🆗 了。schema 的正确性可以自己先确认好。该项目使用 ajv 来做 schema 的验证和检验。如果 schema 有问题你可以看到报错窗口，且会以无 schema 的方式来展示 editor。
+> 注意：
 >
-> schema 的 ts definition 还是很复杂的，目前还没深入排查相关的问题并修正。。
+> 1. 注意提前安装好`peerDependencies`。具体可以直接查看项目中的 package.json
+>
+> 2. 使用时如果 schema ts 报错，在后面加 as any 就 🆗 了。schema 的正确性可以自己先确认好。该项目使用 ajv 来做 schema 的验证和检验。如果 schema 有问题你可以看到报错窗口，且会以无 schema 的方式来展示 editor。
+>
+>    初次排查了一下，找到了一些原因：
+>
+>    - 对`type`字段的值的类型`JSONSchema6TypeName`是 JSON Schema 允许的类型值字符串的枚举一般导入的 json 会把其`type`字段判定为`string`类型，而非枚举值(虽然 json 里面确实是符合)而报错
+>
+> 3. 状态的修改满足 [immutable 约定](https://www.yuque.com/furtherbank/frontend/react#slACC)
 
 本人前端小白一枚，这还是第一次打包上传 npm，实际使用时可能会有很多问题。
 
 如果发现了该项目的 bug，或者有什么建议、发现项目的设计缺陷等等，欢迎大家随时提 issue！  
 本菜鸟会想办法尽快解决的
 
-### 注意事项
-
-注意提前安装好`peerDependencies`。
-
-具体可以直接查看 package.json
-
-### ref
+### ref of the component
 
 Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外部主动更改数据，可以按照 redux 的 store api 进行操作。
 
 更多信息详见 [Reducer](#Reducer)
 
-### id
+### id of all the fields
 
 每个字段的组件，都有一个 id 属性与之对应，可以通过 id 属性得到该字段组件的 root dom。  
 如`rootdata.user.abc[1]`，对应的 id 为`user.abc.1`。
@@ -83,9 +85,29 @@ Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外
 1. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
 1. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
 
-### 使用时注意
+### options (暂未实装)
 
-1. 状态的修改满足 [immutable 约定](https://www.yuque.com/furtherbank/frontend/react#slACC)
+> In most cases, you don't need to configure anything.
+
+idPerfix, defaultValueFunction,
+
+#### schemaDefault
+
+> This field is used to specify the default value for the function field defined by the editor. You can also specify them in specific schema field to override the default values set.
+
+displaydesc, notinautofill
+
+##### draggable
+
+> Whether an array item can be dragged. Even if set to true, drag-and-drop is limited by the items field in the schema.
+
+type: boolean
+
+default: true
+
+#### ui
+
+denseGrid,
 
 ## JSON Schema 简单说明
 
@@ -223,7 +245,7 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 ### 短字段
 
 如果该字段的`type`是`object`或者`array`，或者是长格式展示的`string`；或者是具有`oneOf`字段，那该字段是**长字段**。此外，如果该字段的`type`是`integer/number`或者`boolean/null`；或者具有`enum`/`const` ，该字段是**短字段**。  
-短字段在对象和数组中可以优先网格状密集展示。
+短字段在对象和数组中可通过网格状密集展示，比长字段需要更小的展示空间。
 
 可以证明，所有嵌套格式的非`enum`/`const`选项都是**长字段**。
 
@@ -281,6 +303,8 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 增加了格式，
 
 增加了后续可能会出现的连接词(暂未实装)
+
+ajv format 可以支持正则表达式和验证函数对格式进行验证。通过 `ajv.addFormat()`
 
 ### 模式的模式——元模式
 
@@ -744,18 +768,17 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 - [ ] 前面写着尚未实装的特性
 - [ ] order 和 dependence 关键字支持
 - [ ] 可以读外部文件和网络上的 schema，可以直接读或给一个接口处理。
-- [ ] $ref 跳转
+- [ ] json-pointer 跳转
 - [ ] 菜单栏及相应功能(目前设计也未明确)
 - [ ] list 翻页+虚拟列表
-- [ ] 键盘无缝跳转
+- [ ] 键盘无缝跳转，以及焦点
 - [ ] format 自验证及默认值生成
 - [ ] anchor
 - [ ] 动作副作用，可以让面板有实际的操作
 - [ ] 面包屑导引局部编辑
-- [ ] 如果可以，让他变成 xml/yaml 编辑器(误)
+- [ ] 如果可以，支持 xml/yaml/bson，以及非标准 jsonschema(甚至后续有可能还会自己提出一个优化后的 schema 草案)
 - [ ] 插入文件及文件显示接口
-- [ ] 支持 bson 以及非标准 jsonschema，以及非 json 数据的 schema(甚至后续有可能还会自己提出一个优化后的 schema 草案)
-- [ ] 低版本 schema 兼容性(通过转移到高版本 schema 解决)
+- [ ] 低版本 schema 兼容性(目前只能通过转移到高版本 schema 解决)
 
 # 关于 json-schema 生态
 

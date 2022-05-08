@@ -25,7 +25,9 @@ import reducerTest from './json-example/reducerTest.json'
 import $eslint from './json-example/$schema.eslint.json'
 import eslint from './json-example/eslint.json'
 
-type TestExample = [any, any]
+import { JSONSchema6 } from 'json-schema'
+
+type TestExample = [any, JSONSchema6]
 type TestExamples = {
   [key: string]: TestExample
 }

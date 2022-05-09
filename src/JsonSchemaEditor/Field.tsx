@@ -213,7 +213,7 @@ const FieldBase = (props: FieldProps) => {
 
   const format = absorbProperties(valueSchemaMap!, 'format')
   const formatType = getFormatType(format)
-  const types = absorbProperties(entrySchemaMap!, 'type')
+  const entryTypes = absorbProperties(entrySchemaMap!, 'type')
 
   // 渲染排错
   if (dataType === 'undefined') {
@@ -476,7 +476,7 @@ const FieldBase = (props: FieldProps) => {
     const actionComs = actionComKeys.map((value) => sideActionComSpace(value))
 
     // 4. 为 object/array 设置子组件
-    return access.length === 0 && dataType === 'array' && _.isEqual(types, ['array']) ? (
+    return access.length === 0 && dataType === 'array' && _.isEqual(entryTypes, ['array']) ? (
       <FieldList
         fieldProps={props}
         fieldCache={schemaCache}

@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "array",
+  "items": [
+    {
+      "type": "null"
+    },
+    {
+      "type": "string"
+    }
+  ],
+  "additionalItems": {
+    "type": "integer"
+  }
+}

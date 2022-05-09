@@ -25,6 +25,9 @@ import reducerTest from './json-example/reducerTest.json'
 import $eslint from './json-example/$schema.eslint.json'
 import eslint from './json-example/eslint.json'
 
+import $list from './json-example/$schema.test-list.json'
+import list from './json-example/test-list.json'
+
 import { JSONSchema6 } from 'json-schema'
 
 type TestExample = [any, JSONSchema6]
@@ -46,6 +49,7 @@ export default (metaSchema: any) => {
     '《星际探索者》科技树配置模式编辑': [$dataTechTree, metaSchema],
     'RMMZ 物品数据示例': [items, $items],
     'reducer 测试实例': [reducerTest, $reducerTest],
-    'eslint(draft4暂不支持)': [eslint, $eslint]
+    'eslint(draft4暂不支持)': [eslint, $eslint],
+    'view: list': [list, $list]
   } as TestExamples
 }

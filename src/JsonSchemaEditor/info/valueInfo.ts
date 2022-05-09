@@ -2,6 +2,8 @@ import { schemaShortable } from '../FieldOptions'
 import { ShortOpt } from '../reducer'
 import { findKeyRefs, getPathVal, addRef, getRefSchemaMap, absorbProperties } from '../utils'
 import { JSONSchema6 } from 'json-schema'
+import { JSONSchema6Definition } from '../type/Schema'
+import _ from 'lodash'
 
 export interface PropertyInfo {
   ref: string
@@ -164,4 +166,56 @@ export const setItemCache = (
     itemCache.set(valueEntry, null)
   }
   return itemCache.get(valueEntry)
+}
+
+/**
+ * 将 schemaMap 以合并的方式得到其中的参数
+ * @param map
+ * @returns
+ */
+export const mergeSchemaMap = (map: Map<string, JSONSchema6Definition>, rootSchema: JSONSchema6) => {
+  const result = {} as any
+  for (const [ref, schema] of map) {
+    if (typeof schema === 'object') {
+      for (const key in schema) {
+        if (Object.prototype.hasOwnProperty.call(schema, key)) {
+          // acts different by key
+          const value = schema[key as keyof JSONSchema6] as any
+          switch (key) {
+            case 'type':
+              // intersection
+              const typeValue: string[] = value instanceof Array ? value : [value]
+              result[key] = result[key] ? _.intersection(result[key], typeValue) : typeValue
+              if (result[key].length === 0) return false
+              break
+            case 'properties':
+            case 'patternProperties':
+              // mergeRef
+              for (const propKey in value) {
+                if (Object.prototype.hasOwnProperty.call(value, propKey)) {
+                  const propRef = addRef(ref, key, propKey)!
+                  result[key][propKey] = {
+                    shortable: schemaShortable(propRef, rootSchema),
+                    ref: propRef
+                  }
+                }
+              }
+              break
+            case 'required':
+              // union
+              const unionValue: string[] = value instanceof Array ? value : [value]
+              result[key] = result[key] ? _.union(result[key], unionValue) : unionValue
+              break
+            default:
+              // first
+              if (!Object.prototype.hasOwnProperty.call(result, key)) {
+                result[key] = value
+              }
+              break
+          }
+        }
+      }
+    } else if (schema === false) return false
+  }
+  return result
 }

@@ -488,23 +488,3 @@ export const getError = (errors: any[], access: string[]): any | undefined => {
   })
   return foundErrors
 }
-
-/**
- * 合并变量，暂时未用到
- * @param t
- * @param s
- * @returns
- */
-export const mergeValue = (t: any, s: any) => {
-  const tType = jsonDataType(t),
-    sType = jsonDataType(s)
-  if (tType === sType) {
-    switch (tType) {
-      case 'object':
-        return Object.assign(t, s)
-      default:
-        break
-    }
-  }
-  return t
-}

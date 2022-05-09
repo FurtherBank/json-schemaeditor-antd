@@ -111,7 +111,8 @@ module.exports = {
             '@typescript-eslint/ban-types': 2,
             '@typescript-eslint/no-confusing-non-null-assertion': 2,
             '@typescript-eslint/no-dupe-class-members': 2,
-            '@typescript-eslint/no-empty-interface': 2,
+            // 对一个大的类型定义消参
+            // '@typescript-eslint/no-empty-interface': 2,
             '@typescript-eslint/no-for-in-array': 2,
             '@typescript-eslint/no-invalid-this': 2,
             '@typescript-eslint/no-loop-func': 2,

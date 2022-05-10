@@ -1,14 +1,13 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render } from '@testing-library/react'
-import JsonSchemaEditor, { metaSchema } from '../../..'
-import examples from '../../demos/examples'
+import JsonSchemaEditor from '../../..'
 import _ from 'lodash'
 import { JSONSchema6 } from 'json-schema'
+import { getExample } from '../test-utils'
 
 test('view is list when root schema is array', async () => {
-  const exampleJson = examples(metaSchema)
-  const [data, schema] = exampleJson['view: list']
+  const [data, schema] = getExample('view: list')
   // const { asFragment } =
   render(<JsonSchemaEditor data={data} schema={schema} />)
   // asserts
@@ -17,8 +16,7 @@ test('view is list when root schema is array', async () => {
 })
 
 test('view is not list when root is array but schema not', async () => {
-  const exampleJson = examples(metaSchema)
-  const [data, schema] = exampleJson['view: list']
+  const [data, schema] = getExample('view: list')
   const realSchema = {
     $schema: schema.$schema,
     oneOf: [
@@ -31,6 +29,15 @@ test('view is not list when root is array but schema not', async () => {
   }
   // const { asFragment } =
   render(<JsonSchemaEditor data={data} schema={realSchema as JSONSchema6} />)
+  // asserts
+  const listItems = document.querySelectorAll('.list-item')
+  expect(listItems).toHaveLength(0)
+})
+
+test('view is not list when root schema is array but data not', async () => {
+  const [, schema] = getExample('view: list')
+  // const { asFragment } =
+  render(<JsonSchemaEditor data={123} schema={schema} />)
   // asserts
   const listItems = document.querySelectorAll('.list-item')
   expect(listItems).toHaveLength(0)

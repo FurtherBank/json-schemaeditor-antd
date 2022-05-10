@@ -1,6 +1,6 @@
 import React, { memo, PropsWithChildren } from 'react'
 import { ChildData } from '../FieldList'
-import { toConstName } from '../FieldOptions'
+import { toConstName } from '../definition'
 import { createSelectable, TSelectableItemProps } from 'react-selectable-fast'
 
 import '../css/data-item.less'

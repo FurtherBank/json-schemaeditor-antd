@@ -1,17 +1,18 @@
 import { List } from 'antd'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { SelectableGroup } from 'react-selectable-fast'
-import { SchemaCache } from '.'
+import { IField } from './Field'
 import CreateName from './components/CreateName'
 import Field, { FieldProps } from './Field'
-import { gridOption, maxItemsPerPageByShortLevel } from './FieldOptions'
+import { gridOption, maxItemsPerPageByShortLevel } from './definition'
 import { ItemList, DataItemProps } from './components/ItemList'
 import { ShortOpt } from './reducer'
 import { concatAccess, getFieldSchema, getValueByPattern, jsonDataType } from './utils'
+import { isShort } from './info/virtual'
 
 interface FieldListProps {
   fieldProps: FieldProps
-  fieldCache: SchemaCache
+  fieldInfo: IField
   short: ShortOpt
   canCreate?: boolean
   view?: string
@@ -22,7 +23,7 @@ interface FieldListProps {
  * 原则上来自于父字段的信息，不具有子字段特异性
  */
 export interface FatherInfo {
-  type?: string // 是父亲的实际类型，非要求类型
+  type: string // 是父亲的实际类型，非要求类型
   length?: number // 如果是数组，给出长度
   required?: string[] // 如果是对象，给出 required 属性
   schemaEntry: string | undefined // 父亲的 schemaEntry
@@ -37,19 +38,23 @@ export interface ChildData {
 }
 
 const FieldList = (props: FieldListProps) => {
-  const { fieldProps, short, canCreate, view, fieldCache, id } = props
+  const { fieldProps, short, canCreate, view, fieldInfo, id } = props
   const { data, route, field, setDrawer, schemaEntry } = fieldProps
-  const { valueEntry, propertyCache } = fieldCache
-  const propertyCacheValue = valueEntry ? propertyCache.get(valueEntry) : null
-  const dataType = jsonDataType(data)
+  const { valueEntry, ctx, mergedValueSchema } = fieldInfo
+  const dataType = jsonDataType(data) as 'object' | 'array'
+
+  console.assert(dataType === 'object' || dataType === 'array')
+
   const access = useMemo(() => {
     return concatAccess(route, field)
   }, [route, field])
 
-  const fatherInfo = useMemo(() => {
+  const { required, properties, additionalProperties, patternProperties } = mergedValueSchema || {}
+  const fatherInfo = useMemo((): FatherInfo => {
     const childFatherInfo: FatherInfo = {
       schemaEntry,
-      valueEntry
+      valueEntry,
+      type: dataType
     }
     switch (dataType) {
       case 'array':
@@ -58,7 +63,7 @@ const FieldList = (props: FieldListProps) => {
         break
       default:
         childFatherInfo.type = 'object'
-        if (propertyCacheValue) childFatherInfo.required = propertyCacheValue.required
+        if (required) childFatherInfo.required = required
         break
     }
     return childFatherInfo
@@ -76,20 +81,12 @@ const FieldList = (props: FieldListProps) => {
       for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
           const value = data[key]
-          if (propertyCacheValue) {
-            const { props: properties, patternProps, additional } = propertyCacheValue
-            const patternInfo = getValueByPattern(patternProps, key)
-            if (properties[key]) {
-              if (properties[key].shortable) {
-                shortenProps.push(key)
-                continue
-              }
-            } else if (patternInfo) {
-              if (patternInfo.shortable) {
-                shortenProps.push(key)
-                continue
-              }
-            } else if (additional && additional.shortable) {
+          const patternRef = patternProperties ? getValueByPattern(patternProperties, key) : undefined
+          const propRealRef =
+            properties && properties[key] ? properties[key] : patternRef ? patternRef : additionalProperties
+          if (propRealRef) {
+            const { [isShort]: shortable } = ctx.getMergedSchema(propRealRef) || {}
+            if (shortable) {
               shortenProps.push(key)
               continue
             }
@@ -128,6 +125,23 @@ const FieldList = (props: FieldListProps) => {
     }
   }
 
+  const getSubField = useCallback(
+    (key, short) => {
+      const subEntry = getFieldSchema(fieldProps, fieldInfo, key) || undefined
+      return (
+        <Field
+          route={access}
+          field={key}
+          fatherInfo={fatherInfo}
+          schemaEntry={subEntry}
+          short={short}
+          setDrawer={setDrawer}
+        />
+      )
+    },
+    [fieldProps, fieldInfo, fatherInfo]
+  )
+
   switch (view) {
     case 'list':
       return (
@@ -160,7 +174,7 @@ const FieldList = (props: FieldListProps) => {
                 <CreateName
                   fatherInfo={fatherInfo}
                   fieldProps={fieldProps}
-                  fieldCache={fieldCache}
+                  fieldInfo={fieldInfo}
                   style={{ margin: '3px', width: 'auto' }}
                   key={'create'}
                 />
@@ -168,16 +182,7 @@ const FieldList = (props: FieldListProps) => {
             </div>
           </aside>
           <main style={{ height: '100%', overflow: 'auto', flex: 'auto' }}>
-            {data.length > 0 ? (
-              <Field
-                route={access}
-                field={currentItem.toString()}
-                fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-                schemaEntry={getFieldSchema(fieldProps, fieldCache, currentItem.toString())}
-                short={short}
-                setDrawer={setDrawer}
-              />
-            ) : null}
+            {data.length > 0 ? getSubField(currentItem.toString(), short) : null}
           </main>
         </div>
       )
@@ -204,23 +209,12 @@ const FieldList = (props: FieldListProps) => {
                 renderItem={renderItem(ShortOpt.short)}
               />
             )
-          } else if (!end)
-            return (
-              <List.Item key={'property-' + key}>
-                <Field
-                  route={access}
-                  field={key}
-                  fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-                  schemaEntry={getFieldSchema(fieldProps, fieldCache, key)}
-                  short={shortLv}
-                  setDrawer={setDrawer}
-                />
-              </List.Item>
-            )
-          else
+          } else if (!end) {
+            return <List.Item key={'property-' + key}>{getSubField(key, shortLv)}</List.Item>
+          } else
             return (
               <List.Item key="end">
-                <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} fieldCache={fieldCache} />
+                <CreateName fatherInfo={fatherInfo} fieldProps={fieldProps} fieldInfo={fieldInfo} />
               </List.Item>
             )
         }
@@ -233,7 +227,7 @@ const FieldList = (props: FieldListProps) => {
       //     route={access}
       //     field={key.toString()}
       //     fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-      //     schemaEntry={getFieldSchema(fieldProps, fieldCache, key.toString())}
+      //     schemaEntry={getFieldSchema(fieldProps, fieldInfo, key.toString())}
       //     short={short}
       //     setDrawer={setDrawer}
       //   />
@@ -243,7 +237,7 @@ const FieldList = (props: FieldListProps) => {
       //   <CreateName
       //     fatherInfo={fatherInfo}
       //     fieldProps={fieldProps}
-      //     fieldCache={fieldCache}
+      //     fieldInfo={fieldInfo}
       //   />
       // )
 

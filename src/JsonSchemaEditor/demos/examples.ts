@@ -30,8 +30,8 @@ import list from './json-example/test-list.json'
 
 import { JSONSchema6 } from 'json-schema'
 
-type TestExample = [any, JSONSchema6]
-type TestExamples = {
+export type TestExample = [any, JSONSchema6]
+export type TestExamples = {
   [key: string]: TestExample
 }
 

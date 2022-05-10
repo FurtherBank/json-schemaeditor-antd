@@ -192,7 +192,7 @@ https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.6.
 | [`propertyNames`](https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.10.3.2.4) | 对象所有**属性名**必须满足该模式<br />注意属性名一定是字符串 | schema |  |
 | `required` | 对象必须要具有的字段列表。<br />默认按照 | string[] |  |
 | `minProperties`,`maxProperties` | 限制属性字段数量 | int |  |
-| `dependencies` | 表明特定属性存在时才可以存在键属性。<br />如果值为`string[]`，数组中属性名对应属性都存在才会显示键属性。<br />如果值为`Schema`，数据需要有满足这个`Schema`的属性，才会显示键属性。<br />这意味着，可以通过`dependencies=false`隐藏一个对象的属性。 | object<string,string[]> \|object<string, Schema> | 暂未实装 |
+| [`dependencies`](https://datatracker.ietf.org/doc/html/draft-wright-json-schema-validation-01#section-6.21) | 表明特定属性存在时才可以存在键属性。<br />如果值为`string[]`，数组中属性名对应属性都存在，键属性才可以存在。<br />如果值为`Schema`，整个数据需要满足这个`Schema`，键属性才可以存在。 | object<string,string[]> \|object<string, Schema> | 暂未实装 |
 
 schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；但是读取对应 schema 时是`root.properties.layer1.properties.layer2`。每一层属性多读一层`properties`。
 
@@ -294,7 +294,7 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 | is type  |         | 长-oneof 空-值为无 schema 模式 | 正常                 |            |
 | wrong t  |         |                                | 短则错误，长则 value |            |
 
-在没有 schema 约束的情况下，会当作一个普通的 json 编辑器显示。意思就是完善无 schema 情况下的兼容性
+在没有 schema 约束的情况下，会当作一个普通的 json 编辑器显示。
 
 ## 具体信息说明
 
@@ -430,11 +430,12 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 
 ##### dependencies
 
-dependencies 的值有两种可能类型，`string[]`和`Schema`。
+dependencies 的值有两种可能类型，`string[]`和`Schema`。前者是当数组项中各属性存在时，键属性才可以存在，后者是整个实例满足`Schema`时才可以存在。
 
-前者是当数组项中各属性存在时，键属性才可以存在，后者是需要存在一个满足`Schema`的属性时才可以存在。
+不过实际上，经过简单思考，dependencies 对于属性的可见性不应当产生影响。只是在属性创建和删除时对属性产生影响，包括：
 
-该项目中，某个键不满足`dependencies`对应值的条件时，该键就不会显示，等同于设置`visible=false`。
+1. 创建新属性时，如果具有 dependencies 的属性不符合 dependencies 存在条件，不能进行创建，且不会在自动提示中出现。注：对`Schema`形式的依赖，只进行浅验证。
+2. 删除某属性时，如果该属性在另一些属性中是`string[]`形式的依赖，会额外删除这另一些属性注：该连带删除特性不对`Schema`形式的依赖起作用。因为需要通过删除后二次计算再删除的方式实现。
 
 ##### 创建
 

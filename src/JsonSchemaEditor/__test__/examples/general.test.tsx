@@ -1,13 +1,11 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import JsonSchemaEditor, { metaSchema } from '../../..'
-import examples from '../../demos/examples'
-import { countNullId } from '../test-utils'
+import JsonSchemaEditor from '../../..'
+import { countNullId, getExample } from '../test-utils'
 
 test('general', () => {
-  const exampleJson = examples(metaSchema)
-  const [data, schema] = exampleJson['一系列测试']
+  const [data, schema] = getExample('一系列测试')
   // const { asFragment } =
   render(<JsonSchemaEditor data={data} schema={schema} />)
   // asserts

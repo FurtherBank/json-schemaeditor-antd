@@ -38,23 +38,16 @@ import {
   isFieldRequired,
   maxCollapseLayer,
   toConstName
-} from './FieldOptions'
+} from './definition'
 import { doAction, JsonTypes, ShortOpt, State } from './reducer'
-import {
-  absorbProperties,
-  concatAccess,
-  exactIndexOf,
-  getRefSchemaMap,
-  jsonDataType,
-  getError,
-  getAccessRef
-} from './utils'
+import { concatAccess, exactIndexOf, jsonDataType, getError, getAccessRef } from './utils'
 import FieldList, { FatherInfo } from './FieldList'
-import { InfoContext, SchemaCache } from '.'
+import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
-import { getOfOption, getRefByOfChain, ofSchemaCache, setOfCache } from './info/ofInfo'
-import { setPropertyCache, setItemCache } from './info/valueInfo'
+import { getOfOption, getRefByOfChain, ofSchemaCache } from './info/ofInfo'
 import { Act } from './reducer'
+import SchemaInfoContent from './info'
+import { MergedSchema } from './info/mergeSchema'
 const { Panel } = Collapse
 
 export interface FieldProps {
@@ -71,56 +64,66 @@ export interface FieldProps {
   reRender?: any
 }
 
+export interface IField {
+  ctx: SchemaInfoContent
+  valueEntry: string | undefined
+  mergedEntrySchema: MergedSchema | false
+  mergedValueSchema: MergedSchema | false
+  ofOption: string | false | null
+  errors: any[]
+  doAction: (type: string, route?: string[], field?: any, value?: any) => Act
+}
+
 const CInput = cacheInput(Input),
   CInputNumber = cacheInput(InputNumber),
   CTextArea = cacheInput(TextArea)
 
 const sideActions = ['detail', 'undo', 'redo', 'moveup', 'movedown', 'oneOf', 'type', 'delete']
+
 /**
- * 动作空间函数，理应有。
- * 注意：该函数输出的顺序影响侧栏动作按钮的顺序！
+ * 求得该 Field 允许的动作空间。
+ * 注意：输出动作 Map 的项插入顺序影响动作按钮排布的顺序
+ * @param props
+ * @param fieldInfo
+ * @returns
  */
-const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | undefined) => {
+const actionSpace = (props: FieldProps, fieldInfo: IField) => {
   const { fatherInfo, field, data, schemaEntry, short } = props
-  const { ofCache, entrySchemaMap, valueSchemaMap } = schemaCache
+  const { ctx, mergedValueSchema, errors } = fieldInfo
+  const { const: constValue, enum: enumValue, type: allowedTypes } = mergedValueSchema || {}
+  const ofInfo = ctx.getOfInfo(schemaEntry)
   const dataType = jsonDataType(data)
-  const schemas = []
-  for (const iterator of entrySchemaMap!.values()) {
-    schemas.push(iterator)
-  }
-  const hasFalse = schemas.includes(false)
+
   const result = new Map()
   // 对象和数组 在 schema 允许的情况下可以 create
   if (dataType === 'array' || dataType === 'object') {
-    const autoCompleteFields = canSchemaCreate(props, schemaCache)
+    const autoCompleteFields = canSchemaCreate(props, fieldInfo)
     if (autoCompleteFields) result.set('create', autoCompleteFields)
   }
 
   // 父亲是数组，且自己的索引不超限的情况下，加入 move
   if (fatherInfo && fatherInfo.type === 'array') {
+    const { items } = ctx.getMergedSchema(fatherInfo.valueEntry) || {}
+    const length = typeof items === 'object' ? items.length : 0
     const index = parseInt(field!)
-    if (index - 1 >= 0) result.set('moveup', true)
-    if (index + 1 < fatherInfo.length!) result.set('movedown', true)
+    if (index - 1 >= 0 && index !== length) result.set('moveup', true)
+    if (index + 1 < fatherInfo.length! && index + 1 !== length) result.set('movedown', true)
   }
 
   // 先看有没有 Of
-  const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : undefined
-  if (ofCacheValue) {
-    result.set('oneOf', ofCacheValue)
+  if (ofInfo) {
+    result.set('oneOf', ofInfo)
   }
 
   // 然后根据 valueEntry 看情况
-  const constSchema = absorbProperties(valueSchemaMap, 'const') as any | undefined
-  const enums = absorbProperties(valueSchemaMap, 'enum') as any[] | undefined
-  if (constSchema !== undefined) {
-    result.set('const', constSchema)
-  } else if (enums !== undefined) {
-    result.set('enum', enums)
+  if (constValue !== undefined) {
+    result.set('const', constValue)
+  } else if (enumValue !== undefined) {
+    result.set('enum', enumValue)
   } else {
     // 如果类型可能性有多种，使用 'type' 切换属性
-    const types = absorbProperties(valueSchemaMap, 'type')
-    if (hasFalse || types.length !== 1) {
-      result.set('type', types.length > 0 ? types : JsonTypes)
+    if (mergedValueSchema === false || !allowedTypes || allowedTypes.length !== 1) {
+      result.set('type', allowedTypes && allowedTypes.length > 0 ? allowedTypes : JsonTypes)
     }
   }
 
@@ -129,7 +132,7 @@ const actionSpace = (props: FieldProps, schemaCache: SchemaCache, errors: any | 
 
   // 如果父亲是对象/数组，且属性可删除，加入删除功能
   if (fatherInfo && fatherInfo.type) {
-    if (canDelete(props, schemaCache)) result.set('delete', true)
+    if (canDelete(props, fieldInfo)) result.set('delete', true)
   }
 
   // 如果是根节点，那么加入撤销和恢复
@@ -147,56 +150,31 @@ const stopBubble = (e: React.SyntheticEvent) => {
 const FieldBase = (props: FieldProps) => {
   const { data, route, field, schemaEntry, short, canNotRename, fatherInfo, setDrawer } = props
 
-  const caches = useContext(InfoContext),
-    { ofCache, propertyCache, itemCache, rootSchema, id } = caches
-
-  // 读取路径上的 schemaMap
-  const entrySchemaMap = useMemo(() => {
-    return getRefSchemaMap(schemaEntry, rootSchema)
-  }, [schemaEntry, caches])
-
-  let valueEntry = undefined as undefined | string
-  let ofOption: string | false | null | undefined = undefined
-  if (schemaEntry) {
-    // 设置 ofCache (use Entry map ,root)
-    if (!ofCache.has(schemaEntry)) {
-      setOfCache(ofCache, schemaEntry, entrySchemaMap, rootSchema)
-    }
-    // 确定 valueEntry
-    ofOption = getOfOption(data, schemaEntry, caches)
-    valueEntry =
-      ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ofCache, schemaEntry, ofOption)
-  }
-
-  const valueSchemaMap = useMemo(() => {
-    return getRefSchemaMap(valueEntry, rootSchema)
-  }, [valueEntry, caches])
-
-  if (valueEntry) {
-    // 设置 propertyCache
-    if (!propertyCache.has(valueEntry)) {
-      setPropertyCache(propertyCache, valueEntry, valueSchemaMap, rootSchema)
-    }
-    // 设置 itemCache
-    if (!itemCache.has(valueEntry)) {
-      setItemCache(itemCache, valueEntry, valueSchemaMap, rootSchema)
-    }
-  }
-
-  const schemaCache = {
-    ofCache,
-    propertyCache,
-    itemCache,
-    rootSchema,
-    valueEntry,
-    valueSchemaMap,
-    entrySchemaMap
-  }
   // 这里单独拿出来是为防止 ts 认为是 undefined
   const doAction = props.doAction!
 
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
+
+  const ctx = useContext(InfoContext),
+    { id } = ctx
+
+  // 取 entrySchema、取 valueEntry 和 ofOption、取 valueSchema、取该 Field 下错误
+  const mergedEntrySchema = useMemo(() => ctx.getMergedSchema(schemaEntry), [ctx, schemaEntry])
+
+  const { valueEntry, ofOption } = useMemo(() => {
+    let valueEntry = undefined as undefined | string
+    let ofOption: string | false | null = null
+    if (schemaEntry) {
+      // 确定 valueEntry
+      ofOption = getOfOption(data, schemaEntry, ctx)
+      valueEntry =
+        ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ctx, schemaEntry, ofOption)
+    }
+    return { valueEntry, ofOption }
+  }, [data, schemaEntry, ctx])
+
+  const mergedValueSchema = useMemo(() => ctx.getMergedSchema(valueEntry), [ctx, valueEntry])
 
   const dataErrors = useSelector<StateWithHistory<State>, any[]>((state: StateWithHistory<State>) => {
     return state.present.dataErrors
@@ -204,16 +182,26 @@ const FieldBase = (props: FieldProps) => {
 
   const errors = getError(dataErrors, access)
 
-  const space = actionSpace(props, schemaCache, errors)
+  // 整合 IField 信息
+  const fieldInfo: IField = {
+    ctx,
+    mergedEntrySchema,
+    valueEntry,
+    mergedValueSchema,
+    ofOption,
+    errors,
+    doAction
+  }
+
+  const space = actionSpace(props, fieldInfo)
   const valueType = space.has('const') ? 'const' : space.has('enum') ? 'enum' : dataType
 
-  const description = absorbProperties(entrySchemaMap!, 'description')
-  const fieldNameRange = canSchemaRename(props, schemaCache)
-  const itemCacheValue = itemCache.get(valueEntry!)
+  const { description, type: entryTypes } = mergedEntrySchema || {}
+  const { format } = mergedValueSchema || {}
+  const { itemInfo } = ctx.getSubInfo(valueEntry)
+  const fieldNameRange = canSchemaRename(props, fieldInfo)
 
-  const format = absorbProperties(valueSchemaMap!, 'format')
   const formatType = getFormatType(format)
-  const entryTypes = absorbProperties(entrySchemaMap!, 'type')
 
   // 渲染排错
   if (dataType === 'undefined') {
@@ -280,7 +268,7 @@ const FieldBase = (props: FieldProps) => {
 
   // 2. 设置值组件
 
-  const getStringFormatCom = (format: string) => {
+  const getStringFormatCom = (format: string | undefined) => {
     const allUsedProps = {
       size: 'small',
       key: 'value',
@@ -427,8 +415,8 @@ const FieldBase = (props: FieldProps) => {
               size="small"
               treeData={options}
               onChange={(value) => {
-                const schemaRef = getRefByOfChain(ofCache, schemaEntry!, value)
-                const defaultValue = getDefaultValue(schemaCache, schemaRef, data)
+                const schemaRef = getRefByOfChain(ctx, schemaEntry!, value)
+                const defaultValue = getDefaultValue(ctx, schemaRef, data)
                 doAction('change', route, field, defaultValue)
               }}
               style={{ minWidth: '90px' }}
@@ -479,7 +467,7 @@ const FieldBase = (props: FieldProps) => {
     return access.length === 0 && dataType === 'array' && _.isEqual(entryTypes, ['array']) ? (
       <FieldList
         fieldProps={props}
-        fieldCache={schemaCache}
+        fieldInfo={fieldInfo}
         short={ShortOpt.no}
         canCreate={space.has('create')}
         view={'list'}
@@ -490,8 +478,8 @@ const FieldBase = (props: FieldProps) => {
         <Panel key="theoneandtheonly" header={titleCom} extra={<Space onClick={stopBubble}>{actionComs}</Space>}>
           <FieldList
             fieldProps={props}
-            fieldCache={schemaCache}
-            short={dataType === 'array' && itemCacheValue ? itemCacheValue.shortOpt : ShortOpt.no}
+            fieldInfo={fieldInfo}
+            short={dataType === 'array' && itemInfo ? itemInfo.shortLv : ShortOpt.no}
             canCreate={space.has('create')}
             id={getAccessRef(access) || id}
           />

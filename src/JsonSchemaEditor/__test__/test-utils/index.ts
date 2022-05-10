@@ -1,3 +1,7 @@
+import { metaSchema } from '../../..'
+import SchemaInfoContent from '../../info'
+import examples from '../../demos/examples'
+
 export const getAllObjectRefs = (data: any, ref = ''): string[] => {
   const result = []
   if (data && typeof data === 'object') {
@@ -32,6 +36,11 @@ export const countNullId = (data: any) => {
   return allElements.filter((element) => !element).length
 }
 
-// export const extractSchemaMap = (schema: any) => {
+export const getExample = (name: string) => {
+  const exampleJson = examples(metaSchema)
+  return exampleJson[name] || [0, {}]
+}
 
-// }
+export const mockCtx = (schema: any) => {
+  return new SchemaInfoContent(schema, '')
+}

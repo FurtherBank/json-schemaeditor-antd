@@ -1,8 +1,7 @@
 /* eslint-disable no-debugger */
 import { JSONSchema6 } from 'json-schema'
 import _, { isEqual } from 'lodash'
-import { SchemaCache } from '..'
-import { FieldProps } from '../Field'
+import { FieldProps, IField } from '../Field'
 
 export const KeywordTypes = {
   intersection: ['type'],
@@ -246,7 +245,7 @@ export const exactIndexOf = (array: any[], value: any) => {
  * @param key
  * @returns
  */
-export const matchRegexKey = (map: Map<string | RegExp, any> | { [x: string]: any }, key: string) => {
+export const getKeyByPattern = (map: Map<string | RegExp, any> | { [x: string]: any }, key: string) => {
   const keys = map instanceof Map ? map.keys() : Object.keys(map)
 
   for (const k of keys) {
@@ -264,7 +263,7 @@ export const matchRegexKey = (map: Map<string | RegExp, any> | { [x: string]: an
  * @param key 待匹配的字符串
  * @returns
  */
-export const getValueByPattern = (obj: any, key: string) => {
+export const getValueByPattern = <T>(obj: { [k: string]: T }, key: string): T | undefined => {
   for (const k of Object.keys(obj)) {
     const pattern = new RegExp(k)
     if (pattern.test(key)) {
@@ -275,160 +274,71 @@ export const getValueByPattern = (obj: any, key: string) => {
 }
 
 /**
- * 筛选迭代器
- * @param it 迭代器
- * @param c 条件函数
- * @returns
- */
-export const filterIter = <T>(it: Iterable<T>, c: (value: T, i: number) => boolean) => {
-  const result = []
-  let i = 0
-  for (const obj of it) {
-    if (c(obj, i)) result.push(obj)
-    i++
-  }
-  return result
-}
-
-/**
  * 对 Array/Object 获取特定字段 schemaEntry。
  * 注意：
  * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
  * 2. 只要给出的 ref 不是 undefined，一定能够找到对应的 schema
  * @param props
- * @param schemaCache
+ * @param fieldInfo
  * @param field
- * @returns
+ * @returns 对应子字段的 schemaEntry
  */
-export const getFieldSchema = (props: FieldProps, schemaCache: SchemaCache, field: string) => {
+export const getFieldSchema = (props: FieldProps, fieldInfo: IField, field: string) => {
   const { data } = props
-  const { valueSchemaMap, rootSchema } = schemaCache
+  const { mergedValueSchema, valueEntry } = fieldInfo
+  if (!mergedValueSchema) return undefined
+
+  const { properties, patternProperties, additionalProperties, items, additionalItems } = mergedValueSchema
   const dataType = jsonDataType(data)
   switch (dataType) {
     case 'object':
-      const propertyRefs = findKeyRefs(valueSchemaMap!, 'properties', true) as string[]
-      for (const ref of propertyRefs) {
-        const propertySchema = getPathVal(rootSchema, ref) as object
-        // debugger
-        if (propertySchema.hasOwnProperty(field)) return addRef(ref, field)
+      if (properties && properties[field]) return properties[field]
+
+      if (patternProperties) {
+        const ref = getValueByPattern(patternProperties, field)
+        if (ref) return ref
       }
 
-      const patternPropertyRefs = findKeyRefs(valueSchemaMap!, 'patternProperties', true) as string[]
-      for (const ref of patternPropertyRefs) {
-        const patternSchema = getPathVal(rootSchema, ref) as object
-        const patternKeys = Object.keys(patternSchema)
-        for (const key of patternKeys) {
-          const regex = new RegExp(key)
-          if (regex.test(field)) {
-            return addRef(ref, key)
-          }
-        }
-      }
-
-      return findKeyRefs(valueSchemaMap!, 'additionalProperties', false) as string | undefined
+      if (additionalProperties !== undefined) return additionalProperties
     case 'array':
       /**
        * 注意：draft 2020-12 调整了items，删除了additionalItems属性。
        * 个人认为这么做是正确的，但是旧的没改，还需要兼容
        * 详情见：https://json-schema.org/draft/2020-12/release-notes.html
        */
-      const itemsRef = findKeyRefs(valueSchemaMap!, 'items', false) as string | undefined
       const index = parseInt(field, 10)
       if (isNaN(index) && index < 0) {
-        throw new Error(`获取字段模式错误：在数组中获取非法索引 ${field}\n辅助信息：${valueSchemaMap}`)
+        throw new Error(
+          `获取字段模式错误：在数组中获取非法索引 ${field}\n辅助信息：${valueEntry} \n ${JSON.stringify(
+            mergedValueSchema,
+            null,
+            2
+          )}`
+        )
       }
-      if (itemsRef) {
-        const itemsSchema = getPathVal(rootSchema, itemsRef) as object | object[]
-        if (itemsSchema instanceof Array) {
-          const itemLength = itemsSchema.length
-          if (index < itemLength) {
-            return addRef(itemsRef, field)
+      if (items) {
+        if (typeof items === 'object') {
+          const { length, ref } = items
+          if (index < length) {
+            return addRef(ref, field)
           } else {
-            return findKeyRefs(valueSchemaMap!, 'additionalItems', false) as string | undefined
+            return additionalItems
           }
         } else {
-          return itemsRef
+          return items
         }
       } else {
         return undefined
       }
     default:
-      throw new Error(`获取字段模式错误：在非对象中获取字段模式 ${field}\n辅助信息：${valueSchemaMap}`)
+      throw new Error(
+        `获取字段模式错误：在非对象中获取字段模式 ${field}\n辅助信息：${valueEntry} \n ${JSON.stringify(
+          mergedValueSchema,
+          null,
+          2
+        )}`
+      )
   }
-}
-
-/**
- * 过滤掉 boolean 模式
- * @param it
- * @returns
- */
-export const filterObjSchema = (it: Iterable<JSONSchema6 | boolean>) => {
-  return filterIter(it, (schema) => {
-    return schema instanceof Object
-  }) as JSONSchema6[]
-}
-
-/**
- * 吸收 schemaMap 的属性字段值。
- * 不同字段的返回方式不同，`first`为返回第一个，若没有返回`undefined`，`intersection`为数组属性返回交集
- * @param filtered 过滤后的schema列表，或者schemaMap
- * @param key 查找的key
- * @returns
- */
-export const absorbProperties = (filtered: any[] | Map<string, JSONSchema6 | boolean>, key: string) => {
-  if (filtered instanceof Map) {
-    filtered = filterObjSchema(filtered.values())
-  }
-  const method = getKeywordType(key)
-  switch (method) {
-    case 'first': // 取 第一个出现
-      for (const schema of filtered) {
-        if (schema.hasOwnProperty(key)) return schema[key]
-      }
-      return undefined
-    case 'intersection': // 取 数组属性交集
-      const values = filtered
-        .map((schema) => {
-          if (schema.hasOwnProperty(key)) {
-            return schema[key] instanceof Array ? schema[key] : [schema[key]]
-          } else {
-            return null
-          }
-        })
-        .filter((value) => value !== null)
-      return _.intersection(...values)
-    case 'merge': // 取 对象属性merge
-      let result = {}
-      filtered.reverse()
-      for (const schema of filtered) {
-        if (schema.hasOwnProperty(key) && jsonDataType(schema[key]) === 'object') {
-          result = Object.assign(result, schema[key])
-        }
-      }
-      return result
-    default:
-      return false
-  }
-}
-
-/**
- * 使用替代法合并schemaMap
- * @param schemaMap
- * @returns
- */
-export const absorbSchema = (schemaMap: Map<string, JSONSchema6 | boolean>): JSONSchema6 | false => {
-  const arrayMap = Array.from(schemaMap.values()).reverse()
-  let resultSchema = {}
-  for (const schema of arrayMap) {
-    if (schema === false || resultSchema === false) {
-      return false
-    } else if (schema === true) {
-      continue
-    } else {
-      resultSchema = Object.assign(resultSchema, schema)
-    }
-  }
-  return resultSchema
 }
 
 /**
@@ -480,7 +390,7 @@ export const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
  * @param access 字段的access
  * @returns
  */
-export const getError = (errors: any[], access: string[]): any | undefined => {
+export const getError = (errors: any[], access: string[]): any[] => {
   const foundErrors = errors.filter((error) => {
     const instancePath = error.instancePath.split('/')
     instancePath.shift()

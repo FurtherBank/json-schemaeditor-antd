@@ -2,43 +2,24 @@ import React, { CSSProperties, forwardRef, useCallback, useImperativeHandle, use
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import Field from './Field'
-import { ajvInstance, reducer } from './reducer'
+import { reducer } from './reducer'
 import FieldDrawer from './FieldDrawer'
 import { Alert } from 'antd'
-import { JSONSchema6 } from 'json-schema'
-import { ofSchemaCache } from './info/ofInfo'
-import { itemSchemaCache, propertySchemaCache } from './info/valueInfo'
 import { ValidateFunction } from 'ajv'
 
 import './css/index.less'
+import SchemaInfoContent from './info'
+import { JSONSchema6Definition } from 'json-schema'
+import ajvInstance from './definition/ajvInstance'
 
 export interface EditorProps {
   onChange?: (data: any) => void | null
   data?: any
-  schema: JSONSchema6 | true
+  schema?: JSONSchema6Definition
   id?: string | undefined
   style?: CSSProperties
 }
-export const InfoContext = React.createContext({
-  ofCache: new Map(),
-  propertyCache: new Map(),
-  itemCache: new Map(),
-  rootSchema: {}
-} as InfoContent)
-
-export interface InfoContent {
-  ofCache: Map<string, ofSchemaCache | null>
-  propertyCache: Map<string, propertySchemaCache | null>
-  itemCache: Map<string, itemSchemaCache | null>
-  rootSchema: JSONSchema6
-  id: string | undefined
-}
-
-export type SchemaCache = Omit<InfoContent, 'id'> & {
-  entrySchemaMap: Map<string, boolean | JSONSchema6>
-  valueEntry: string | undefined
-  valueSchemaMap: Map<string, boolean | JSONSchema6>
-}
+export const InfoContext = React.createContext<SchemaInfoContent>(new SchemaInfoContent({}, ''))
 
 const emptyArray: never[] = []
 
@@ -49,10 +30,10 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   const validate = useMemo(() => {
     let validate = undefined
     let schemaErrors = null
-
+    const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
     console.time('compile schema')
     try {
-      validate = ajvInstance.compile(schema)
+      validate = ajvInstance.compile(realSchema)
     } catch (error) {
       schemaErrors = error
     }
@@ -96,13 +77,8 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   )
 
   const caches = useMemo(() => {
-    return {
-      ofCache: new Map(),
-      propertyCache: new Map(),
-      itemCache: new Map(),
-      rootSchema: validate instanceof Function ? (typeof schema !== 'boolean' ? schema : {}) : {},
-      id
-    }
+    const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
+    return new SchemaInfoContent(realSchema, id)
   }, [schema])
 
   // 如果 data 更新来自外部，通过 setData 与 store 同步

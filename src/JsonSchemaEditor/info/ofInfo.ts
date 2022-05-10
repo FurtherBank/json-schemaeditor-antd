@@ -1,8 +1,9 @@
 import _ from 'lodash'
-import { InfoContent } from '..'
-import { shallowValidate, toOfName } from '../FieldOptions'
-import { addRef, deepReplace, findKeyRefs, getPathVal, getRefSchemaMap } from '../utils'
+import { toOfName } from '../definition'
+import { addRef, deepReplace } from '../utils'
 import { JSONSchema6 } from 'json-schema'
+import SchemaInfoContent from '.'
+import { shallowValidate } from '../definition/shallowValidate'
 
 export interface ofSchemaCache {
   ofRef: string
@@ -15,23 +16,22 @@ export interface ofSchemaCache {
  * 验证数据符合 oneOf/anyOf 的哪一个选项
  * @param data
  * @param schemaEntry
- * @param context
+ * @param ctx
  * @returns `null`为无 oneOf/anyOf，`false`为不符合任何选项，`string`为选项链
  */
-export const getOfOption = (data: any, schemaEntry: string, context: InfoContent): string | null | false => {
-  const { ofCache } = context
-  const ofCacheValue = schemaEntry ? ofCache.get(schemaEntry) : null
+export const getOfOption = (data: any, schemaEntry: string, ctx: SchemaInfoContent): string | null | false => {
+  const ofCacheValue = schemaEntry ? ctx.getOfInfo(schemaEntry) : null
   if (ofCacheValue) {
     const { subOfRefs, ofLength, ofRef } = ofCacheValue
     for (let i = 0; i < ofLength; i++) {
       const subOfRef = subOfRefs[i]
       if (typeof subOfRef === 'string') {
         // 展开的 validate 为 string，就是子 oneOf 的 ref
-        const subOption = getOfOption(data, subOfRef, context)
+        const subOption = getOfOption(data, subOfRef, ctx)
         console.assert(subOption !== null)
         if (subOption) return `${i}-${subOption}`
       } else {
-        const valid = shallowValidate(data, addRef(ofRef, i.toString())!, context)
+        const valid = shallowValidate(data, addRef(ofRef, i.toString())!, ctx)
         if (valid) return i.toString()
       }
     }
@@ -42,15 +42,15 @@ export const getOfOption = (data: any, schemaEntry: string, context: InfoContent
 
 /**
  * 通过 of 链找到 schema 经层层选择之后引用的 valueEntry
- * @param ofCache
+ * @param ctx
  * @param schemaEntry
  * @param ofChain
  */
-export const getRefByOfChain = (ofCache: Map<string, ofSchemaCache | null>, schemaEntry: string, ofChain: string) => {
+export const getRefByOfChain = (ctx: SchemaInfoContent, schemaEntry: string, ofChain: string) => {
   const ofSelection = ofChain.split('-')
   let entry = schemaEntry
   for (const opt of ofSelection) {
-    const { ofRef } = ofCache.get(entry)!
+    const { ofRef } = ctx.getOfInfo(entry)!
     entry = addRef(ofRef, opt)!
   }
   return entry
@@ -58,72 +58,72 @@ export const getRefByOfChain = (ofCache: Map<string, ofSchemaCache | null>, sche
 
 /**
  * 对 `schemaEntry` 设置 ofInfo
- * @param ofCache
+ * @param infoContent
  * @param schemaEntry
- * @param entrySchemaMap
  * @param rootSchema
  * @param nowOfRefs
  * @returns
  */
-export const setOfCache = (
-  ofCache: Map<string, ofSchemaCache | null>,
+export const setOfInfo = (
+  infoContent: SchemaInfoContent,
   schemaEntry: string,
-  entrySchemaMap: Map<string, JSONSchema6 | boolean>,
   rootSchema: JSONSchema6,
   nowOfRefs: string[] = []
 ) => {
-  const findOfRef = (schemaMap: Map<string, JSONSchema6 | boolean>, add = true) => {
-    return (findKeyRefs(schemaMap, 'oneOf', false, add) || findKeyRefs(schemaMap, 'anyOf', false, add)) as
-      | string
-      | undefined
-  }
+  const mergedSchema = infoContent.getMergedSchema(schemaEntry)
+  if (!mergedSchema) return null
+  // todo: noAnyOfChoice 的情况下
+  const arrayRefInfo = mergedSchema.oneOf || mergedSchema.anyOf
+  if (!arrayRefInfo) return null
+  const { ref: ofRef, length: ofLength } = arrayRefInfo
   // 设置 ofCache (use Entry map ,root)
-  const ofRef = findOfRef(entrySchemaMap)
   if (ofRef && nowOfRefs.includes(ofRef)) {
     console.error('你进行了oneOf/anyOf的循环引用，这会造成无限递归，危', nowOfRefs, ofRef)
-    ofCache.set(schemaEntry, null)
+    infoContent.ofInfoMap.set(schemaEntry, null)
+    return null
   } else if (ofRef) {
     nowOfRefs.push(ofRef)
-    const oneOfOptRefs = getPathVal(rootSchema, ofRef).map((v: any, i: string) =>
-      addRef(ofRef, i.toString())
-    ) as string[]
 
-    // 得到展开的 schema
-    const extractedSchemas = [] as (undefined | string)[]
-
-    const oneOfOptions = oneOfOptRefs.map((ref, i) => {
-      const optMap = getRefSchemaMap(ref, rootSchema)
-      const name = toOfName(optMap)
-      const result = {
+    // 接下来得到每个选项的 ref 和树选择需要的选项 options
+    const subOfRefs = [] as (undefined | string)[]
+    const oneOfOptions = []
+    for (let i = 0; i < ofLength; i++) {
+      const ref = addRef(ofRef, i.toString())!
+      const optMergedSchema = infoContent.getMergedSchema(ref)
+      const name = optMergedSchema ? toOfName(optMergedSchema) : ''
+      const optOption = {
         value: i.toString(),
         title: name ? name : `Option ${i + 1}`
       } as any
-      const optCache = ofCache.has(ref) ? ofCache.get(ref) : setOfCache(ofCache, ref, optMap, rootSchema, nowOfRefs)
+      const optCache = infoContent.ofInfoMap.has(ref)
+        ? infoContent.ofInfoMap.get(ref)
+        : setOfInfo(infoContent, ref, rootSchema, nowOfRefs)
       if (optCache) {
         const { options } = optCache
-        // todo: 这里需要变成多层的
-        result.children = options.map((option) => {
+        optOption.children = options.map((option) => {
           return deepReplace(_.cloneDeep(option), 'value', (prev) => {
             return `${i}-${prev}`
           })
         })
-        result.disabled = true
+        optOption.disabled = true
         // 选项有子选项，将子选项ref给他
-        extractedSchemas.push(ref)
+        subOfRefs.push(ref)
       } else {
-        extractedSchemas.push(undefined)
+        subOfRefs.push(undefined)
       }
-      return result
-    })
+      oneOfOptions.push(optOption)
+    }
 
-    ofCache.set(schemaEntry, {
-      subOfRefs: extractedSchemas,
+    const ofInfo = {
+      subOfRefs,
       ofRef: ofRef,
-      ofLength: oneOfOptRefs.length,
+      ofLength,
       options: oneOfOptions
-    })
+    }
+    infoContent.ofInfoMap.set(schemaEntry, ofInfo)
+    return ofInfo
   } else {
-    ofCache.set(schemaEntry, null)
+    infoContent.ofInfoMap.set(schemaEntry, null)
+    return null
   }
-  return ofCache.get(schemaEntry)
 }

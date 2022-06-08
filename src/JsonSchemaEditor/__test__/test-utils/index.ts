@@ -1,6 +1,7 @@
 import { metaSchema } from '../../..'
 import SchemaInfoContent from '../../info'
 import examples from '../../demos/examples'
+import { createStore } from 'redux'
 
 export const getAllObjectRefs = (data: any, ref = ''): string[] => {
   const result = []
@@ -31,6 +32,11 @@ export const getKeysAndIds = (data: any) => {
   return [allRefs, allElements] as [string[], (Element | null)[]]
 }
 
+/**
+ * 通过 data 所有的 keyref 数量和 id 数量比较，得出几个 key 被隐藏了。
+ * @param data
+ * @returns
+ */
 export const countNullId = (data: any) => {
   const [, allElements] = getKeysAndIds(data)
   return allElements.filter((element) => !element).length
@@ -42,5 +48,9 @@ export const getExample = (name: string) => {
 }
 
 export const mockCtx = (schema: any) => {
-  return new SchemaInfoContent(schema, '')
+  return new SchemaInfoContent(
+    schema,
+    '',
+    createStore(() => ({}), {})
+  )
 }

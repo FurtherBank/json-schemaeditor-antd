@@ -3,6 +3,9 @@ import { getRefSchemaMap } from '../utils'
 import { itemSubInfo, makeItemInfo } from './subInfo'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
+import { doAction, State } from '../reducer'
+import { AnyAction, Dispatch, Store } from 'redux'
+import { StateWithHistory } from 'redux-undo'
 
 export interface arrayRefInfo {
   ref: string
@@ -30,13 +33,28 @@ export default class SchemaInfoContent {
    */
   ofInfoMap: Map<string, ofSchemaCache | null>
   id: string | undefined
+  store: Store<StateWithHistory<State>, AnyAction>
+  dispatch: Dispatch<AnyAction>
+  doAction: (
+    type: string,
+    route?: string[],
+    field?: string,
+    value?: undefined
+  ) => { type: string; route: string[]; field?: string; value?: any }
 
-  constructor(rootSchema: false | JSONSchema6, id: string | undefined) {
+  constructor(
+    rootSchema: false | JSONSchema6,
+    id: string | undefined,
+    store: Store<StateWithHistory<State>, AnyAction>
+  ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()
     this.subInfoMap = new Map()
     this.ofInfoMap = new Map()
     this.id = id
+    this.store = store
+    this.dispatch = store.dispatch
+    this.doAction = doAction
   }
 
   /**

@@ -5,7 +5,8 @@ import { IField, FieldProps } from '../Field'
 import { FatherInfo } from '../FieldList'
 import SchemaInfoContent from '../info'
 import { MergedSchema } from '../info/mergeSchema'
-import { addRef, getValueByPattern, jsonDataType, getKeyByPattern } from '../utils'
+import { getOfOption, getRefByOfChain } from '../info/ofInfo'
+import { addRef, getValueByPattern, jsonDataType, getKeyByPattern, getFieldSchema } from '../utils'
 
 export const maxCollapseLayer = 3
 export const maxItemsPerPageByShortLevel = [16, 32, 48]
@@ -112,7 +113,7 @@ export const canSchemaRename = (props: FieldProps, fieldInfo: IField) => {
   // 注意，一个模式的 title 看 entryMap，如果有of等不理他
   const { title } = mergedEntrySchema || {}
 
-  if (field === null) {
+  if (field === undefined) {
     return title ? title : ' '
   }
   // 不是根节点，不保证 FatherInfo 一定存在，因为可能有抽屉！
@@ -137,7 +138,7 @@ export const canSchemaRename = (props: FieldProps, fieldInfo: IField) => {
 
 /**
  * 判断 该字段是否可删除。可删除条件：
- * 1. `field === null` 意味着根字段，不可删除
+ * 1. `field === undefined` 意味着根字段，不可删除
  * 2. 如果父亲是数组，只要不在数组 items 里面即可删除
  * 3. 如果父亲是对象，只要不在 required 里面即可删除
  *
@@ -148,7 +149,7 @@ export const canDelete = (props: FieldProps, fieldInfo: IField) => {
   const { fatherInfo, field } = props
   const { ctx } = fieldInfo
 
-  if (field === null) return false
+  if (field === undefined) return false
   if (fatherInfo) {
     const { valueEntry: fatherValueEntry } = fatherInfo
     switch (fatherInfo.type) {
@@ -279,8 +280,51 @@ export const getDefaultValue = (ctx: SchemaInfoContent, entry: string | undefine
  * @param fatherInfo
  * @returns
  */
-export const isFieldRequired = (field: string | null, fatherInfo?: FatherInfo | undefined) => {
+export const isFieldRequired = (field: string | undefined, fatherInfo?: FatherInfo | undefined) => {
   if (!fatherInfo || !field) return false
   const { required } = fatherInfo
   return required instanceof Array && required.indexOf(field) > -1
+}
+
+/**
+ * 得到当前 schemaEntry 下的 valueEntry 和 ofOption
+ * @param data 当前数据
+ * @param schemaEntry 当前数据的 schemaEntry
+ * @param ctx 编辑器上下文对象
+ * @returns
+ */
+export const getValueEntry = (data: any, schemaEntry: string | undefined, ctx: SchemaInfoContent) => {
+  let valueEntry = undefined as undefined | string
+  let ofOption: string | false | null = null
+  if (schemaEntry) {
+    // 确定 valueEntry
+    ofOption = getOfOption(data, schemaEntry, ctx)
+    valueEntry =
+      ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ctx, schemaEntry, ofOption)
+  }
+  return { valueEntry, ofOption }
+}
+
+/**
+ * 得到当前数据通过 instancePath 继续查找得到的 schemaEntry
+ * @param data 当然数据
+ * @param path 继续的数据路径
+ * @param ctx 编辑器上下文对象
+ * @param curEntry 当前的 valueEntry，从这里开始查找
+ */
+export const getSchemaEntryByPath = (data: any, path: string[], ctx: SchemaInfoContent, curEntry = '#') => {
+  let schemaEntry: string | undefined = curEntry
+  let nowData = data
+  while (path.length > 0) {
+    const key = path.shift()!
+    const { valueEntry } = getValueEntry(data, schemaEntry, ctx)
+    if (valueEntry === undefined) return undefined
+    const mergedValueSchema = ctx.getMergedSchema(valueEntry)
+    console.assert(typeof nowData === 'object')
+    nowData = nowData[key]
+    // 如果 getFieldEntry 得到 false，那就是一个指向 false 的 ref，直接当作 undefined
+    schemaEntry = getFieldSchema(nowData, valueEntry, mergedValueSchema, key) || undefined
+    if (schemaEntry === undefined) return undefined
+  }
+  return schemaEntry
 }

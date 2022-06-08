@@ -10,24 +10,9 @@ import {
   UndoOutlined
 } from '@ant-design/icons'
 
-import {
-  Button,
-  Card,
-  Collapse,
-  Input,
-  InputNumber,
-  TreeSelect,
-  Space,
-  Tooltip,
-  Select,
-  Switch,
-  Menu,
-  Dropdown
-} from 'antd'
-const { TextArea } = Input
+import { Button, Card, Collapse, Input, TreeSelect, Space, Tooltip, Select, Switch, Menu, Dropdown } from 'antd'
 import _ from 'lodash'
 import { connect, useSelector } from 'react-redux'
-import cacheInput from './utils/cacheInput'
 import {
   canDelete,
   canSchemaCreate,
@@ -35,24 +20,26 @@ import {
   defaultTypeValue,
   getDefaultValue,
   getFormatType,
+  getValueEntry,
   isFieldRequired,
   maxCollapseLayer,
   toConstName
 } from './definition'
 import { doAction, JsonTypes, ShortOpt, State } from './reducer'
-import { concatAccess, exactIndexOf, jsonDataType, getError, getAccessRef } from './utils'
+import { concatAccess, exactIndexOf, jsonDataType, getError, getAccessRef, pathGet } from './utils'
 import FieldList, { FatherInfo } from './FieldList'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
-import { getOfOption, getRefByOfChain, ofSchemaCache } from './info/ofInfo'
+import { getRefByOfChain, ofSchemaCache } from './info/ofInfo'
 import { Act } from './reducer'
 import SchemaInfoContent from './info'
 import { MergedSchema } from './info/mergeSchema'
+import { CInput, CTextArea, CInputNumber } from './utils/cacheInput'
 const { Panel } = Collapse
 
 export interface FieldProps {
   route: string[] // 只有这个属性是节点传的
-  field: string | null // route的最后
+  field?: string // route的最后
   fatherInfo?: FatherInfo
   schemaEntry?: string | undefined
   short?: ShortOpt // 可允许短字段等级
@@ -73,10 +60,6 @@ export interface IField {
   errors: any[]
   doAction: (type: string, route?: string[], field?: any, value?: any) => Act
 }
-
-const CInput = cacheInput(Input),
-  CInputNumber = cacheInput(InputNumber),
-  CTextArea = cacheInput(TextArea)
 
 const sideActions = ['detail', 'undo', 'redo', 'moveup', 'movedown', 'oneOf', 'type', 'delete']
 
@@ -121,7 +104,7 @@ const actionSpace = (props: FieldProps, fieldInfo: IField) => {
   } else if (enumValue !== undefined) {
     result.set('enum', enumValue)
   } else {
-    // 如果类型可能性有多种，使用 'type' 切换属性
+    // 如果类型可能性有多种，使用 'type' 切换类型
     if (mergedValueSchema === false || !allowedTypes || allowedTypes.length !== 1) {
       result.set('type', allowedTypes && allowedTypes.length > 0 ? allowedTypes : JsonTypes)
     }
@@ -136,7 +119,7 @@ const actionSpace = (props: FieldProps, fieldInfo: IField) => {
   }
 
   // 如果是根节点，那么加入撤销和恢复
-  if (field === null) {
+  if (field === undefined) {
     result.set('undo', true)
     result.set('redo', true)
   }
@@ -162,17 +145,7 @@ const FieldBase = (props: FieldProps) => {
   // 取 entrySchema、取 valueEntry 和 ofOption、取 valueSchema、取该 Field 下错误
   const mergedEntrySchema = useMemo(() => ctx.getMergedSchema(schemaEntry), [ctx, schemaEntry])
 
-  const { valueEntry, ofOption } = useMemo(() => {
-    let valueEntry = undefined as undefined | string
-    let ofOption: string | false | null = null
-    if (schemaEntry) {
-      // 确定 valueEntry
-      ofOption = getOfOption(data, schemaEntry, ctx)
-      valueEntry =
-        ofOption === null ? schemaEntry : ofOption === false ? undefined : getRefByOfChain(ctx, schemaEntry, ofOption)
-    }
-    return { valueEntry, ofOption }
-  }, [data, schemaEntry, ctx])
+  const { valueEntry, ofOption } = useMemo(() => getValueEntry(data, schemaEntry, ctx), [data, schemaEntry, ctx])
 
   const mergedValueSchema = useMemo(() => ctx.getMergedSchema(valueEntry), [ctx, valueEntry])
 
@@ -588,14 +561,10 @@ const Field = connect(
     } = state
 
     // 得到确切访问路径，取得数据
-    const access = field !== null ? route.concat(field) : route
-    let targetData = data
-    access.forEach((key) => {
-      targetData = targetData[key]
-    })
+    const path = field ? route.concat(field) : route
 
     return {
-      data: targetData
+      data: pathGet(data, path)
     }
   },
   { doAction }

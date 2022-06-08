@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 import { JSONSchema6 } from 'json-schema'
 import _, { isEqual } from 'lodash'
-import { FieldProps, IField } from '../Field'
+import { MergedSchema } from '../info/mergeSchema'
 
 export const KeywordTypes = {
   intersection: ['type'],
@@ -15,7 +15,7 @@ export const getKeywordType = (keyword: string) => {
   return 'first'
 }
 
-export const concatAccess = (route: string[], ...args: (string | null)[]) => {
+export const concatAccess = (route: string[], ...args: (string | null | undefined)[]) => {
   const filtered = args.filter((value) => typeof value === 'string' && value) as string[]
   return route.concat(filtered)
 }
@@ -96,6 +96,21 @@ export const addRef = (ref: string | undefined, ...path: string[]) => {
  */
 export const getAccessRef = (access: string[]) => {
   return access.join('.')
+}
+
+/**
+ * 通过数组 path 得到对象树中对象的位置。
+ * @param data
+ * @param path
+ * @returns
+ */
+export const pathGet = (data: any, path: string[]) => {
+  let nowData = data
+  for (const field of path) {
+    if (typeof nowData !== 'object') return undefined
+    nowData = nowData[field]
+  }
+  return nowData
 }
 
 /**
@@ -278,14 +293,18 @@ export const getValueByPattern = <T>(obj: { [k: string]: T }, key: string): T | 
  * 注意：
  * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
  * 2. 只要给出的 ref 不是 undefined，一定能够找到对应的 schema
- * @param props
- * @param fieldInfo
+ * @param data 当前的 data
+ * @param valueEntry
+ * @param mergedValueSchema
  * @param field
- * @returns 对应子字段的 schemaEntry
+ * @returns 对应子字段的 schemaEntry，结果为 false 代表对应 schema 为 false，在模式支持上当作 undefined 处理即可
  */
-export const getFieldSchema = (props: FieldProps, fieldInfo: IField, field: string) => {
-  const { data } = props
-  const { mergedValueSchema, valueEntry } = fieldInfo
+export const getFieldSchema = (
+  data: any,
+  valueEntry: string | undefined,
+  mergedValueSchema: MergedSchema | false,
+  field: string
+) => {
   if (!mergedValueSchema) return undefined
 
   const { properties, patternProperties, additionalProperties, items, additionalItems } = mergedValueSchema
@@ -300,6 +319,8 @@ export const getFieldSchema = (props: FieldProps, fieldInfo: IField, field: stri
       }
 
       if (additionalProperties !== undefined) return additionalProperties
+      // 如果上面这些属性都没有但是 type = object，会使得这里到了下面的 case 而出错
+      return undefined
     case 'array':
       /**
        * 注意：draft 2020-12 调整了items，删除了additionalItems属性。
@@ -307,7 +328,7 @@ export const getFieldSchema = (props: FieldProps, fieldInfo: IField, field: stri
        * 详情见：https://json-schema.org/draft/2020-12/release-notes.html
        */
       const index = parseInt(field, 10)
-      if (isNaN(index) && index < 0) {
+      if (isNaN(index) || index < 0) {
         throw new Error(
           `获取字段模式错误：在数组中获取非法索引 ${field}\n辅助信息：${valueEntry} \n ${JSON.stringify(
             mergedValueSchema,

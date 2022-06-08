@@ -127,7 +127,7 @@ const FieldList = (props: FieldListProps) => {
 
   const getSubField = useCallback(
     (key, short) => {
-      const subEntry = getFieldSchema(fieldProps, fieldInfo, key) || undefined
+      const subEntry = getFieldSchema(data, valueEntry, mergedValueSchema, key) || undefined
       return (
         <Field
           route={access}

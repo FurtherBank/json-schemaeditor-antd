@@ -4,17 +4,17 @@ import Field from './Field'
 
 interface DrawerAccess {
   route: string[] | undefined
-  field: string | null
+  field: string | undefined
 }
 
 const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
   const [access, setAccess] = useState({
     route: undefined,
-    field: null
+    field: undefined
   } as DrawerAccess)
   const [visible, setVisible] = useState(false)
   useImperativeHandle(ref, () => ({
-    setDrawer: (route: string[] | undefined, field: string | null, isVisible = true) => {
+    setDrawer: (route: string[] | undefined, field: string | undefined, isVisible = true) => {
       setVisible(isVisible)
       setAccess({
         route,

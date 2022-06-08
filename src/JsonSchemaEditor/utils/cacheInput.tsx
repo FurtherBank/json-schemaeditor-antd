@@ -1,18 +1,19 @@
-import AutoComplete from 'antd/lib/auto-complete'
+import { Input, InputNumber, AutoComplete, AutoCompleteProps } from 'antd'
 import React, { useState } from 'react'
+const { TextArea } = Input
 
 interface InputComProps {
   value?: any
   onChange?: (e: React.SyntheticEvent | any) => void
   onBlur?: (e: any) => void
-  [x: string]: any
+  [k: string]: any
 }
 
-interface CachedComProps {
-  value: any
+interface CachedComProps
+  extends Pick<AutoCompleteProps, 'backfill' | 'defaultActiveFirstOption' | 'options' | 'filterOption' | 'open'> {
   onValueChange?: (e: any) => void
   validate: boolean | ((v: any) => boolean)
-  [x: string]: any
+  [k: string]: any
 }
 
 /**
@@ -83,5 +84,9 @@ const cacheInput = (InputComponent: React.ComponentType<InputComProps>): React.F
     )
   }
 }
+
+export const CInput = cacheInput(Input),
+  CInputNumber = cacheInput(InputNumber),
+  CTextArea = cacheInput(TextArea)
 
 export default cacheInput

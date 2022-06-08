@@ -31,7 +31,7 @@ ajv.addKeyword({
   type: 'object',
   metaSchema: {
     type: 'object',
-    properties: { type: { type: 'string' } },
+    properties: { type: { type: 'string' }, param: {} },
     required: ['type'],
     additionalProperties: false
   }

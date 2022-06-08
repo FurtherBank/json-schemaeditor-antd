@@ -14,7 +14,7 @@
 主要面向 json 编辑，对 JSON Schema 的各类特性支持友好，对各种特性组合的情况考虑深入，支持很多特性组合用法。  
 相对其它一些同类产品，支持 oneOf/anyOf 嵌套且组合 $ref、编辑元模式等特性功能。
 
-## 预览
+## 预览和文档
 
 [github pages](https://furtherbank.github.io/json-schemaeditor-antd)
 
@@ -39,7 +39,7 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 
 // metaSchema 是元模式，如果不需要使用元模式编辑 Json Schema，可以不引入
 
-<JsonSchemaEditor  data={data} schema={schema}
+<JsonSchemaEditor data={data} schema={schema}
   onChange={(jsonData) => {
     console.log(jsonData)
   }}
@@ -58,7 +58,7 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 >
 >    初次排查了一下，找到了一些原因：
 >
->    - 对`type`字段的值的类型`JSONSchema6TypeName`是 JSON Schema 允许的类型值字符串的枚举一般导入的 json 会把其`type`字段判定为`string`类型，而非枚举值(虽然 json 里面确实是符合)而报错
+>    - 对`type`字段的值的类型`JSONSchema6TypeName`是 JSON Schema 允许的类型值字符串的枚举。一般导入的 json 会把其`type`字段判定为`string`类型，而非枚举值(虽然 json 里面确实是符合)而报错
 >
 > 3. 状态的修改满足 [immutable 约定](https://www.yuque.com/furtherbank/frontend/react#slACC)
 
@@ -225,8 +225,10 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 | 2019-09 | 否 | [JSON Schema 2019-09 Release Notes (json-schema.org)](http://json-schema.org/draft/2019-09/release-notes.html) |  |
 | 2020-12 | 否 | [JSON Schema 2020-12 Release Notes (json-schema.org)](http://json-schema.org/draft/2020-12/release-notes.html) |  |
 
-该应用默认使用 draft 6 作为使用的 schema。  
-对于低版本的 schema，可以通过一些工具转译到高版本 schema。
+该应用默认支持 draft 6 和 draft 7 作为使用的 schema。  
+对于低版本的 schema，如 draft 4，需要通过一些工具(如 [ajv-cli](https://github.com/ajv-validator/ajv-cli#migrate-schemas))转译到高版本 schema 才能使用。
+
+在 demo 中 $schema.eslint.json 就是一个迁移后转为 draft 7 的 schema
 
 不过该编辑器不提供自动转到高等级 schema 的方式(如果以后真的非常需要会转)。
 
@@ -320,8 +322,9 @@ ajv format 可以支持正则表达式和验证函数对格式进行验证。通
 
 1. 使用了`$ref`
 2. 一个对象的属性同时匹配`properties`和`patternProperties`
+3. `oneOf`, `anyOf`, `allOf`
 
-在这里的设置是，一个模式入口引用了一个模式映射`Map<$ref, schema>`。
+在这里的设置是，一个模式入口引用了一个模式性质的映射`Map<$ref, schemaInfo>`，放在编辑器上下文`ctx`中。
 
 #### ref: Info 性质缓存机制
 
@@ -335,13 +338,17 @@ UI 组件的表现需要使用 schema 的一些信息。不过这个信息获取
 
 #### 替换假设
 
+在涉及到多个 schema 对象的时候，schema 的验证结果是所有涉及到的 schema 验证结果各自的**与**合并(实际上这么做不是很好的选择)。
+
 对于从一个入口得到的 schema 有$ref 字段而涉及到多个 schema 对象的时候，我们假设，其表现与将牵扯到的 schema 进行合并没有区别。合并通过 object.assign 的方式，将\$ref 引用者的属性覆盖到被引用的属性值上。
 
-实际上在涉及到多个 schema 对象的时候，schema 的验证结果是所有涉及到的 schema 验证结果的**与**合并。如果你在使用$ref的模式中，`$ref`引用者和被引用者都具有不同或者相同的验证属性时，结果才与满足替换假设的情况有差别。
+如果你在使用`$ref`的模式中，`$ref`引用者和被引用者都具有不同或者相同的验证属性时，结果才与满足替换假设的情况有差别。
 
 一般情况下，除非你是故意的，就不会这么做。
 
 对于`$ref`引用得到模式的最佳实践是，`$ref`引用者不加入任何验证相关属性。最多就是加入 title,description 等描述性字段替换被引用者这些字段的值。
+
+编辑器在 ui 支持方面对以上假设做了一个唯一的例外：`properties`和`patternProperties`的属性是可以合并(而非被替换)的，在`additionalProperties`为`true`的情况下(想一想为何需要这个条件？)，可以将多个不同 schema 的相同属性，引一个`$ref`单独放置，可以减少一些 schema 的代码量。
 
 ### 验证错误
 
@@ -394,7 +401,7 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 
 #### 选项判定细节
 
-正常来说，判断一份数据属于 oneOf/anyOf 的哪一个选项时，就是将每一个选项的模式分别对数据进行验证，如果数据匹配一个模式，就认为该数据属于这个模式对应的选项。
+正常来说，判断一份数据属于 oneOf/anyOf 的哪一个选项时，就是将每一个选项的模式分别对数据进行验证，如果数据匹配一个模式，就认为该数据属于这个模式对应的选项。这样的判定方式相当于将`anyOf`当作`oneOf`进行使用。如果仅让`anyOf`作验证，可以
 
 但是这么做有两个非常明显的缺点：
 
@@ -406,6 +413,18 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 #### 选项切换时数据最大兼容
 
 如果一些选项的类型都是对象，那么在这些选项中进行切换时，会对原有的一些属性进行保留。不过只会保留新模式中`properties`和`patternProperties`匹配的指定属性。其它属性(无论`additionalProperties`是否允许这些属性的存在)都会被删除。
+
+### allOf
+
+> 目前只做验证，ui 支持已提上日程，暂未实现，静候佳音
+
+目前对 allOf 会进行一些 ui 层面上的支持。
+
+具有 allOf 的模式验证相当于所有 allOf 的模式项与 allOf 之外的关键词的满足情况的与，类似于给 schema 加了多个 ref。
+
+具体支持的方法是，将 allOf 所有项的 schema 进行展开，然后按照选项顺序应用其它的 schema 性质，后面顺序的会覆盖掉前面顺序的。最后其它 schema 性质会合并到 allOf 展开的 schema 性质表。
+
+allOf 可以支持嵌套+ref 引用，但是不允许递归，会查询一个 allOf 进行展开时引用的所有 schema 的 refs。
 
 ### 不确定类型
 
@@ -420,7 +439,7 @@ oneOf/anyOf 下的模式作为选项需要有一个名称，称为**模式名称
 ##### 短字段显示
 
 对象的所有短字段会在列表开头统一展示，独立于其它的字段。  
-属性的列表使用网格布局制作，在`options`中可指定网格布局的`dense`选项。
+属性的列表使用网格布局制作，在`options`中可指定网格布局的`dense`选项。(未实装)
 
 可允许的短字段等级为`short`
 
@@ -451,7 +470,7 @@ dependencies 的值有两种可能类型，`string[]`和`Schema`。前者是当�
 
 属性的重命名有一定的限制。
 
-对于一个对象的属性，如果其属于`properties`中，则不可命名。如果位于`patternProperties`中，命名只能符合对应的正则式。此外可以自由命名。如果新的字段名符合上面两种情况，再次进行命名时，依照规则，新字段名的命名空间会受到限制。
+对于一个对象的属性，如果其属于`properties`中，则不可命名。如果位于`patternProperties`中，命名只能符合对应的正则式。此外可以自由命名。如果新的字段名符合上面两种情况，再次进行命名时，依照规则，新字段名的命名空间会受到上面规则的限制。
 
 ##### 标题名称
 

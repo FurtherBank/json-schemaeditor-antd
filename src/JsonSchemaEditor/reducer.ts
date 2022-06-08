@@ -15,7 +15,7 @@ export enum ShortOpt {
 export interface Act {
   type: string
   route: string[]
-  field: string | null
+  field?: string
   value?: string
 }
 
@@ -25,7 +25,12 @@ export interface State {
   validate?: ValidateFunction
 }
 
-export const doAction = (type: string, route: string[] = [], field = null, value = undefined) => ({
+export const doAction = (
+  type: string,
+  route: string[] = [],
+  field: string | undefined = undefined,
+  value = undefined
+) => ({
   type,
   route,
   field,
@@ -99,7 +104,7 @@ export const reducer = undoable(
           }
           break
         case 'change': // change 是对非对象值的改变
-          if (field === null) {
+          if (field === undefined) {
             s.data = _.cloneDeep(value)
           } else if (fieldData instanceof Array || fieldData instanceof Object) fieldData[field] = _.cloneDeep(value)
           else logError('对非对象/数组的字段修改请求')

@@ -19,7 +19,7 @@ export interface EditorProps {
   id?: string | undefined
   style?: CSSProperties
 }
-export const InfoContext = React.createContext<SchemaInfoContent>(new SchemaInfoContent({}, ''))
+export const InfoContext = React.createContext<SchemaInfoContent>(null!)
 
 const emptyArray: never[] = []
 
@@ -67,19 +67,19 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
     return store
   }, [schema])
 
+  const infoCtx = useMemo(() => {
+    const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
+    return new SchemaInfoContent(realSchema, id, store)
+  }, [schema])
+
   // 暴露一下 api
   useImperativeHandle(
     ref,
     () => {
-      return store
+      return infoCtx
     },
-    [store]
+    [infoCtx]
   )
-
-  const caches = useMemo(() => {
-    const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
-    return new SchemaInfoContent(realSchema, id)
-  }, [schema])
 
   // 如果 data 更新来自外部，通过 setData 与 store 同步
   const presentData = store.getState().present.data
@@ -106,8 +106,8 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
       {validate instanceof Function ? null : (
         <Alert message="Error" description={validate.toString()} type="error" showIcon />
       )}
-      <InfoContext.Provider value={caches}>
-        <Field route={emptyArray} field={null} schemaEntry="#" setDrawer={setDrawer} />
+      <InfoContext.Provider value={infoCtx}>
+        <Field route={emptyArray} schemaEntry="#" setDrawer={setDrawer} />
         <FieldDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>

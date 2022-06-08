@@ -49,7 +49,7 @@ export default (metaSchema: any) => {
     '《星际探索者》科技树配置模式编辑': [$dataTechTree, metaSchema],
     'RMMZ 物品数据示例': [items, $items],
     'reducer 测试实例': [reducerTest, $reducerTest],
-    'eslint(draft4暂不支持)': [eslint, $eslint],
+    'eslint(draft7)': [eslint, $eslint],
     'view: list': [list, $list]
   } as TestExamples
 }

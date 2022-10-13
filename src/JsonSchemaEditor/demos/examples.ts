@@ -27,10 +27,9 @@ import eslint from './json-example/eslint.json'
 
 import $list from './json-example/$schema.test-list.json'
 import list from './json-example/test-list.json'
+import { JSONSchema } from '../type/Schema'
 
-import { JSONSchema6 } from 'json-schema'
-
-export type TestExample = [any, JSONSchema6]
+export type TestExample = [any, JSONSchema]
 export type TestExamples = {
   [key: string]: TestExample
 }

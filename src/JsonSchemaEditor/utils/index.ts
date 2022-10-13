@@ -1,7 +1,6 @@
-/* eslint-disable no-debugger */
-import { JSONSchema6 } from 'json-schema'
 import _, { isEqual } from 'lodash'
 import { MergedSchema } from '../info/mergeSchema'
+import { JSONSchema } from '../type/Schema'
 
 export const KeywordTypes = {
   intersection: ['type'],
@@ -44,7 +43,7 @@ export const iterToArray = <T>(it: Iterable<T>): T[] => {
  */
 export const extractURI = (uri: string) => {
   if (typeof uri !== 'string') {
-    debugger
+    // debugger
   }
   if (uri.startsWith('#')) {
     // Decode URI fragment representation.
@@ -193,7 +192,7 @@ export const getRefSchemaMap = (
   $ref: string | undefined | string[],
   rootSchema = {},
   deepSearch = false
-): Map<string, JSONSchema6 | boolean> => {
+): Map<string, JSONSchema | boolean> => {
   const schemaMap = new Map()
   const refQueue = $ref instanceof Array ? _.clone($ref) : $ref ? [$ref] : []
   while (refQueue.length > 0) {
@@ -367,7 +366,7 @@ export const getFieldSchema = (
  * @param schemas
  * @returns
  */
-export const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
+export const schemaUseful = (...schemas: (JSONSchema | boolean)[]) => {
   if (schemas.indexOf(false) > -1) return true
   return Object.keys(Object.assign({}, ...schemas)).length !== 0
 }
@@ -379,9 +378,9 @@ export const schemaUseful = (...schemas: (JSONSchema6 | boolean)[]) => {
  * @returns
  */
 // export const extractSchema = (
-//   schemaMap: Map<string, JSONSchema6 | boolean>,
-//   rootSchema: JSONSchema6 | boolean,
-// ): JSONSchema6 => {
+//   schemaMap: Map<string, JSONSchema | boolean>,
+//   rootSchema: JSONSchema | boolean,
+// ): JSONSchema => {
 //   // 1. 建立 $ref 映射
 //   const pathMap = new Map();
 //   let i = 0;

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { arrayRefInfo } from '.'
-import { JSONSchema6, JSONSchema6Definition } from 'json-schema'
+import { JSONSchema } from '../type/Schema'
 import { addRef } from '../utils'
 import { virtualSchemaProps, isShort, schemaIsShort } from './virtual'
 
@@ -16,7 +16,7 @@ type processedSchemaProps = {
   anyOf?: arrayRefInfo
 }
 
-export type MergedSchemaWithoutVirtual = Omit<JSONSchema6, keyof processedSchemaProps> & processedSchemaProps
+export type MergedSchemaWithoutVirtual = Omit<JSONSchema, keyof processedSchemaProps> & processedSchemaProps
 
 /**
  * 合并后的 schema 只涉及到了用到的这一层的信息，不对子层的信息进行进一步归纳。
@@ -30,14 +30,14 @@ export type MergedSchema = MergedSchemaWithoutVirtual & virtualSchemaProps
  * @param map
  * @returns
  */
-export const mergeSchemaMap = (map: Map<string, JSONSchema6Definition>) => {
+export const mergeSchemaMap = (map: Map<string, JSONSchema | boolean>) => {
   const result = {} as MergedSchema
   for (const [ref, schema] of map) {
     if (typeof schema === 'object') {
       for (const key in schema) {
         if (Object.prototype.hasOwnProperty.call(schema, key)) {
           // acts different by key
-          const value = schema[key as keyof JSONSchema6] as any
+          const value = schema[key as keyof JSONSchema] as any
           switch (key) {
             case 'type':
               // intersection

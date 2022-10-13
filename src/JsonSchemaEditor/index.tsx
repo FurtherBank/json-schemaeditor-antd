@@ -9,13 +9,13 @@ import { ValidateFunction } from 'ajv'
 
 import './css/index.less'
 import SchemaInfoContent from './info'
-import { JSONSchema6Definition } from 'json-schema'
 import ajvInstance from './definition/ajvInstance'
+import { JSONSchema } from './type/Schema'
 
 export interface EditorProps {
   onChange?: (data: any) => void | null
   data?: any
-  schema?: JSONSchema6Definition
+  schema?: JSONSchema
   id?: string | undefined
   style?: CSSProperties
 }

@@ -1,4 +1,3 @@
-import { JSONSchema6 } from 'json-schema'
 import { getRefSchemaMap } from '../utils'
 import { itemSubInfo, makeItemInfo } from './subInfo'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
@@ -6,6 +5,7 @@ import { MergedSchema, mergeSchemaMap } from './mergeSchema'
 import { doAction, State } from '../reducer'
 import { AnyAction, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
+import { JSONSchema } from '../type/Schema'
 
 export interface arrayRefInfo {
   ref: string
@@ -23,8 +23,14 @@ type SubInfo = {
   itemInfo: itemSubInfo | null
 }
 
+/**
+ * 整个`editor`的上下文，包含了：
+ * - redux store
+ * - `schema`的各个`ref`对应的模式性质信息
+ * 在编辑器`schema`变更时重新初始化
+ */
 export default class SchemaInfoContent {
-  rootSchema: JSONSchema6 | false
+  rootSchema: JSONSchema | false
   mergedSchemaMap: Map<string, MergedSchema | false>
   subInfoMap: Map<string, SubInfo>
   /**
@@ -32,8 +38,6 @@ export default class SchemaInfoContent {
    * 将 schemaInfo 和 mergedSchema 分开，是为了编辑器可以按需创建这些信息。
    */
   ofInfoMap: Map<string, ofSchemaCache | null>
-  id: string | undefined
-  store: Store<StateWithHistory<State>, AnyAction>
   dispatch: Dispatch<AnyAction>
   doAction: (
     type: string,
@@ -43,16 +47,14 @@ export default class SchemaInfoContent {
   ) => { type: string; route: string[]; field?: string; value?: any }
 
   constructor(
-    rootSchema: false | JSONSchema6,
-    id: string | undefined,
-    store: Store<StateWithHistory<State>, AnyAction>
+    rootSchema: false | JSONSchema,
+    public id: string | undefined,
+    public store: Store<StateWithHistory<State>, AnyAction>
   ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()
     this.subInfoMap = new Map()
     this.ofInfoMap = new Map()
-    this.id = id
-    this.store = store
     this.dispatch = store.dispatch
     this.doAction = doAction
   }

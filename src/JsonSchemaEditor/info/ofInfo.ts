@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { toOfName } from '../definition'
 import { addRef, deepReplace } from '../utils'
-import { JSONSchema6 } from 'json-schema'
 import SchemaInfoContent from '.'
 import { shallowValidate } from '../definition/shallowValidate'
+import { JSONSchema } from '../type/Schema'
 
 export interface ofSchemaCache {
   ofRef: string
@@ -67,7 +67,7 @@ export const getRefByOfChain = (ctx: SchemaInfoContent, schemaEntry: string, ofC
 export const setOfInfo = (
   infoContent: SchemaInfoContent,
   schemaEntry: string,
-  rootSchema: JSONSchema6,
+  rootSchema: JSONSchema,
   nowOfRefs: string[] = []
 ) => {
   const mergedSchema = infoContent.getMergedSchema(schemaEntry)

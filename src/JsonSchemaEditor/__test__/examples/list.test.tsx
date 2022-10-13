@@ -3,8 +3,8 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import JsonSchemaEditor from '../../..'
 import _ from 'lodash'
-import { JSONSchema6 } from 'json-schema'
 import { getExample } from '../test-utils'
+import { JSONSchema } from '../../type/Schema'
 
 test('view is list when root schema is array', async () => {
   const [data, schema] = getExample('view: list')
@@ -28,7 +28,7 @@ test('view is not list when root is array but schema not', async () => {
     ]
   }
   // const { asFragment } =
-  render(<JsonSchemaEditor data={data} schema={realSchema as JSONSchema6} />)
+  render(<JsonSchemaEditor data={data} schema={realSchema as JSONSchema} />)
   // asserts
   const listItems = document.querySelectorAll('.list-item')
   expect(listItems).toHaveLength(0)

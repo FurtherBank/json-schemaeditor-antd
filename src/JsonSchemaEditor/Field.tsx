@@ -236,7 +236,7 @@ const FieldBase = (props: FieldProps) => {
   )
 
   const valueChangeAction = (value: any) => {
-    doAction('change', route, field, value)
+    if (value !== undefined) doAction('change', route, field, value)
   }
 
   // 2. 设置值组件
@@ -447,7 +447,10 @@ const FieldBase = (props: FieldProps) => {
         id={getAccessRef(access) || id}
       />
     ) : dataType === 'object' || dataType === 'array' ? (
-      <Collapse defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}>
+      <Collapse
+        defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}
+        className="cpu-field"
+      >
         <Panel key="theoneandtheonly" header={titleCom} extra={<Space onClick={stopBubble}>{actionComs}</Space>}>
           <FieldList
             fieldProps={props}
@@ -470,6 +473,7 @@ const FieldBase = (props: FieldProps) => {
         }
         bodyStyle={formatType !== 2 ? { display: 'none' } : {}}
         id={getAccessRef(access) || id}
+        className="cpu-field"
       >
         {formatType === 2 ? valueCom : null}
       </Card>
@@ -492,7 +496,7 @@ const FieldBase = (props: FieldProps) => {
 
     const compact = valueType !== 'boolean'
     return (
-      <div style={{ display: 'flex' }} id={getAccessRef(access) || id}>
+      <div className="cpu-field" style={{ display: 'flex' }} id={getAccessRef(access) || id}>
         {titleCom}
         <Input.Group
           compact={compact}

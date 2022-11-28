@@ -2,13 +2,13 @@ import React, { CSSProperties, forwardRef, useCallback, useImperativeHandle, use
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import Field from './Field'
-import { reducer } from './reducer'
-import FieldDrawer from './FieldDrawer'
+import { reducer } from './definition/reducer'
+import FieldDrawer from './components/drawer/FieldDrawer'
 import { Alert } from 'antd'
 import { ValidateFunction } from 'ajv'
 
-import './css/index.less'
-import SchemaInfoContent from './info'
+import './components/css/index.less'
+import CpuEditorContext from './context'
 import ajvInstance from './definition/ajvInstance'
 import { JSONSchema } from './type/Schema'
 
@@ -19,7 +19,7 @@ export interface EditorProps {
   id?: string | undefined
   style?: CSSProperties
 }
-export const InfoContext = React.createContext<SchemaInfoContent>(null!)
+export const InfoContext = React.createContext<CpuEditorContext>(null!)
 
 const emptyArray: never[] = []
 
@@ -69,7 +69,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
 
   const infoCtx = useMemo(() => {
     const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
-    return new SchemaInfoContent(realSchema, id, store)
+    return new CpuEditorContext(realSchema, id, store)
   }, [schema])
 
   // 暴露一下 api

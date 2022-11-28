@@ -1,11 +1,14 @@
-import { getRefSchemaMap } from '../utils'
+import { getRefSchemaMap, pathGet } from '../utils'
 import { itemSubInfo, makeItemInfo } from './subInfo'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
-import { doAction, State } from '../reducer'
+import { doAction, State } from '../definition/reducer'
 import { AnyAction, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
+import { IComponentMap } from '../type/Components'
+import { antdComponentMap } from '../components'
+import Field from '../Field'
 
 export interface arrayRefInfo {
   ref: string
@@ -29,15 +32,21 @@ type SubInfo = {
  * - `schema`的各个`ref`对应的模式性质信息
  * 在编辑器`schema`变更时重新初始化
  */
-export default class SchemaInfoContent {
+export default class CpuEditorContext {
+  Field = Field
   rootSchema: JSONSchema | false
   mergedSchemaMap: Map<string, MergedSchema | false>
-  subInfoMap: Map<string, SubInfo>
   /**
    * schemaInfo 是 schema 信息的需要对子层进行归纳的部分。
    * 将 schemaInfo 和 mergedSchema 分开，是为了编辑器可以按需创建这些信息。
    */
+  subInfoMap: Map<string, SubInfo>
   ofInfoMap: Map<string, ofSchemaCache | null>
+  /**
+   * 已加载资源的缓存列表，通过`url`为键索引。
+   */
+  resourceMap: Map<string, any>
+
   dispatch: Dispatch<AnyAction>
   doAction: (
     type: string,
@@ -49,12 +58,23 @@ export default class SchemaInfoContent {
   constructor(
     rootSchema: false | JSONSchema,
     public id: string | undefined,
-    public store: Store<StateWithHistory<State>, AnyAction>
+    public store: Store<StateWithHistory<State>, AnyAction>,
+    public componentMap: IComponentMap = antdComponentMap,
+    /**
+     * 自定义 view 的组件列表，通过`view.type`索引到 componentMap；
+     *
+     * 其中 componentMap 的组件都是非必须的。
+     *
+     * 如果在 schema 中限定了`view.type`，但没有在对应的 componentMap 找到组件，将使用对应的默认组件代替。
+     */
+    public viewsMap: Record<string, Partial<IComponentMap>> = {}
   ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()
     this.subInfoMap = new Map()
     this.ofInfoMap = new Map()
+    this.resourceMap = new Map()
+    this.viewsMap = {}
     this.dispatch = store.dispatch
     this.doAction = doAction
   }
@@ -92,6 +112,50 @@ export default class SchemaInfoContent {
   getOfInfo(ref: string | undefined) {
     if (this.rootSchema === false || !ref) return null
     return this.ofInfoMap.has(ref) ? this.ofInfoMap.get(ref)! : setOfInfo(this, ref, this.rootSchema)
+  }
+
+  /**
+   * 从 componentMap 找到对应 role path 的组件。
+   *
+   * 和`getComponent`的区别是，若未找到，会 fallback 为对应的`string`编辑组件。
+   * @param view 组件的`viewType`(必须经过验证)
+   * @param rolePath 组件角色路径
+   * @returns
+   */
+  getComponent(view: string | null = null, rolePath: string | string[]) {
+    const componentPath = typeof rolePath === 'string' ? [rolePath] : rolePath
+    if (view) {
+      const result = pathGet(this.viewsMap, componentPath)
+      if (result) return result
+    }
+    const result = pathGet(this.componentMap, componentPath)
+    if (result) {
+      return result
+    } else {
+      throw new Error(`The component of ${componentPath} not exist in component map`)
+    }
+  }
+
+  /**
+   * 从 componentMap 找到对应 string format 的组件。
+   *
+   * 和`getComponent`的区别是，若未找到，会 fallback 为对应的`string`编辑组件。
+   * @param view 组件的`viewType`(必须经过验证)
+   * @param format
+   * @returns
+   */
+  getFormatComponent(view: string | null = null, format: string) {
+    const componentPath = ['format', format]
+    if (view) {
+      const result = pathGet(this.viewsMap, componentPath)
+      if (result) return result
+    }
+    const result = pathGet(this.componentMap, componentPath)
+    if (result) {
+      return result
+    } else {
+      return this.getComponent(view, ['edition', 'string'])
+    }
   }
 
   private makeMergedSchema(ref: string) {

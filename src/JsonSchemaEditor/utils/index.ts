@@ -1,5 +1,5 @@
 import _, { isEqual } from 'lodash'
-import { MergedSchema } from '../info/mergeSchema'
+import { MergedSchema } from '../context/mergeSchema'
 import { JSONSchema } from '../type/Schema'
 
 export const KeywordTypes = {
@@ -113,6 +113,33 @@ export const pathGet = (data: any, path: string[]) => {
 }
 
 /**
+ * 设置对象树某一位置的值。
+ * 如果途中遇到了已定义的非对象，会取消操作
+ * @param obj
+ * @param ref
+ * @param value
+ * @returns
+ */
+export const pathSet = (obj: any, ref: string, value: any) => {
+  const path = extractURI(ref)
+  const oriObj = obj
+  path.every((v, i) => {
+    if (i === path.length - 1) {
+      obj[v] = value
+    } else if (obj[v] === undefined || obj[v] === null) {
+      obj[v] = {}
+      obj = obj[v]
+    } else if (typeof obj[v] === 'object' && !(obj[v] instanceof Array)) {
+      obj = obj[v]
+    } else {
+      return false
+    }
+    return true
+  })
+  return oriObj
+}
+
+/**
  * 深度递归收集一个对象某个键的所有属性
  * @param obj
  * @param key
@@ -152,33 +179,6 @@ export const deepReplace = (obj: any, key: string, map: (value: any, key: any) =
     }
   }
   return obj
-}
-
-/**
- * 设置对象树某一位置的值。
- * 如果途中遇到了已定义的非对象，会取消操作
- * @param obj
- * @param ref
- * @param value
- * @returns
- */
-export const deepSet = (obj: any, ref: string, value: any) => {
-  const path = extractURI(ref)
-  const oriObj = obj
-  path.every((v, i) => {
-    if (i === path.length - 1) {
-      obj[v] = value
-    } else if (obj[v] === undefined || obj[v] === null) {
-      obj[v] = {}
-      obj = obj[v]
-    } else if (typeof obj[v] === 'object' && !(obj[v] instanceof Array)) {
-      obj = obj[v]
-    } else {
-      return false
-    }
-    return true
-  })
-  return oriObj
 }
 
 /**
@@ -360,49 +360,6 @@ export const getFieldSchema = (
       )
   }
 }
-
-/**
- * 判断模式是否起到筛选作用。空对象和true没有
- * @param schemas
- * @returns
- */
-export const schemaUseful = (...schemas: (JSONSchema | boolean)[]) => {
-  if (schemas.indexOf(false) > -1) return true
-  return Object.keys(Object.assign({}, ...schemas)).length !== 0
-}
-
-/**
- * 将深入展开的 subschema 从 rootSchema 中提取出来
- * @param schemaMap
- * @param rootSchema
- * @returns
- */
-// export const extractSchema = (
-//   schemaMap: Map<string, JSONSchema | boolean>,
-//   rootSchema: JSONSchema | boolean,
-// ): JSONSchema => {
-//   // 1. 建立 $ref 映射
-//   const pathMap = new Map();
-//   let i = 0;
-//   for (const schema of schemaMap.keys()) {
-//     const toName = '#/definitions/subSchema' + i;
-//     pathMap.set(schema, toName);
-//     i++;
-//   }
-//   const newSchema = {
-//     definitions: {},
-//   };
-
-//   // 2. 暴力修改 $ref
-//   for (const [key, schema] of schemaMap) {
-//     const newRef = pathMap.get(key);
-//     const replacedSchema = deepReplace(_.cloneDeep(schema), '$ref', (ref) => {
-//       return typeof ref === 'string' ? pathMap.get(ref) : ref;
-//     });
-//     deepSet(newSchema, newRef, replacedSchema);
-//   }
-//   return newSchema;
-// };
 
 /**
  * 得到该字段犯下的错误

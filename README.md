@@ -67,7 +67,7 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 如果发现了该项目的 bug，或者有什么建议、发现项目的设计缺陷等等，欢迎大家随时提 issue！  
 本菜鸟会想办法尽快解决的
 
-### ref of the component
+### Editor 组件的 ref
 
 Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外部主动更改数据，可以按照 redux 的 store api 进行操作。
 
@@ -81,9 +81,9 @@ Editor 组件将 store 暴露在了`useImperativeHandle`中。如果想要从外
 注意：
 
 1. 根节点的 id 由传入 editor 的 id 属性决定，且不应用前缀
-1. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入`.`或`/`字符，会出错。
-1. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
-1. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
+2. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入`.`或`/`字符，会出错。
+3. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
+4. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
 
 ### options (暂未实装)
 
@@ -112,9 +112,16 @@ denseGrid,
 ## JSON Schema 简单说明
 
 json-schema 是一种可递归的文法模式，来描述一个 json 文件应该满足哪些性质。  
-该项目目前统一使用 [draft6](http://json-schema.org/specification-links.html#draft-6) 草稿。
+该项目目前统一使用 [draft6](http://json-schema.org/specification-links.html#draft-6) 规范版本。
 
 [JSON Schema 入门 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/355175938)
+
+下面简要叙述 json-schema 规范定义与该编辑器使用的不同之处：
+
+- 校验提示功能完全基于 ajv 实现
+- 此外，该编辑器中定义了一些新的 json schema 关键词，用于对编辑器 ui 进行更进一步的个性化设置。  
+  这些新定义的关键词不会对 json 数据的校验产生影响。  
+  具体有哪些关键词，以及这些关键词对于 ui 表现的影响，您可以在下面对关键词的定义中找到。
 
 ### 关键字说明
 
@@ -236,6 +243,8 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 
 ### 模式假设
 
+编辑器应用 schema 对 ui 进行个性化的配置，但是要使得这个过程能够按照预期正常工作，需要 schema 满足以下假设：
+
 1. 编辑的过程中，模式是不变的
 2. `required`的属性都具备在`properties`中
 3. 设置了`type`属性后，才会给对应属性类型约束
@@ -246,16 +255,17 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 
 ### 短字段
 
-如果该字段的`type`是`object`或者`array`，或者是长格式展示的`string`；或者是具有`oneOf`字段，那该字段是**长字段**。此外，如果该字段的`type`是`integer/number`或者`boolean/null`；或者具有`enum`/`const` ，该字段是**短字段**。  
-短字段在对象和数组中可通过网格状密集展示，比长字段需要更小的展示空间。
-
-可以证明，所有嵌套格式的非`enum`/`const`选项都是**长字段**。
-
-#### 短字段操作空间
+如果该字段的`type`是`object`或者`array`，或者是长格式展示的`string`；或者是具有`oneOf`字段，那该字段是**长字段**。  
+此外，如果该字段的`type`是`integer/number`或者`boolean/null`；或者具有`enum`/`const` ，该字段是**短字段**。  
+短字段在对象和数组中可通过网格状密集展示，比长字段需要更小的展示空间，提高屏幕的利用效率。
 
 短字段的操作空间放入了字段右侧的按钮中，点击按钮可以选择并作出相应操作。
 
-此外，短字段还可以通过**详细**操作，打开抽屉查看字段的详细值。
+可以证明，所有嵌套格式的非`enum`/`const`/自定义`view`选项都是**长字段**。
+
+可以在 [模式限制的特性索引](#模式限制的特性索引) 中查看某些字段设置和长短字段展示两者联系的具体说明。
+
+另外需要注意，自定义`view`组件，
 
 ### 操作空间(即 可执行的操作)
 
@@ -287,6 +297,18 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 
 注意，浅验证不会对具备 oneOf/anyOf 的字段进行验证，会直接返回`true`。
 
+### 组件接口
+
+对于每一个字段，都最终存在一个 Field 组件与之对应。  
+不过实际用于展示的组件，需要通过 Field 渲染确定。  
+通过`getEditComponent`函数确定通过怎样的组件渲染这一个字段。
+
+实际渲染的组件可以通过 IField 接口进行如下的操作：
+
+- 取得字段路径
+- 取得字段 data
+- 取得该字段的 mergedSchema
+
 ### schema 与 data 容错处理
 
 |          | enum    | oneof                          | type                 | no fixed t |
@@ -302,11 +324,10 @@ schema 定义一个嵌套的 object，读取属性时是`root.layer1.layer2`；�
 
 ### ajv 的配置相关
 
-增加了格式，
+该编辑器目前采用 ajv 进行有效性验证，不过基于 ajv 默认配置之外，增加了以下设置：
 
-增加了后续可能会出现的连接词(暂未实装)
-
-ajv format 可以支持正则表达式和验证函数对格式进行验证。通过 `ajv.addFormat()`
+- 通过`ajv.addFormat()`添加了对一些格式的验证方法
+- 增加了后续可能会出现的连接词(暂未实装)
 
 ### 模式的模式——元模式
 
@@ -616,138 +637,6 @@ const action = {
 注意，向`reducer`传入动作后，仅对动作是否可以在 json 层面上直接执行做一次验证，不会在 schema 层面上判断对应动作是否应当执行。  
 如果向`reducer`传入的动作不可执行，会通过控制台输出错误。
 
-## 验证输出格式
-
-通过 ajv 进行 json-schema 有效性验证。这里我们统一使用 draft 6 进行验证。
-
-按照以下例子确定输出格式。
-
-该例子是一个多边形的表示，各点有 x,y 坐标；且至少三个点。实例只有两个点且第二个点缺少字段`y`多字段`z`。
-
-```json
-{
-  "$id": "https://example.com/polygon",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$defs": {
-    "point": {
-      "type": "object",
-      "properties": {
-        "x": { "type": "number" },
-        "y": { "type": "number" }
-      },
-      "additionalProperties": false,
-      "required": ["x", "y"]
-    }
-  },
-  "type": "array",
-  "items": { "$ref": "#/$defs/point" },
-  "minItems": 3
-}
-```
-
-```json
-[
-  {
-    "x": 2.5,
-    "y": 1.3
-  },
-  {
-    "x": 1,
-    "z": 6.7
-  }
-]
-```
-
-输出结果包含一个`valid`字段表明 json 是否符合模式。此外可以在不符合模式输出 error 信息。错误信息有 3 种输出方式如下：
-
-1. 直接输出。通过**直接列表**来表示错误，都在同一层，通过`keywordLocation`和`absoluteKeywordLocation`(带 ref 的绝对 schema 地址)表示出错关键词路径；通过`instanceLocation`指示出错路径
-
-   ```json
-   {
-     "valid": false,
-     "errors": [
-       {
-         "keywordLocation": "",
-         "instanceLocation": "",
-         "error": "A subschema had errors."
-       },
-       {
-         "keywordLocation": "/items/$ref",
-         "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point",
-         "instanceLocation": "/1",
-         "error": "A subschema had errors."
-       },
-       {
-         // 缺字段 y
-         "keywordLocation": "/items/$ref/required",
-         "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point/required",
-         "instanceLocation": "/1",
-         "error": "Required property 'y' not found."
-       },
-       {
-         // 多字段 z
-         "keywordLocation": "/items/$ref/additionalProperties",
-         "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point/additionalProperties",
-         "instanceLocation": "/1/z",
-         "error": "Additional property 'z' found but was invalid."
-       },
-       {
-         "keywordLocation": "/minItems",
-         "instanceLocation": "",
-         "error": "Expected at least 3 items but found 2"
-       }
-     ]
-   }
-   ```
-
-2. 详细输出。通过**简化树形结构**来表示错误。其中：
-
-   - 所有**模式应用关键字**(`***Of`，)都需要一层{}来表示
-   - 没有错误信息子节点，会直接删除
-   - 只有一个错误信息子节点的，会被替换成原来的子节点(有效才是一层)
-   - 具有多个子节点的父节点，通过`errors`字段列举所有子节点错误信息；叶节点直接通过`error`字段列举
-   - (不明白层级指的是例子对象层级，还是规定层级)
-
-   ```json
-   {
-     "valid": false,
-     "keywordLocation": "",
-     "instanceLocation": "",
-     "errors": [
-       {
-         "valid": false,
-         "keywordLocation": "/items/$ref",
-         "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point",
-         "instanceLocation": "/1",
-         "errors": [
-           {
-             "valid": false,
-             "keywordLocation": "/items/$ref/required",
-             "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point/required",
-             "instanceLocation": "/1",
-             "error": "Required property 'y' not found."
-           },
-           {
-             "valid": false,
-             "keywordLocation": "/items/$ref/additionalProperties",
-             "absoluteKeywordLocation": "https://example.com/polygon#/$defs/point/additionalProperties",
-             "instanceLocation": "/1/z",
-             "error": "Additional property 'z' found but was invalid."
-           }
-         ]
-       },
-       {
-         "valid": false,
-         "keywordLocation": "/minItems",
-         "instanceLocation": "",
-         "error": "Expected at least 3 items but found 2"
-       }
-     ]
-   }
-   ```
-
-3. 完全输出。完全按照层级输出，会有多余层级，长度会非常大，而且所有验证有效节点也会显示。看[完全输出](D:\Windows\Download\verbose-example.json)
-
 ## 项目测试
 
 ~~我不会告诉你目前本人还不会写测试~~
@@ -781,13 +670,19 @@ antd 可以通过 babel 简化按需引入，该项目使用了这个特性。
 
 测试项目是否可用时，在 umi 项目下该组件可正常导入并生效。
 
+### 个人开发配置
+
+> 记录一下个人开发环境的情况，出问题可以做一个参照
+
+os: windows 11 nodejs v14.18.0 npm v6.14.15
+
 ## 尚未解决问题
 
 - [ ] 部分样式需要好好优化
 - [ ] 短优化项展示列数响应式增加(但是不能直接用 antd list 的响应式，它只看窗口宽度不看 dom 宽度)
 - [ ] 无 default 默认值设置的不是太好
 - [ ] 转义特殊字符属性名
-- [ ] 测试补全（~~我不会告诉你目前本人还不会写测试~~）
+- [ ] 测试补全
 
 ## 后续更新特性
 

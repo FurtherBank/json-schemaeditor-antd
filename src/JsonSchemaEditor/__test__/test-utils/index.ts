@@ -1,5 +1,5 @@
 import { metaSchema } from '../../..'
-import SchemaInfoContent from '../../info'
+import CpuEditorContext from '../../context'
 import examples from '../../demos/examples'
 import { createStore } from 'redux'
 
@@ -48,7 +48,7 @@ export const getExample = (name: string) => {
 }
 
 export const mockCtx = (schema: any) => {
-  return new SchemaInfoContent(
+  return new CpuEditorContext(
     schema,
     '',
     createStore(() => ({}), {})

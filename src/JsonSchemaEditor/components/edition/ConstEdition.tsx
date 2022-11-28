@@ -1,9 +1,9 @@
 import { Input, Space } from 'antd'
 import React from 'react'
 import { toConstName } from '../../definition'
-import { IFieldEditProps } from '../types'
+import { EditionProps } from '../types'
 
-export const ConstEdit = (props: IFieldEditProps) => {
+export const ConstEdition = (props: EditionProps) => {
   const { data } = props
 
   return (

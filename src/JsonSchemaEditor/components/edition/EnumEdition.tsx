@@ -2,17 +2,26 @@ import { Input, Select } from 'antd'
 import React, { useCallback } from 'react'
 import { toConstName } from '../../definition'
 import { exactIndexOf } from '../../utils'
-import { IFieldEditProps } from '../types'
+import { EditionProps } from '../types'
 
-export const EnumEdit = (props: IFieldEditProps) => {
-  const { data, onValueChange, fieldInfo } = props
+export const EnumEdition = (props: EditionProps) => {
+  const { data, route, field, fieldInfo } = props
+
+  // 这里单独拿出来是为防止 ts 认为是 undefined
+  const doAction = props.doAction!
+
   const { enum: enumValue = [] } = fieldInfo.mergedValueSchema || {}
+
   const handleValueChange = useCallback(
-    (value) => {
-      onValueChange(enumValue[value])
+    (key: string) => {
+      const i = parseInt(key)
+      const value = enumValue[i]
+
+      if (value !== undefined) doAction('change', route, field, value)
     },
-    [enumValue]
+    [doAction]
   )
+
   const enumIndex = exactIndexOf(enumValue, data)
 
   return (
@@ -29,7 +38,7 @@ export const EnumEdit = (props: IFieldEditProps) => {
         className="resolve-flex"
         style={{ flex: 1 }}
         onChange={handleValueChange}
-        value={enumIndex === -1 ? '' : enumIndex}
+        value={enumIndex === -1 ? '' : toConstName(enumValue[enumIndex])}
         allowClear={false}
       />
     </Input.Group>

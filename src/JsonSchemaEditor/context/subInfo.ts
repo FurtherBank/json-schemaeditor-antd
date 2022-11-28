@@ -1,6 +1,6 @@
-import { ShortOpt } from '../reducer'
+import { ShortOpt } from '../definition/reducer'
 import { addRef } from '../utils'
-import SchemaInfoContent from '.'
+import CpuEditorContext from '.'
 import { isShort } from './virtual'
 import { MergedSchema } from './mergeSchema'
 
@@ -10,18 +10,18 @@ export interface itemSubInfo {
 
 /**
  * 配置 itemInfo
- * @param infoContent
+ * @param ctx
  * @param mergedSchema
  * @returns
  */
-export const makeItemInfo = (infoContent: SchemaInfoContent, mergedSchema: MergedSchema): itemSubInfo | null => {
+export const makeItemInfo = (ctx: CpuEditorContext, mergedSchema: MergedSchema): itemSubInfo | null => {
   const { items, additionalItems } = mergedSchema
   if (typeof items === 'object') {
     const { ref: entry, length } = items
     let shortLv = 2
     // 先对 additional 进行判定，决定 shortLv 底线。
     if (additionalItems) {
-      const additionalMergedSchema = infoContent.getMergedSchema(additionalItems)
+      const additionalMergedSchema = ctx.getMergedSchema(additionalItems)
       const { title, [isShort]: shortable } = additionalMergedSchema || {}
       if (!additionalMergedSchema || !shortLv)
         return {
@@ -36,7 +36,7 @@ export const makeItemInfo = (infoContent: SchemaInfoContent, mergedSchema: Merge
     // 如果没确定不能短优化，再看前缀
     for (let i = 0; i < length; i++) {
       const ref = addRef(entry, i.toString())!
-      const itemMergedSchema = infoContent.getMergedSchema(ref)
+      const itemMergedSchema = ctx.getMergedSchema(ref)
       const { title, [isShort]: shortable } = mergedSchema || {}
       if (!itemMergedSchema || !shortable) {
         return {
@@ -50,7 +50,7 @@ export const makeItemInfo = (infoContent: SchemaInfoContent, mergedSchema: Merge
     }
   } else if (items) {
     // single-schema array
-    const itemsMergedSchema = infoContent.getMergedSchema(items)
+    const itemsMergedSchema = ctx.getMergedSchema(items)
     if (!itemsMergedSchema)
       return {
         shortLv: 0

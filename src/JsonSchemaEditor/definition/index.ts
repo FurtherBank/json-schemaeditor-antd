@@ -2,11 +2,12 @@
 import produce from 'immer'
 import _ from 'lodash'
 import { IField, FieldProps } from '../Field'
-import { FatherInfo } from '../FieldList'
-import SchemaInfoContent from '../info'
-import { MergedSchema } from '../info/mergeSchema'
-import { getOfOption, getRefByOfChain } from '../info/ofInfo'
+import { FatherInfo } from '../components/edition/ListEdition'
+import CpuEditorContext from '../context'
+import { MergedSchema } from '../context/mergeSchema'
+import { getOfOption, getRefByOfChain } from '../context/ofInfo'
 import { addRef, getValueByPattern, jsonDataType, getKeyByPattern, getFieldSchema } from '../utils'
+import { ShortOpt } from './reducer'
 
 export const maxCollapseLayer = 3
 export const maxItemsPerPageByShortLevel = [16, 32, 48]
@@ -191,7 +192,7 @@ export const defaultTypeValue: any = {
  * @param nowData 目前的数据
  * @returns
  */
-export const getDefaultValue = (ctx: SchemaInfoContent, entry: string | undefined, nowData: any = undefined): any => {
+export const getDefaultValue = (ctx: CpuEditorContext, entry: string | undefined, nowData: any = undefined): any => {
   const mergedSchema = ctx.getMergedSchema(entry)
   if (!entry || !mergedSchema) return null
 
@@ -293,7 +294,7 @@ export const isFieldRequired = (field: string | undefined, fatherInfo?: FatherIn
  * @param ctx 编辑器上下文对象
  * @returns
  */
-export const getValueEntry = (data: any, schemaEntry: string | undefined, ctx: SchemaInfoContent) => {
+export const getValueEntry = (data: any, schemaEntry: string | undefined, ctx: CpuEditorContext) => {
   let valueEntry = undefined as undefined | string
   let ofOption: string | false | null = null
   if (schemaEntry) {
@@ -312,7 +313,7 @@ export const getValueEntry = (data: any, schemaEntry: string | undefined, ctx: S
  * @param ctx 编辑器上下文对象
  * @param curEntry 当前的 valueEntry，从这里开始查找
  */
-export const getSchemaEntryByPath = (data: any, path: string[], ctx: SchemaInfoContent, curEntry = '#') => {
+export const getSchemaEntryByPath = (data: any, path: string[], ctx: CpuEditorContext, curEntry = '#') => {
   let schemaEntry: string | undefined = curEntry
   let nowData = data
   while (path.length > 0) {
@@ -327,4 +328,20 @@ export const getSchemaEntryByPath = (data: any, path: string[], ctx: SchemaInfoC
     if (schemaEntry === undefined) return undefined
   }
   return schemaEntry
+}
+
+/**
+ * 取得列表组件允许渲染的最大短组件层级。
+ * @param ctx
+ * @param dataType
+ * @param valueEntry
+ */
+export const getListAllowedShortLevel = (
+  ctx: CpuEditorContext,
+  dataType: 'object' | 'array',
+  valueEntry: string | undefined
+) => {
+  if (dataType === 'object') return ShortOpt.no
+  const { itemInfo } = ctx.getSubInfo(valueEntry)
+  return itemInfo ? itemInfo.shortLv : ShortOpt.no
 }

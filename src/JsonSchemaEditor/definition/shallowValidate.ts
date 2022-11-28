@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash'
-import SchemaInfoContent from '../info'
+import CpuEditorContext from '../context'
 import { jsonDataType, exactIndexOf, addRef } from '../utils'
 import ajvInstance from './ajvInstance'
 
@@ -27,7 +27,7 @@ const formatSchemaSheet = (function () {
 export const shallowValidate = (
   data: any,
   valueEntry: string | undefined,
-  ctx: SchemaInfoContent,
+  ctx: CpuEditorContext,
   deep = true
 ): boolean => {
   const mergedSchema = ctx.getMergedSchema(valueEntry)

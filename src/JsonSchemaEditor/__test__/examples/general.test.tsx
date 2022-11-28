@@ -15,7 +15,6 @@ test('general', () => {
     'constValue',
     'typeError',
     'Array[5]',
-    '类型错误',
     '又臭又长',
     '变量创建-命名测试',
     'pro1',

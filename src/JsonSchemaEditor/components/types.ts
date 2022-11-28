@@ -1,9 +1,17 @@
-import { IField } from '../Field'
-import SchemaInfoContent from '../info'
+import { ReactNode } from 'react'
+import { FieldProps, IField } from '../Field'
+import { MenuActionType } from '../menu/MenuActions'
 
-export interface IFieldEditProps<T = any> {
-  data: T
-  ctx: SchemaInfoContent
+export interface EditionProps extends FieldProps {
+  children?: ReactNode
   fieldInfo: IField
-  onValueChange: (value: any) => void
+}
+
+export interface FormatEditionProps extends EditionProps {
+  format: string
+}
+
+export interface MenuActionProps<T extends MenuActionType = MenuActionType> {
+  opType: T
+  opHandler: () => void
 }

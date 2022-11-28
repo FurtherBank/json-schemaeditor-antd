@@ -55,6 +55,7 @@
     "react-dom": ">=16"
   },
   "dependencies": {
+    "12": "^1.0.2",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1",
     "ajv-i18n": "^4.2.0",
@@ -87,7 +88,7 @@
     "gh-pages": "^3.0.0",
     "husky": "^7.0.0",
     "lesshat": "^4.1.0",
-    "lint-staged": "^10.0.7",
+    "lint-staged": "^12.5.0",
     "monaco-editor": "^0.33.0",
     "monaco-editor-webpack-plugin": "^7.0.1",
     "prettier": "^2.2.1",

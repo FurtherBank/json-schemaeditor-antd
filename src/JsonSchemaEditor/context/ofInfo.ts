@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { toOfName } from '../definition'
 import { addRef, deepReplace } from '../utils'
-import SchemaInfoContent from '.'
+import CpuEditorContext from '.'
 import { shallowValidate } from '../definition/shallowValidate'
 import { JSONSchema } from '../type/Schema'
 
@@ -19,7 +19,7 @@ export interface ofSchemaCache {
  * @param ctx
  * @returns `null`为无 oneOf/anyOf，`false`为不符合任何选项，`string`为选项链
  */
-export const getOfOption = (data: any, schemaEntry: string, ctx: SchemaInfoContent): string | null | false => {
+export const getOfOption = (data: any, schemaEntry: string, ctx: CpuEditorContext): string | null | false => {
   const ofCacheValue = schemaEntry ? ctx.getOfInfo(schemaEntry) : null
   if (ofCacheValue) {
     const { subOfRefs, ofLength, ofRef } = ofCacheValue
@@ -46,7 +46,7 @@ export const getOfOption = (data: any, schemaEntry: string, ctx: SchemaInfoConte
  * @param schemaEntry
  * @param ofChain
  */
-export const getRefByOfChain = (ctx: SchemaInfoContent, schemaEntry: string, ofChain: string) => {
+export const getRefByOfChain = (ctx: CpuEditorContext, schemaEntry: string, ofChain: string) => {
   const ofSelection = ofChain.split('-')
   let entry = schemaEntry
   for (const opt of ofSelection) {
@@ -58,19 +58,19 @@ export const getRefByOfChain = (ctx: SchemaInfoContent, schemaEntry: string, ofC
 
 /**
  * 对 `schemaEntry` 设置 ofInfo
- * @param infoContent
+ * @param ctx
  * @param schemaEntry
  * @param rootSchema
  * @param nowOfRefs
  * @returns
  */
 export const setOfInfo = (
-  infoContent: SchemaInfoContent,
+  ctx: CpuEditorContext,
   schemaEntry: string,
   rootSchema: JSONSchema,
   nowOfRefs: string[] = []
 ) => {
-  const mergedSchema = infoContent.getMergedSchema(schemaEntry)
+  const mergedSchema = ctx.getMergedSchema(schemaEntry)
   if (!mergedSchema) return null
   // todo: noAnyOfChoice 的情况下
   const arrayRefInfo = mergedSchema.oneOf || mergedSchema.anyOf
@@ -79,7 +79,7 @@ export const setOfInfo = (
   // 设置 ofCache (use Entry map ,root)
   if (ofRef && nowOfRefs.includes(ofRef)) {
     console.error('你进行了oneOf/anyOf的循环引用，这会造成无限递归，危', nowOfRefs, ofRef)
-    infoContent.ofInfoMap.set(schemaEntry, null)
+    ctx.ofInfoMap.set(schemaEntry, null)
     return null
   } else if (ofRef) {
     nowOfRefs.push(ofRef)
@@ -89,15 +89,13 @@ export const setOfInfo = (
     const oneOfOptions = []
     for (let i = 0; i < ofLength; i++) {
       const ref = addRef(ofRef, i.toString())!
-      const optMergedSchema = infoContent.getMergedSchema(ref)
+      const optMergedSchema = ctx.getMergedSchema(ref)
       const name = optMergedSchema ? toOfName(optMergedSchema) : ''
       const optOption = {
         value: i.toString(),
         title: name ? name : `Option ${i + 1}`
       } as any
-      const optCache = infoContent.ofInfoMap.has(ref)
-        ? infoContent.ofInfoMap.get(ref)
-        : setOfInfo(infoContent, ref, rootSchema, nowOfRefs)
+      const optCache = ctx.ofInfoMap.has(ref) ? ctx.ofInfoMap.get(ref) : setOfInfo(ctx, ref, rootSchema, nowOfRefs)
       if (optCache) {
         const { options } = optCache
         optOption.children = options.map((option) => {
@@ -120,10 +118,10 @@ export const setOfInfo = (
       ofLength,
       options: oneOfOptions
     }
-    infoContent.ofInfoMap.set(schemaEntry, ofInfo)
+    ctx.ofInfoMap.set(schemaEntry, ofInfo)
     return ofInfo
   } else {
-    infoContent.ofInfoMap.set(schemaEntry, null)
+    ctx.ofInfoMap.set(schemaEntry, null)
     return null
   }
 }

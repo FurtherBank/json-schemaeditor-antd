@@ -2,11 +2,11 @@ import { CheckOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Input, message } from 'antd'
 import _ from 'lodash'
 import React, { useState } from 'react'
-import { FieldProps, IField } from '../Field'
-import { FatherInfo } from '../FieldList'
-import { getDefaultValue } from '../definition'
-import { arrayRefInfo } from '../info'
-import { addRef, concatAccess, getValueByPattern } from '../utils'
+import { FieldProps, IField } from '../../Field'
+import { FatherInfo } from '../edition/ListEdition'
+import { getDefaultValue } from '../../definition'
+import { arrayRefInfo } from '../../context'
+import { addRef, concatAccess, getValueByPattern } from '../../utils'
 
 interface CreateNameProps {
   fatherInfo: FatherInfo

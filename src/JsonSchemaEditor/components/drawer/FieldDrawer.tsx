@@ -1,6 +1,6 @@
 import React, { useImperativeHandle, useState } from 'react'
 import { Drawer } from 'antd'
-import Field from './Field'
+import Field from '../../Field'
 
 interface DrawerAccess {
   route: string[] | undefined
@@ -8,10 +8,10 @@ interface DrawerAccess {
 }
 
 const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
-  const [access, setAccess] = useState({
+  const [access, setAccess] = useState<DrawerAccess>({
     route: undefined,
     field: undefined
-  } as DrawerAccess)
+  })
   const [visible, setVisible] = useState(false)
   useImperativeHandle(ref, () => ({
     setDrawer: (route: string[] | undefined, field: string | undefined, isVisible = true) => {

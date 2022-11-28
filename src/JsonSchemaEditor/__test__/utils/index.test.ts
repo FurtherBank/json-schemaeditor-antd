@@ -4,7 +4,7 @@ import {
   concatAccess,
   deepCollect,
   deepReplace,
-  deepSet,
+  pathSet,
   extractURI,
   getPathVal,
   getValueByPattern,
@@ -191,7 +191,7 @@ describe('utils', () => {
     expect(deepReplace(_.cloneDeep(obj), 'd', replace)).toEqual(obj2)
   })
 
-  it('deepSet', () => {
+  it('pathSet', () => {
     const json = {
       title: 'Default Schema',
       description: 'a simple object schema by default',
@@ -211,10 +211,10 @@ describe('utils', () => {
     json2.properties.key.maxLength = 20
     const json3 = _.cloneDeep(json)
     json3.properties.key = null
-    expect(deepSet(_.cloneDeep(json), '#/title', 'Schema')).toEqual(json1)
-    expect(deepSet(_.cloneDeep(json), '#/title/aabc', 5)).toEqual(json0)
-    expect(deepSet(_.cloneDeep(json), '#/properties/key/maxLength', 20)).toEqual(json2)
-    expect(deepSet(_.cloneDeep(json), '#/properties/key/', null)).toEqual(json3)
+    expect(pathSet(_.cloneDeep(json), '#/title', 'Schema')).toEqual(json1)
+    expect(pathSet(_.cloneDeep(json), '#/title/aabc', 5)).toEqual(json0)
+    expect(pathSet(_.cloneDeep(json), '#/properties/key/maxLength', 20)).toEqual(json2)
+    expect(pathSet(_.cloneDeep(json), '#/properties/key/', null)).toEqual(json3)
   })
 
   it('getValueByPattern', () => {

@@ -9,6 +9,7 @@ import { JSONSchema } from '../type/Schema'
 import { IComponentMap } from '../type/Components'
 import { antdComponentMap } from '../components'
 import Field from '../Field'
+import { ComponentType } from 'react'
 
 export interface arrayRefInfo {
   ref: string
@@ -122,7 +123,7 @@ export default class CpuEditorContext {
    * @param rolePath 组件角色路径
    * @returns
    */
-  getComponent(view: string | null = null, rolePath: string | string[]) {
+  getComponent(view: string | null = null, rolePath: string | string[]): ComponentType<any> {
     const componentPath = typeof rolePath === 'string' ? [rolePath] : rolePath
     if (view) {
       const result = pathGet(this.viewsMap, componentPath)
@@ -144,7 +145,7 @@ export default class CpuEditorContext {
    * @param format
    * @returns
    */
-  getFormatComponent(view: string | null = null, format: string) {
+  getFormatComponent(view: string | null = null, format: string): ComponentType<any> {
     const componentPath = ['format', format]
     if (view) {
       const result = pathGet(this.viewsMap, componentPath)

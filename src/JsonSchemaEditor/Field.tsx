@@ -1,28 +1,18 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import React, { useContext, useMemo } from 'react'
-import { EllipsisOutlined } from '@ant-design/icons'
+import React, { ComponentType, useContext, useMemo } from 'react'
 
-import { Button, Card, Collapse, Input, Space, Menu, Dropdown } from 'antd'
 import { connect, useSelector } from 'react-redux'
-import {
-  canDelete,
-  defaultTypeValue,
-  getDefaultValue,
-  getFormatType,
-  getValueEntry,
-  maxCollapseLayer
-} from './definition'
-import { doAction, JsonTypes, ShortOpt, State } from './definition/reducer'
+import { canDelete, getValueEntry } from './definition'
+import { doAction, ShortOpt, State } from './definition/reducer'
 import { concatAccess, jsonDataType, getError, getAccessRef, pathGet } from './utils'
 import { FatherInfo } from './components/edition/ListEdition'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
-import { getRefByOfChain } from './context/ofInfo'
 import { Act } from './definition/reducer'
 import CpuEditorContext from './context'
 import { MergedSchema } from './context/mergeSchema'
 import { MenuActionType } from './menu/MenuActions'
-const { Panel } = Collapse
+import { ContainerProps } from './components/types'
 
 export interface FieldProps {
   route: string[] // 只有这个属性是节点传的
@@ -50,7 +40,10 @@ export interface IField {
 
 /**
  * 求得该 Field 允许的动作空间。
- * 注意：输出动作的顺序要满足 MenuActions 中数组定义的顺序
+ *
+ * 注意：
+ * 1. 输出动作的顺序要满足 MenuActions 中数组定义的顺序
+ * 2. 该函数不依赖`data`
  * @param props
  * @param fieldInfo
  * @returns
@@ -89,10 +82,6 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
   return result
 }
 
-const stopBubble = (e: React.SyntheticEvent) => {
-  e.stopPropagation()
-}
-
 const FieldBase = (props: FieldProps) => {
   const { data, route, field, schemaEntry, short, setDrawer } = props
 
@@ -102,8 +91,7 @@ const FieldBase = (props: FieldProps) => {
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
 
-  const ctx = useContext(InfoContext),
-    { id } = ctx
+  const ctx = useContext(InfoContext)
 
   // 取 entrySchema、取 valueEntry 和 ofOption、取 valueSchema、取该 Field 下错误
   const mergedEntrySchema = useMemo(() => ctx.getMergedSchema(schemaEntry), [ctx, schemaEntry])
@@ -118,24 +106,10 @@ const FieldBase = (props: FieldProps) => {
 
   const errors = getError(dataErrors, access)
 
-  // 整合 IField 信息
-  const fieldInfo: IField = {
-    ctx,
-    mergedEntrySchema,
-    valueEntry,
-    mergedValueSchema,
-    ofOption,
-    errors,
-    doAction
-  }
-
-  const space = menuActionSpace(props, fieldInfo)
-  const { const: constValue, enum: enumValue, type: allowedTypes } = mergedValueSchema || {}
+  const { const: constValue, enum: enumValue } = mergedValueSchema || {}
   const valueType = constValue !== undefined ? 'const' : enumValue !== undefined ? 'enum' : dataType
 
   const { format } = mergedValueSchema || {}
-
-  const formatType = getFormatType(format)
 
   // 渲染排错
   if (dataType === 'undefined') {
@@ -143,16 +117,22 @@ const FieldBase = (props: FieldProps) => {
   }
   // console.log("渲染", access.join('/'), data)
 
-  // 1. 设置标题组件
-  const TitleComponent = ctx.getComponent(null, ['title'])
-  const titleCom = <TitleComponent {...props} fieldInfo={fieldInfo} />
+  // 整合 IField 信息
+  const fieldInfo: IField = useMemo(
+    () => ({
+      ctx,
+      mergedEntrySchema,
+      valueEntry,
+      mergedValueSchema,
+      ofOption,
+      errors,
+      doAction
+    }),
+    [schemaEntry, valueEntry, errors, doAction]
+  )
 
-  // 2. 设置值组件
-  const EditionComponent =
-    valueType === 'string' && format
-      ? ctx.getFormatComponent(null, format)
-      : ctx.getComponent(null, ['edition', valueType])
-  const valueComponent = <EditionComponent {...props} fieldInfo={fieldInfo} key={'edition'} />
+  // 菜单动作空间以及动作执行函数
+  const space = useMemo(() => menuActionSpace(props, fieldInfo), [props, fieldInfo])
 
   const menuActionHandlers = useMemo(
     () => ({
@@ -181,132 +161,33 @@ const FieldBase = (props: FieldProps) => {
     [route, field, doAction, setDrawer]
   )
 
-  if (!short) {
-    // 3. 先设置直属动作组件
-    const directActionComs = []
-    // a. 如果存在 oneOfOption，加入 oneOf 调整组件
-    if (schemaEntry && ofOption !== null) {
-      const ofInfo = ctx.getOfInfo(schemaEntry)!
-      const OneOfOperation = ctx.getComponent(null, ['operation', 'oneOf'])
-      directActionComs.push(
-        <OneOfOperation
-          opValue={ofOption ? ofOption : ''}
-          opParam={ofInfo}
-          opHandler={(value: string) => {
-            const schemaRef = getRefByOfChain(ctx, schemaEntry!, value)
-            const defaultValue = getDefaultValue(ctx, schemaRef, data)
-            doAction('change', route, field, defaultValue)
-          }}
-          key={'oneOf'}
-        />
-      )
-    }
+  // 1. 设置标题组件
+  const TitleComponent = ctx.getComponent(null, ['title'])
+  const titleCom = <TitleComponent {...props} fieldInfo={fieldInfo} />
 
-    // b. 如果不是 const/enum，且允许多种 type，加入 type 调整组件
-    if (
-      valueType !== 'const' &&
-      valueType !== 'enum' &&
-      (mergedValueSchema === false || !allowedTypes || allowedTypes.length !== 1)
-    ) {
-      const typeOptions = allowedTypes && allowedTypes.length > 0 ? allowedTypes : JsonTypes
-      const TypeOperation = ctx.getComponent(null, ['operation', 'type'])
-      directActionComs.push(
-        <TypeOperation
-          opValue={dataType}
-          opParam={typeOptions}
-          opHandler={(value: string) => {
-            doAction('change', route, field, defaultTypeValue[value])
-          }}
-          key={'type'}
-        />
-      )
-    }
-    // 4. 设置菜单动作栏组件
-    const menuActionComs = space.map((actType) => {
-      const MenuActionComponent = ctx.getComponent(null, ['menuAction'])
-      return <MenuActionComponent key={actType} opType={actType} opHandler={menuActionHandlers[actType]} />
-    })
+  // 2. 设置值组件
+  const EditionComponent =
+    valueType === 'string' && format
+      ? ctx.getFormatComponent(null, format)
+      : ctx.getComponent(null, ['edition', valueType])
+  const valueComponent = <EditionComponent {...props} fieldInfo={fieldInfo} key={'edition'} />
 
-    // 5. 为 object/array 设置子组件
-    return dataType === 'object' || dataType === 'array' ? (
-      <Collapse
-        defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}
-        className="cpu-field"
-      >
-        <Panel
-          key="theoneandtheonly"
-          header={titleCom}
-          extra={<Space onClick={stopBubble}>{directActionComs.concat(menuActionComs)}</Space>}
-          id={getAccessRef(access) || id}
-        >
-          {valueComponent}
-        </Panel>
-      </Collapse>
-    ) : (
-      <Card
-        title={titleCom}
-        size="small"
-        extra={
-          <Space>
-            {formatType !== 2 ? valueComponent : null}
-            {directActionComs.concat(menuActionComs)}
-          </Space>
-        }
-        bodyStyle={formatType !== 2 ? { display: 'none' } : {}}
-        id={getAccessRef(access) || id}
-        className="cpu-field"
-      >
-        {formatType === 2 ? valueComponent : null}
-      </Card>
-    )
-  } else {
-    // 3. 设置动作菜单
-    const menuAction = (e: { key: string }) => {
-      const key = e.key as keyof typeof menuActionHandlers
-      if (menuActionHandlers[key]) menuActionHandlers[key]()
-    }
+  // 3. 取得并应用 container 组件
+  const Container = ctx.getComponent(null, [
+    short ? 'containerShort' : 'containerNormal'
+  ]) as ComponentType<ContainerProps>
 
-    const items = space.map((a) => {
-      return <Menu.Item key={a}>{a}</Menu.Item>
-    })
-    const menu = <Menu onClick={menuAction}>{items}</Menu>
-
-    const compact = valueType !== 'boolean'
-    return (
-      <div className="cpu-field" style={{ display: 'flex' }} id={getAccessRef(access) || id}>
-        {titleCom}
-        <Input.Group
-          compact={compact}
-          size="small"
-          style={{
-            display: 'flex',
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          {valueComponent ? (
-            valueComponent
-          ) : (
-            <span
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              类型错误
-            </span>
-          )}
-          {items.length !== 0 ? (
-            <Dropdown overlay={menu} placement="bottomRight" key="actions">
-              <Button icon={<EllipsisOutlined />} size="small" shape="circle" />
-            </Dropdown>
-          ) : null}
-        </Input.Group>
-      </div>
-    )
-  }
+  return (
+    <Container
+      {...props}
+      fieldInfo={fieldInfo}
+      availableMenuActions={space}
+      menuActionHandlers={menuActionHandlers}
+      titleComponent={titleCom}
+      valueComponent={valueComponent}
+      fieldDomId={getAccessRef(access)}
+    />
+  )
 }
 
 /**

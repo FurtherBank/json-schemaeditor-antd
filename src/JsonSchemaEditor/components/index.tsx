@@ -14,9 +14,12 @@ import { ItemList } from './views/list/ItemList'
 import { OperationButton } from './operation/OperationButton'
 import { OneOfOperation } from './operation/OneOf'
 import { TypeOperation } from './operation/Type'
+import { FieldContainerNormal } from './container/FieldContainerNormal'
+import { FieldContainerShort } from './container/FieldContainerShort'
 
 export const antdComponentMap: IComponentMap = {
-  container: 1,
+  containerNormal: FieldContainerNormal,
+  containerShort: FieldContainerShort,
   title: FieldTitle,
   menuAction: OperationButton,
   operation: {

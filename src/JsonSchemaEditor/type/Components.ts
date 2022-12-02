@@ -17,6 +17,7 @@ export interface IComponentMap {
   format: Record<string, ComponentType<any>>
   edition: Record<CpuEditionType, ComponentType<EditionProps>>
   drawer: ComponentType<any>
+  schemaErrorLogger: ComponentType<any>
 }
 
 export interface IViewsMap extends Partial<IComponentMap> {

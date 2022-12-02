@@ -40,19 +40,7 @@ export const FieldContainerShort = (props: ContainerProps) => {
           justifyContent: 'space-between'
         }}
       >
-        {valueComponent ? (
-          valueComponent
-        ) : (
-          <span
-            style={{
-              flex: 1,
-              textAlign: 'center',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            类型错误
-          </span>
-        )}
+        {valueComponent}
         {items.length !== 0 ? (
           <Dropdown overlay={menu} placement="bottomRight" key="actions">
             <Button icon={<EllipsisOutlined />} size="small" shape="circle" />

@@ -16,6 +16,7 @@ import { OneOfOperation } from './operation/OneOf'
 import { TypeOperation } from './operation/Type'
 import { FieldContainerNormal } from './container/FieldContainerNormal'
 import { FieldContainerShort } from './container/FieldContainerShort'
+import { SchemaErrorLogger } from './SchemaErrorLogger'
 
 export const antdComponentMap: IComponentMap = {
   containerNormal: FieldContainerNormal,
@@ -42,7 +43,8 @@ export const antdComponentMap: IComponentMap = {
     enum: EnumEdition,
     const: ConstEdition
   },
-  drawer: FieldDrawer
+  drawer: FieldDrawer,
+  schemaErrorLogger: SchemaErrorLogger
 }
 
 export const antdViewsMap = {

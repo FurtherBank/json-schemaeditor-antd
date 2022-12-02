@@ -4,7 +4,6 @@ import { Provider } from 'react-redux'
 import Field from './Field'
 import { reducer } from './definition/reducer'
 import FieldDrawer from './components/drawer/FieldDrawer'
-import { Alert } from 'antd'
 import { ValidateFunction } from 'ajv'
 
 import './components/css/index.less'
@@ -67,7 +66,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
     return store
   }, [schema])
 
-  const infoCtx = useMemo(() => {
+  const ctx = useMemo(() => {
     const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
     return new CpuEditorContext(realSchema, id, store)
   }, [schema])
@@ -76,9 +75,9 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
   useImperativeHandle(
     ref,
     () => {
-      return infoCtx
+      return ctx
     },
-    [infoCtx]
+    [ctx]
   )
 
   // 如果 data 更新来自外部，通过 setData 与 store 同步
@@ -101,12 +100,11 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
     [drawerRef]
   )
 
+  const SchemaErrorLogger = ctx.getComponent(null, ['schemaErrorLogger'])
   return (
     <Provider store={store}>
-      {validate instanceof Function ? null : (
-        <Alert message="Error" description={validate.toString()} type="error" showIcon />
-      )}
-      <InfoContext.Provider value={infoCtx}>
+      {validate instanceof Function ? null : <SchemaErrorLogger error={validate.toString()} />}
+      <InfoContext.Provider value={ctx}>
         <Field route={emptyArray} schemaEntry="#" setDrawer={setDrawer} />
         <FieldDrawer ref={drawerRef} />
       </InfoContext.Provider>

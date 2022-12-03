@@ -7,4 +7,8 @@ import { JSONSchema6 } from 'json-schema'
  */
 export type JSONSchema = Omit<JSONSchema6, 'type'> & {
   type?: string | string[] | undefined
+  view?: {
+    param?: any
+    type: string
+  }
 }

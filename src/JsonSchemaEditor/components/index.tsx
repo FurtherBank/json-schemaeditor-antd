@@ -10,13 +10,13 @@ import { StringEdition } from './edition/StringEdition'
 import { MultilineEdition } from './format/multiline'
 import { RowEdition } from './format/row'
 import { FieldTitle } from './title'
-import { ItemList } from './views/list/ItemList'
 import { OperationButton } from './operation/OperationButton'
 import { OneOfOperation } from './operation/OneOf'
 import { TypeOperation } from './operation/Type'
 import { FieldContainerNormal } from './container/FieldContainerNormal'
 import { FieldContainerShort } from './container/FieldContainerShort'
 import { SchemaErrorLogger } from './SchemaErrorLogger'
+import { ArrayListViewEdition } from './views/list'
 
 export const antdComponentMap: IComponentMap = {
   containerNormal: FieldContainerNormal,
@@ -50,11 +50,8 @@ export const antdComponentMap: IComponentMap = {
 export const antdViewsMap = {
   list: {
     edition: {
-      array: ItemList
+      array: ArrayListViewEdition
     },
-    shortable: false,
-    dataSchema: {
-      type: 'array'
-    }
+    shortable: false
   }
 }

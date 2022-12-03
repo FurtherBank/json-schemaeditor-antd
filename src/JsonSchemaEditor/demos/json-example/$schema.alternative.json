@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "string",
+  "title": "alternative",
+  "$ref": "#/definitions/a",
+  "definitions": {
+    "a": {
+      "title": "#/definitions/a",
+      "description": "#/definitions/a",
+      "$ref": "#/definitions/multiline"
+    },
+    "multiline": {
+      "format": "multiline"
+    }
+  }
+}

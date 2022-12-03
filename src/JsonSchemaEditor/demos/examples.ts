@@ -27,6 +27,10 @@ import eslint from './json-example/eslint.json'
 
 import $list from './json-example/$schema.test-list.json'
 import list from './json-example/test-list.json'
+
+import $alternative from './json-example/$schema.alternative.json'
+import alternative from './json-example/alternative.json'
+
 import { JSONSchema } from '../type/Schema'
 
 export type TestExample = [any, JSONSchema]
@@ -49,6 +53,7 @@ export default (metaSchema: any) => {
     'RMMZ 物品数据示例': [items, $items],
     'reducer 测试实例': [reducerTest, $reducerTest],
     'eslint(draft7)': [eslint, $eslint],
-    'view: list': [list, $list]
+    'view: list': [list, $list],
+    替代法则测试: [alternative, $alternative]
   } as TestExamples
 }

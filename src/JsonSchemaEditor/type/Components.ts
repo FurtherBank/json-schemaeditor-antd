@@ -20,7 +20,15 @@ export interface IComponentMap {
   schemaErrorLogger: ComponentType<any>
 }
 
-export interface IViewsMap extends Partial<IComponentMap> {
+type PartialIComponentMap = Partial<
+  {
+    operation: Partial<Record<string, ComponentType<any>>>
+    format: Partial<Record<string, ComponentType<any>>>
+    edition: Partial<Record<CpuEditionType, ComponentType<EditionProps>>>
+  } & Omit<IComponentMap, 'operation' | 'format' | 'edition'>
+>
+
+export interface IViewsMap extends PartialIComponentMap {
   /**
    * 使用该自定义 view 的字段是否可以作为 [短字段](https://github.com/FurtherBank/json-schemaeditor-antd#短字段)。
    *

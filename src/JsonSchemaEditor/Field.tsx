@@ -106,7 +106,8 @@ const FieldBase = (props: FieldProps) => {
 
   const errors = getError(dataErrors, access)
 
-  const { const: constValue, enum: enumValue } = mergedValueSchema || {}
+  const { view: { type: schemaEntryViewType = null } = {} } = mergedEntrySchema || {}
+  const { const: constValue, enum: enumValue, view: { type: valueEntryViewType = null } = {} } = mergedValueSchema || {}
   const valueType = constValue !== undefined ? 'const' : enumValue !== undefined ? 'enum' : dataType
 
   const { format } = mergedValueSchema || {}
@@ -162,18 +163,18 @@ const FieldBase = (props: FieldProps) => {
   )
 
   // 1. 设置标题组件
-  const TitleComponent = ctx.getComponent(null, ['title'])
+  const TitleComponent = ctx.getComponent(schemaEntryViewType, ['title'])
   const titleCom = <TitleComponent {...props} fieldInfo={fieldInfo} />
 
   // 2. 设置值组件
   const EditionComponent =
     valueType === 'string' && format
-      ? ctx.getFormatComponent(null, format)
-      : ctx.getComponent(null, ['edition', valueType])
+      ? ctx.getFormatComponent(valueEntryViewType, format)
+      : ctx.getComponent(valueEntryViewType, ['edition', valueType])
   const valueComponent = <EditionComponent {...props} fieldInfo={fieldInfo} key={'edition'} />
 
   // 3. 取得并应用 container 组件
-  const Container = ctx.getComponent(null, [
+  const Container = ctx.getComponent(schemaEntryViewType, [
     short ? 'containerShort' : 'containerNormal'
   ]) as ComponentType<ContainerProps>
 

@@ -6,8 +6,8 @@ import { doAction, State } from '../definition/reducer'
 import { AnyAction, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
-import { IComponentMap } from '../type/Components'
-import { antdComponentMap } from '../components'
+import { IComponentMap, IViewsMap } from '../type/Components'
+import { antdComponentMap, antdViewsMap } from '../components'
 import Field from '../Field'
 import { ComponentType } from 'react'
 
@@ -68,14 +68,13 @@ export default class CpuEditorContext {
      *
      * 如果在 schema 中限定了`view.type`，但没有在对应的 componentMap 找到组件，将使用对应的默认组件代替。
      */
-    public viewsMap: Record<string, Partial<IComponentMap>> = {}
+    public viewsMap: Record<string, IViewsMap> = antdViewsMap
   ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()
     this.subInfoMap = new Map()
     this.ofInfoMap = new Map()
     this.resourceMap = new Map()
-    this.viewsMap = {}
     this.dispatch = store.dispatch
     this.doAction = doAction
   }
@@ -126,7 +125,8 @@ export default class CpuEditorContext {
   getComponent(view: string | null = null, rolePath: string | string[]): ComponentType<any> {
     const componentPath = typeof rolePath === 'string' ? [rolePath] : rolePath
     if (view) {
-      const result = pathGet(this.viewsMap, componentPath)
+      const result = pathGet(this.viewsMap[view] || {}, componentPath)
+
       if (result) return result
     }
     const result = pathGet(this.componentMap, componentPath)
@@ -162,7 +162,7 @@ export default class CpuEditorContext {
   private makeMergedSchema(ref: string) {
     if (typeof this.rootSchema === 'boolean') return false
     const map = getRefSchemaMap(ref, this.rootSchema)
-    const mergedSchema = mergeSchemaMap(map)
+    const mergedSchema = mergeSchemaMap(this, map)
     this.mergedSchemaMap.set(ref, mergedSchema)
     return mergedSchema
   }

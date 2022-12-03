@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { isShort } from '../../context/virtual'
 import { getExample, mockCtx } from '../test-utils'
 
-test('return true', () => {
+test('parse ok', () => {
   const [, schema] = getExample('小型示例')
   const ctx = mockCtx(schema)
   const rootMerged = ctx.getMergedSchema('#/')

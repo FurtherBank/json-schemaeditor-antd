@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { arrayRefInfo } from '.'
+import CpuEditorContext, { arrayRefInfo } from '.'
 import { JSONSchema } from '../type/Schema'
 import { addRef } from '../utils'
 import { virtualSchemaProps, isShort, schemaIsShort } from './virtual'
@@ -27,10 +27,11 @@ export type MergedSchema = MergedSchemaWithoutVirtual & virtualSchemaProps
  * 将 schemaMap 以合并的方式得到其中的参数
  * 1. first 还需要知道使用的 ref 在哪
  * 2. 对于对象或者数组的，值为 schema 的属性，需要一个子info来处理，也合到里面
+ * @param ctx
  * @param map
  * @returns
  */
-export const mergeSchemaMap = (map: Map<string, JSONSchema | boolean>) => {
+export const mergeSchemaMap = (ctx: CpuEditorContext, map: Map<string, JSONSchema | boolean>) => {
   const result = {} as MergedSchema
   for (const [ref, schema] of map) {
     if (typeof schema === 'object') {
@@ -112,6 +113,6 @@ export const mergeSchemaMap = (map: Map<string, JSONSchema | boolean>) => {
     } else if (schema === false) return false
   }
   // post-process: update virtual attributes
-  result[isShort] = schemaIsShort(result)
+  result[isShort] = schemaIsShort(ctx, result)
   return result as MergedSchema
 }

@@ -114,7 +114,7 @@ const FieldBase = (props: FieldProps) => {
 
   // 渲染排错
   if (dataType === 'undefined') {
-    throw new Error(`undefined data error\n${access}\n${schemaEntry}\n${valueEntry}`)
+    throw new Error(`undefined data error\naccess: ${access}\nschemaEntry: ${schemaEntry}\nvalueEntry: ${valueEntry}`)
   }
   // console.log("渲染", access.join('/'), data)
 

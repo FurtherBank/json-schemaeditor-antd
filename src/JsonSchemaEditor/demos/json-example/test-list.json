@@ -1,1 +1,13 @@
-[null, "abcd", 1, 2, 3, 4, 5, 6]
+[
+  null,
+  "abcd",
+  {
+    "name": "项目名称",
+    "description": "对象的 constName，如果存在 name 属性为 string，默认为 name 属性值，否则为 Object[propertyLength]"
+  },
+  2,
+  3,
+  4,
+  5,
+  6
+]

@@ -1,41 +1,13 @@
-import React, { useImperativeHandle, useState } from 'react'
+import React from 'react'
 import { Drawer } from 'antd'
-import Field from '../../Field'
+import { EditorDrawerProps } from '../types'
 
-interface DrawerAccess {
-  route: string[] | undefined
-  field: string | undefined
-}
-
-const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
-  const [access, setAccess] = useState<DrawerAccess>({
-    route: undefined,
-    field: undefined
-  })
-  const [visible, setVisible] = useState(false)
-  useImperativeHandle(ref, () => ({
-    setDrawer: (route: string[] | undefined, field: string | undefined, isVisible = true) => {
-      setVisible(isVisible)
-      setAccess({
-        route,
-        field
-      })
-    }
-  }))
-
-  const { route, field } = access
-
-  const onClose = () => {
-    setVisible(false)
-  }
+export const FieldDrawer = (props: EditorDrawerProps) => {
+  const { onClose, visible, children } = props
 
   return (
     <Drawer title="详细" width={500} onClose={onClose} visible={visible} extra="在此做出的修改均会自动保存">
-      {route !== undefined ? <Field route={route} field={field} canNotRename /> : null}
+      {children}
     </Drawer>
   )
 }
-
-const FieldDrawer = React.forwardRef(FieldDrawerBase)
-
-export default FieldDrawer

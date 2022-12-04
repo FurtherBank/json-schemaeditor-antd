@@ -1,4 +1,4 @@
-import FieldDrawer from './drawer/FieldDrawer'
+import { FieldDrawer } from './drawer/FieldDrawer'
 import { ListEdition } from './edition/ListEdition'
 import { IComponentMap } from '../type/Components'
 import { BooleanEdition } from './edition/BooleanEdition'

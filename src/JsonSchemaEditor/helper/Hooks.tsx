@@ -2,7 +2,7 @@ import React from 'react'
 import { ContainerProps } from '../components/types'
 import { getRefByOfChain } from '../context/ofInfo'
 import { getDefaultValue, defaultTypeValue } from '../definition'
-import { doAction, JsonTypes } from '../definition/reducer'
+import { JsonTypes } from '../definition/reducer'
 import { jsonDataType } from '../utils'
 
 /**
@@ -11,7 +11,7 @@ import { jsonDataType } from '../utils'
  */
 export const useMenuActionComponents = (props: ContainerProps) => {
   const { data, route, field, schemaEntry, fieldInfo, availableMenuActions, menuActionHandlers } = props
-  const { mergedValueSchema, ofOption, ctx } = fieldInfo
+  const { mergedValueSchema, ofOption, ctx, doAction } = fieldInfo
 
   const dataType = jsonDataType(data)
   const { const: constValue, enum: enumValue, type: allowedTypes } = mergedValueSchema || {}

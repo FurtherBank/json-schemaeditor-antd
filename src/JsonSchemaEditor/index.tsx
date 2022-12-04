@@ -3,7 +3,7 @@ import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import Field from './Field'
 import { reducer } from './definition/reducer'
-import FieldDrawer from './components/drawer/FieldDrawer'
+import EditorDrawer from './EditorDrawer'
 import { ValidateFunction } from 'ajv'
 
 import './components/css/index.less'
@@ -22,7 +22,7 @@ export const InfoContext = React.createContext<CpuEditorContext>(null!)
 
 const emptyArray: never[] = []
 
-const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
+const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) => {
   const { schema, data, onChange, id } = props
 
   // useMemo 编译 schema
@@ -40,6 +40,16 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
 
     return validate ? validate : schemaErrors
   }, [schema]) as ValidateFunction | any
+
+  // 详细抽屉功能
+  const drawerRef = useRef(null) as React.RefObject<any>
+  const setDrawer = useCallback(
+    (...args: any[]) => {
+      // console.log('setDrawer', drawerRef.current);
+      if (drawerRef.current) drawerRef.current.setDrawer(...args)
+    },
+    [drawerRef]
+  )
 
   // useMemo 初始化 store
   const store = useMemo(() => {
@@ -90,23 +100,13 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<any>) => {
     })
   }
 
-  // 详细抽屉功能
-  const drawerRef = useRef(null) as React.RefObject<any>
-  const setDrawer = useCallback(
-    (...args: any[]) => {
-      // console.log('setDrawer', drawerRef.current);
-      if (drawerRef.current) drawerRef.current.setDrawer(...args)
-    },
-    [drawerRef]
-  )
-
   const SchemaErrorLogger = ctx.getComponent(null, ['schemaErrorLogger'])
   return (
     <Provider store={store}>
       {validate instanceof Function ? null : <SchemaErrorLogger error={validate.toString()} />}
       <InfoContext.Provider value={ctx}>
         <Field route={emptyArray} schemaEntry="#" setDrawer={setDrawer} />
-        <FieldDrawer ref={drawerRef} />
+        <EditorDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>
   )

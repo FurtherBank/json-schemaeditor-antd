@@ -9,6 +9,11 @@ type processedSchemaProps = {
   properties?: { [k: string]: string }
   patternProperties?: { [k: string]: string }
   dependencies?: { [k: string]: string | string[] }
+  /**
+   * `schema`处理为 ref，`schema[]`处理为`arrayRefInfo`
+   *
+   * 不允许处理为`false`，不存在为`undefined`
+   */
   items?: string | arrayRefInfo | false
   additionalItems?: string | false
   additionalProperties?: string | false

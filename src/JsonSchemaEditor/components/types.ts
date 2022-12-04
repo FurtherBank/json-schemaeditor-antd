@@ -30,3 +30,9 @@ export interface MenuActionProps<T extends MenuActionType = MenuActionType> {
   opType: T
   opHandler: () => void
 }
+
+export interface EditorDrawerProps {
+  visible: boolean
+  children?: ReactNode
+  onClose: () => void
+}

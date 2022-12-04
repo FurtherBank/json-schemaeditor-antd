@@ -131,55 +131,6 @@ const ArrayListView = (props: EditionProps) => {
     [data, access, valueEntry, fieldInfo, fatherInfo]
   )
 
-  // const keys = Object.keys(data)
-  // // todo: 排查属性的 order 关键字并写入 cache，然后在这里排个序再 map
-  // const renderItems = keys.map((key: number | string) => {
-  //   return <Field
-  //     key={`property-${key}`}
-  //     route={access}
-  //     field={key.toString()}
-  //     fatherInfo={fatherInfo.type ? fatherInfo : undefined}
-  //     schemaEntry={getFieldSchema(fieldProps, fieldInfo, key.toString())}
-  //     short={short}
-  //     setDrawer={setDrawer}
-  //   />
-  // })
-  // // 创建新属性组件
-  // if (canCreate) renderItems.push(
-  //   <CreateName
-  //     fatherInfo={fatherInfo}
-  //     fieldProps={fieldProps}
-  //     fieldInfo={fieldInfo}
-  //   />
-  // )
-
-  // return (
-  //   <div style={{
-  //     gridTemplateColumns: 'repeat(auto-fit, minmax(24.5em, 1fr))',
-  //     gridGap: '0.25em 0.25em',
-  //     gridAutoFlow: 'dense',
-  //   }}>
-  //     {renderItems}
-  //   </div>
-  // )
-  // return (
-  //   <List
-  //     size="small"
-  //     split={false}
-  //     dataSource={items}
-  //     grid={gridOption[allowedShortLevel]}
-  //     pagination={
-  //       items.length > maxItemsPerPageByShortLevel[allowedShortLevel]
-  //         ? {
-  //             simple: true,
-  //             pageSize: maxItemsPerPageByShortLevel[allowedShortLevel]
-  //           }
-  //         : undefined
-  //     }
-  //     renderItem={renderItem(allowedShortLevel)}
-  //   />
-  // )
-
   return (
     <div style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }}>
       <aside style={{ height: '100%', minWidth: '15em' }}>

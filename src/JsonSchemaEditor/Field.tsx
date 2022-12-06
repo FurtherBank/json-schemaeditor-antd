@@ -2,28 +2,27 @@
 import React, { ComponentType, useContext, useMemo } from 'react'
 
 import { connect, useSelector } from 'react-redux'
-import { canDelete, getValueEntry } from './definition'
-import { doAction, ShortOpt, State } from './definition/reducer'
+import { canDelete, getValueEntry, ShortLevel } from './definition'
+import { doAction, CpuEditorState } from './definition/reducer'
 import { concatAccess, jsonDataType, getError, getAccessRef, pathGet } from './utils'
-import { FatherInfo } from './components/edition/ListEdition'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
-import { Act } from './definition/reducer'
+import { CpuEditorAction } from './definition/reducer'
 import CpuEditorContext from './context'
 import { MergedSchema } from './context/mergeSchema'
 import { MenuActionType } from './menu/MenuActions'
-import { ContainerProps } from './components/types'
+import { ContainerProps } from './components/core/type/props'
+import { FatherInfo } from './components/core/type/list'
 
 export interface FieldProps {
   route: string[] // 只有这个属性是节点传的
   field?: string // route的最后
   fatherInfo?: FatherInfo
   schemaEntry?: string | undefined
-  short?: ShortOpt // 可允许短字段等级
-  setDrawer?: (...args: any[]) => void
+  short?: ShortLevel // 可允许短字段等级
   canNotRename?: boolean | undefined
   // redux props
-  doAction?: (type: string, route?: string[], field?: any, value?: any) => Act
+  doAction?: (type: string, route?: string[], field?: any, value?: any) => CpuEditorAction
   data?: any
   reRender?: any
 }
@@ -35,7 +34,7 @@ export interface IField {
   mergedValueSchema: MergedSchema | false
   ofOption: string | false | null
   errors: any[]
-  doAction: (type: string, route?: string[], field?: any, value?: any) => Act
+  doAction: (type: string, route?: string[], field?: any, value?: any) => CpuEditorAction
 }
 
 /**
@@ -83,7 +82,7 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
 }
 
 const FieldBase = (props: FieldProps) => {
-  const { data, route, field, schemaEntry, short, setDrawer } = props
+  const { data, route, field, schemaEntry, short } = props
 
   // 这里单独拿出来是为防止 ts 认为是 undefined
   const doAction = props.doAction!
@@ -100,7 +99,7 @@ const FieldBase = (props: FieldProps) => {
 
   const mergedValueSchema = useMemo(() => ctx.getMergedSchema(valueEntry), [ctx, valueEntry])
 
-  const dataErrors = useSelector<StateWithHistory<State>, any[]>((state: StateWithHistory<State>) => {
+  const dataErrors = useSelector<StateWithHistory<CpuEditorState>, any[]>((state: StateWithHistory<CpuEditorState>) => {
     return state.present.dataErrors
   })
 
@@ -138,7 +137,7 @@ const FieldBase = (props: FieldProps) => {
   const menuActionHandlers = useMemo(
     () => ({
       detail: () => {
-        if (setDrawer) setDrawer(route, field)
+        ctx.setDrawer(route, field)
       },
       moveup: () => {
         doAction('moveup', route, field)
@@ -159,7 +158,7 @@ const FieldBase = (props: FieldProps) => {
         doAction('change', route, field, 0)
       }
     }),
-    [route, field, doAction, setDrawer]
+    [route, field, doAction, ctx]
   )
 
   // 1. 设置标题组件
@@ -217,7 +216,7 @@ const FieldBase = (props: FieldProps) => {
 // };
 
 const Field = connect(
-  (state: StateWithHistory<State>, props: FieldProps) => {
+  (state: StateWithHistory<CpuEditorState>, props: FieldProps) => {
     const { route, field } = props
     const {
       present: { data }

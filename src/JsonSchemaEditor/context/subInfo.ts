@@ -1,11 +1,11 @@
-import { ShortOpt } from '../definition/reducer'
+import { ShortLevel } from '../definition'
 import { addRef } from '../utils'
 import CpuEditorContext from '.'
 import { isShort } from './virtual'
 import { MergedSchema } from './mergeSchema'
 
 export interface itemSubInfo {
-  shortLv: ShortOpt
+  shortLv: ShortLevel
 }
 
 /**

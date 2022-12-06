@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { ContainerProps, EditionProps, MenuActionProps } from '../components/types'
+import { ContainerProps, EditionProps, MenuActionProps } from '../components/core/type/props'
 import { JSONSchema } from './Schema'
 
 export type CpuEditionType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'enum' | 'const'

@@ -6,20 +6,14 @@ import _, { isEqual } from 'lodash'
 import produce from 'immer'
 import undoable from 'redux-undo'
 
-export enum ShortOpt {
-  no,
-  short,
-  extra
-}
-
-export interface Act {
+export interface CpuEditorAction {
   type: string
   route: string[]
   field?: string
   value?: string
 }
 
-export interface State {
+export interface CpuEditorState {
   data: any
   dataErrors: any[]
   validate?: ValidateFunction
@@ -29,7 +23,7 @@ export const doAction = (
   type: string,
   route: string[] = [],
   field: string | undefined = undefined,
-  value = undefined
+  value: any = undefined
 ) => ({
   type,
   route,
@@ -37,14 +31,16 @@ export const doAction = (
   value
 })
 
+export type CpuEditorActionDispatcher = typeof doAction
+
 export const JsonTypes = ['object', 'array', 'string', 'number', 'boolean', 'null']
 
 export const reducer = undoable(
   produce(
-    (s: State, a: Act) => {
+    (s: CpuEditorState, a: CpuEditorAction) => {
       const { type, route, field, value } = a
       const reValidate = () => {
-        console.time('验证')
+        console.time('ajv 验证')
         if (typeof s.validate === 'function') {
           const validate = s.validate as ValidateFunction
           validate(s.data)
@@ -56,7 +52,7 @@ export const reducer = undoable(
             console.warn('not valid', validate.errors)
           }
         }
-        console.timeEnd('验证')
+        console.timeEnd('ajv 验证')
       }
 
       // 特殊接口：setData 强制设置数据
@@ -160,7 +156,7 @@ export const reducer = undoable(
     {
       data: {},
       dataErrors: []
-    } as State
+    } as CpuEditorState
   ),
   {
     undoType: 'undo',

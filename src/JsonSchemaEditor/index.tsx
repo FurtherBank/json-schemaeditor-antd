@@ -6,7 +6,6 @@ import { reducer } from './definition/reducer'
 import EditorDrawer from './EditorDrawer'
 import { ValidateFunction } from 'ajv'
 
-import './components/css/index.less'
 import CpuEditorContext from './context'
 import ajvInstance from './definition/ajvInstance'
 import { JSONSchema } from './type/Schema'
@@ -78,7 +77,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
 
   const ctx = useMemo(() => {
     const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
-    return new CpuEditorContext(realSchema, id, store)
+    return new CpuEditorContext(realSchema, id, store, setDrawer)
   }, [schema])
 
   // 暴露一下 api
@@ -105,7 +104,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     <Provider store={store}>
       {validate instanceof Function ? null : <SchemaErrorLogger error={validate.toString()} />}
       <InfoContext.Provider value={ctx}>
-        <Field route={emptyArray} schemaEntry="#" setDrawer={setDrawer} />
+        <Field route={emptyArray} schemaEntry="#" />
         <EditorDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>

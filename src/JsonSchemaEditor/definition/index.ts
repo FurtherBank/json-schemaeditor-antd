@@ -2,12 +2,17 @@
 import produce from 'immer'
 import _ from 'lodash'
 import { IField, FieldProps } from '../Field'
-import { FatherInfo } from '../components/edition/ListEdition'
 import CpuEditorContext from '../context'
 import { MergedSchema } from '../context/mergeSchema'
 import { getOfOption, getRefByOfChain } from '../context/ofInfo'
 import { addRef, getValueByPattern, jsonDataType, getKeyByPattern, getFieldSchema } from '../utils'
-import { ShortOpt } from './reducer'
+import { FatherInfo } from '../components/core/type/list'
+
+export enum ShortLevel {
+  no,
+  short,
+  extra
+}
 
 export const maxCollapseLayer = 3
 export const maxItemsPerPageByShortLevel = [16, 32, 48]
@@ -341,7 +346,7 @@ export const getListAllowedShortLevel = (
   dataType: 'object' | 'array',
   valueEntry: string | undefined
 ) => {
-  if (dataType === 'object') return ShortOpt.no
+  if (dataType === 'object') return ShortLevel.no
   const { itemInfo } = ctx.getSubInfo(valueEntry)
-  return itemInfo ? itemInfo.shortLv : ShortOpt.no
+  return itemInfo ? itemInfo.shortLv : ShortLevel.no
 }

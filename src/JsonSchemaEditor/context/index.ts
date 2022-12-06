@@ -2,12 +2,12 @@ import { getRefSchemaMap, pathGet } from '../utils'
 import { itemSubInfo, makeItemInfo } from './subInfo'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
-import { doAction, State } from '../definition/reducer'
+import { doAction, CpuEditorState, CpuEditorAction } from '../definition/reducer'
 import { AnyAction, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
 import { IComponentMap, IViewsMap } from '../type/Components'
-import { antdComponentMap, antdViewsMap } from '../components'
+import { antdComponentMap, antdViewsMap } from '../components/antd'
 import Field from '../Field'
 import { ComponentType } from 'react'
 
@@ -49,18 +49,16 @@ export default class CpuEditorContext {
   resourceMap: Map<string, any>
 
   dispatch: Dispatch<AnyAction>
-  doAction: (
-    type: string,
-    route?: string[],
-    field?: string,
-    value?: undefined
-  ) => { type: string; route: string[]; field?: string; value?: any }
+
+  executeAction: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
+  private actionCreator: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
 
   constructor(
     rootSchema: false | JSONSchema,
     public id: string | undefined,
-    public store: Store<StateWithHistory<State>, AnyAction>,
-    public componentMap: IComponentMap = antdComponentMap,
+    public store: Store<StateWithHistory<CpuEditorState>, AnyAction>,
+    public setDrawer: (route: string[], field: string | undefined) => void,
+    public readonly componentMap: IComponentMap = antdComponentMap,
     /**
      * 自定义 view 的组件列表，通过`view.type`索引到 componentMap；
      *
@@ -68,7 +66,7 @@ export default class CpuEditorContext {
      *
      * 如果在 schema 中限定了`view.type`，但没有在对应的 componentMap 找到组件，将使用对应的默认组件代替。
      */
-    public viewsMap: Record<string, IViewsMap> = antdViewsMap
+    public readonly viewsMap: Record<string, IViewsMap> = antdViewsMap
   ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()
@@ -76,7 +74,12 @@ export default class CpuEditorContext {
     this.ofInfoMap = new Map()
     this.resourceMap = new Map()
     this.dispatch = store.dispatch
-    this.doAction = doAction
+    this.actionCreator = doAction
+    this.executeAction = (type: string, route?: string[], field?: string, value?: any) => {
+      const action = this.actionCreator(type, route, field, value)
+      this.dispatch(action)
+      return action
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import CpuEditorContext, { arrayRefInfo } from '.'
+import CpuEditorContext, { SchemaArrayRefInfo } from '.'
 import { JSONSchema } from '../type/Schema'
 import { addRef } from '../utils'
 import { virtualSchemaProps, isShort, schemaIsShort } from './virtual'
@@ -10,18 +10,19 @@ type processedSchemaProps = {
   patternProperties?: { [k: string]: string }
   dependencies?: { [k: string]: string | string[] }
   /**
-   * `schema`处理为 ref，`schema[]`处理为`arrayRefInfo`
+   * `schema`处理为 ref，`schema[]`处理为`SchemaArrayRefInfo`
    *
    * 不允许处理为`false`，不存在为`undefined`
    */
-  items?: string | arrayRefInfo | false
-  additionalItems?: string | false
+  prefixItems?: SchemaArrayRefInfo
+  items?: string | false
   additionalProperties?: string | false
-  oneOf?: arrayRefInfo
-  anyOf?: arrayRefInfo
+  oneOf?: SchemaArrayRefInfo
+  anyOf?: SchemaArrayRefInfo
 }
 
-export type MergedSchemaWithoutVirtual = Omit<JSONSchema, keyof processedSchemaProps> & processedSchemaProps
+export type MergedSchemaWithoutVirtual = Omit<JSONSchema, keyof processedSchemaProps | 'additionalItems'> &
+  processedSchemaProps
 
 /**
  * 合并后的 schema 只涉及到了用到的这一层的信息，不对子层的信息进行进一步归纳。
@@ -81,13 +82,18 @@ export const mergeSchemaMap = (ctx: CpuEditorContext, map: Map<string, JSONSchem
                 }
               }
               break
+            case 'prefixItems':
+              // array to Refs
+              result[key] = {
+                length: value.length,
+                ref: addRef(ref, key)!
+              }
+              break
             case 'items':
-            case 'additionalItems':
-            case 'additionalProperties':
-              // toRef/array to Refs
+              // to item Ref/array to prefix Refs
               if (!result[key]) {
                 if (value instanceof Array) {
-                  result[key as 'items'] = {
+                  result['prefixItems'] = {
                     length: value.length,
                     ref: addRef(ref, key)!
                   }
@@ -96,9 +102,17 @@ export const mergeSchemaMap = (ctx: CpuEditorContext, map: Map<string, JSONSchem
                 }
               }
               break
+            case 'additionalItems':
+              // 旧版本 additionalItems => items
+              result['items'] = value ? addRef(ref, key)! : false
+              break
+            case 'additionalProperties':
+              // toRef
+              result[key] = value ? addRef(ref, key)! : false
+              break
             case 'oneOf':
             case 'anyOf':
-              // arrayRefInfo
+              // SchemaArrayRefInfo
               if (!result[key]) {
                 result[key] = {
                   length: value.length,

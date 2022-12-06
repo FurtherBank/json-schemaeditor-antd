@@ -73,9 +73,9 @@ export const setOfInfo = (
   const mergedSchema = ctx.getMergedSchema(schemaEntry)
   if (!mergedSchema) return null
   // todo: noAnyOfChoice 的情况下
-  const arrayRefInfo = mergedSchema.oneOf || mergedSchema.anyOf
-  if (!arrayRefInfo) return null
-  const { ref: ofRef, length: ofLength } = arrayRefInfo
+  const SchemaArrayRefInfo = mergedSchema.oneOf || mergedSchema.anyOf
+  if (!SchemaArrayRefInfo) return null
+  const { ref: ofRef, length: ofLength } = SchemaArrayRefInfo
   // 设置 ofCache (use Entry map ,root)
   if (ofRef && nowOfRefs.includes(ofRef)) {
     console.error('你进行了oneOf/anyOf的循环引用，这会造成无限递归，危', nowOfRefs, ofRef)

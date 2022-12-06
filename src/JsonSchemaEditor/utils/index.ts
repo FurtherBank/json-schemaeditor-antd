@@ -290,7 +290,7 @@ export const getValueByPattern = <T>(obj: { [k: string]: T }, key: string): T | 
 /**
  * 对 Array/Object 获取特定字段 schemaEntry。
  * 注意：
- * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, items, additionalItems` 这五个字段之一进入的。
+ * 1. 无论这其中有多少条 ref，一定保证给出的 schemaEntry 是从 `properties, patternProperties, additionalProperties, prefixItems, items` 这五个字段之一进入的。
  * 2. 只要给出的 ref 不是 undefined，一定能够找到对应的 schema
  * @param data 当前的 data
  * @param valueEntry
@@ -303,10 +303,10 @@ export const getFieldSchema = (
   valueEntry: string | undefined,
   mergedValueSchema: MergedSchema | false,
   field: string
-) => {
+): string | false | undefined => {
   if (!mergedValueSchema) return undefined
 
-  const { properties, patternProperties, additionalProperties, items, additionalItems } = mergedValueSchema
+  const { properties, patternProperties, additionalProperties, items, prefixItems } = mergedValueSchema
   const dataType = jsonDataType(data)
   switch (dataType) {
     case 'object':
@@ -336,17 +336,15 @@ export const getFieldSchema = (
           )}`
         )
       }
-      if (items) {
-        if (typeof items === 'object') {
-          const { length, ref } = items
-          if (index < length) {
-            return addRef(ref, field)
-          } else {
-            return additionalItems
-          }
+      if (prefixItems) {
+        const { length, ref } = prefixItems
+        if (index < length) {
+          return addRef(ref, field)
         } else {
           return items
         }
+      } else if (items) {
+        return items
       } else {
         return undefined
       }

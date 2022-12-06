@@ -39,7 +39,7 @@ export const shallowValidate = (
     format,
     properties,
     items,
-    additionalItems,
+    prefixItems,
     required
   } = mergedSchema
   const dataType = jsonDataType(data)
@@ -72,19 +72,17 @@ export const shallowValidate = (
         return true
       case 'array':
         if (deep) {
-          if (items) {
-            if (typeof items === 'object') {
-              const { length, ref } = items
-              return data.every((value: any, i: number) => {
-                return i >= length
-                  ? shallowValidate(value, additionalItems || undefined, ctx, false)
-                  : shallowValidate(value, addRef(ref, i.toString())!, ctx, false)
-              })
-            } else {
-              return data.every((value: any) => {
-                return shallowValidate(value, items, ctx, false)
-              })
-            }
+          if (prefixItems) {
+            const { length, ref } = prefixItems
+            return data.every((value: any, i: number) => {
+              return i >= length
+                ? shallowValidate(value, ref || undefined, ctx, false)
+                : shallowValidate(value, addRef(ref, i.toString())!, ctx, false)
+            })
+          } else if (items) {
+            return data.every((value: any) => {
+              return shallowValidate(value, items, ctx, false)
+            })
           } else {
             return true
           }

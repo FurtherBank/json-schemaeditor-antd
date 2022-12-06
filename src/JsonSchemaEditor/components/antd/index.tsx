@@ -1,5 +1,4 @@
 import { FieldDrawer } from './drawer/FieldDrawer'
-import { ListEdition } from './edition/ListEdition'
 import { IComponentMap } from '../../type/Components'
 import { BooleanEdition } from './edition/BooleanEdition'
 import { ConstEdition } from './edition/ConstEdition'
@@ -18,7 +17,9 @@ import { FieldContainerShort } from './container/FieldContainerShort'
 import { SchemaErrorLogger } from './SchemaErrorLogger'
 import { ArrayListViewEdition } from './views/list'
 
-import './components/antd/css/index.less'
+import './css/index.less'
+import { ObjectEdition } from './edition/ObjectEdition'
+import { ArrayEdition } from './edition/ArrayEdition'
 
 export const antdComponentMap: IComponentMap = {
   containerNormal: FieldContainerNormal,
@@ -36,8 +37,8 @@ export const antdComponentMap: IComponentMap = {
     'uri-reference': RowEdition
   },
   edition: {
-    object: ListEdition,
-    array: ListEdition,
+    object: ObjectEdition,
+    array: ArrayEdition,
     string: StringEdition,
     number: NumberEdition,
     boolean: BooleanEdition,

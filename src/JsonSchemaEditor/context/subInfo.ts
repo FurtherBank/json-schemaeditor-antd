@@ -15,13 +15,13 @@ export interface itemSubInfo {
  * @returns
  */
 export const makeItemInfo = (ctx: CpuEditorContext, mergedSchema: MergedSchema): itemSubInfo | null => {
-  const { items, additionalItems } = mergedSchema
-  if (typeof items === 'object') {
-    const { ref: entry, length } = items
+  const { items, prefixItems } = mergedSchema
+  if (typeof prefixItems === 'object') {
+    const { ref: entry, length } = prefixItems
     let shortLv = 2
     // 先对 additional 进行判定，决定 shortLv 底线。
-    if (additionalItems) {
-      const additionalMergedSchema = ctx.getMergedSchema(additionalItems)
+    if (items) {
+      const additionalMergedSchema = ctx.getMergedSchema(items)
       const { title, [isShort]: shortable } = additionalMergedSchema || {}
       if (!additionalMergedSchema || !shortLv)
         return {

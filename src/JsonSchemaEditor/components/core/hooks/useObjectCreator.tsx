@@ -25,14 +25,17 @@ export const useObjectCreator = (
       if (data[newPropName] !== undefined) {
         return `字段 ${newPropName} 已经存在！`
       } else {
-        const info =
+        const newPropRef =
           (properties && properties[newPropName]) ??
-          (patternProperties && getValueByPattern(patternProperties, newPropName)) ??
-          additionalProperties
-        if (!info) {
-          return `${newPropName} 不匹配 properties 中的名称或 patternProperties 中的正则式`
+          (patternProperties && getValueByPattern(patternProperties, newPropName))
+        if (!newPropRef) {
+          if (additionalProperties !== false) {
+            return additionalProperties
+          } else {
+            return `${newPropName} 不匹配 properties 中的名称或 patternProperties 中的正则式`
+          }
         } else {
-          newValueEntry = info
+          newValueEntry = newPropRef
         }
       }
       return ctx.executeAction('create', access, newPropName, getDefaultValue(ctx, newValueEntry))

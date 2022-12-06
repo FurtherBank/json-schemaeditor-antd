@@ -1,4 +1,5 @@
 import { ShortLevel } from '../../../definition'
+import { IField } from '../../../Field'
 
 /**
  * 原则上来自于父字段的信息，不具有子字段特异性
@@ -14,16 +15,24 @@ export interface FatherInfo {
 export interface ChildData {
   key: string
   value: any
-  end?: boolean
-  data?: ChildData[]
+}
+
+/**
+ * 空的数组/对象子项数据，用作 create 组件
+ */
+export interface EmptyChildData {
+  key: string
 }
 
 export interface FieldDisplayList {
   short: ShortLevel
-  items: ChildData[]
+  items: (ChildData | EmptyChildData)[]
 }
 
 export interface ListDisplayPanelProps {
   lists: FieldDisplayList[]
-  canCreate: boolean
+  fatherInfo: FatherInfo
+  fieldInfo: IField
+  data: any
+  access: string[]
 }

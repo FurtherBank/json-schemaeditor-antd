@@ -11,7 +11,7 @@ import { antdComponentMap, antdViewsMap } from '../components/antd'
 import Field from '../Field'
 import { ComponentType } from 'react'
 
-export interface arrayRefInfo {
+export interface SchemaArrayRefInfo {
   ref: string
   length: number
 }

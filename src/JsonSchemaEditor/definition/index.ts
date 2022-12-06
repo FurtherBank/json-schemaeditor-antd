@@ -70,12 +70,12 @@ export const toOfName = (mergedSchema: MergedSchema) => {
  * @param props
  * @param fieldInfo
  */
-export const canSchemaCreate = (props: FieldProps, fieldInfo: IField) => {
-  const { data } = props
+export const canSchemaCreate = (data: any, fieldInfo: IField) => {
   const dataType = jsonDataType(data)
   const { mergedValueSchema } = fieldInfo
+
   if (!mergedValueSchema) return dataType === 'array' || dataType === 'object'
-  const { maxProperties, properties, additionalProperties, patternProperties, maxItems, items, additionalItems } =
+  const { maxProperties, properties, additionalProperties, patternProperties, maxItems, items, prefixItems } =
     mergedValueSchema
   let autoCompleteKeys: string[] = []
   switch (dataType) {
@@ -100,9 +100,9 @@ export const canSchemaCreate = (props: FieldProps, fieldInfo: IField) => {
       // 4. 有无剩余键
       return restKeys.length > 0 ? autoCompleteKeys : false
     case 'array':
-      const itemsLength = items instanceof Array && additionalItems === false ? items.length : +Infinity
+      const prefixLength = prefixItems && items === false ? prefixItems.length : +Infinity
       const maxLength = maxItems === undefined ? +Infinity : maxItems
-      return (maxLength < itemsLength ? data.length < maxLength : data.length < itemsLength) ? [] : false
+      return (maxLength < prefixLength ? data.length < maxLength : data.length < prefixLength) ? [] : false
     default:
       return false
   }
@@ -145,7 +145,7 @@ export const canSchemaRename = (props: FieldProps, fieldInfo: IField) => {
 /**
  * 判断 该字段是否可删除。可删除条件：
  * 1. `field === undefined` 意味着根字段，不可删除
- * 2. 如果父亲是数组，只要不在数组 items 里面即可删除
+ * 2. 如果父亲是数组，只要不在数组 prefixItems 里面即可删除
  * 3. 如果父亲是对象，只要不在 required 里面即可删除
  *
  * @param props
@@ -160,9 +160,9 @@ export const canDelete = (props: FieldProps, fieldInfo: IField) => {
     const { valueEntry: fatherValueEntry } = fatherInfo
     switch (fatherInfo.type) {
       case 'array':
-        const { items } = ctx.getMergedSchema(fatherValueEntry) || {}
+        const { prefixItems } = ctx.getMergedSchema(fatherValueEntry) || {}
         const index = parseInt(field)
-        return typeof items === 'object' ? index >= items.length : true
+        return prefixItems ? index >= prefixItems.length : true
       case 'object':
         const fatherMergedValueSchema = ctx.getMergedSchema(fatherValueEntry)
         if (fatherMergedValueSchema && fatherMergedValueSchema.required) {
@@ -209,8 +209,8 @@ export const getDefaultValue = (ctx: CpuEditorContext, entry: string | undefined
     const: constValue,
     enum: enumValue,
     type: allowedTypes,
-    items,
-    additionalItems
+    prefixItems,
+    items
   } = mergedSchema
   const nowDataType = jsonDataType(nowData)
   // 0. 如果nowData是对象，且有属性列表，就先剪掉不在列表中的属性，然后进行合并
@@ -262,10 +262,10 @@ export const getDefaultValue = (ctx: CpuEditorContext, entry: string | undefined
 
         return result
       case 'array':
-        const arrayResult = jsonDataType(nowData) === 'array' && additionalItems ? _.clone(nowData) : []
+        const arrayResult = jsonDataType(nowData) === 'array' && items ? _.clone(nowData) : []
         // 如果 items 是 arrayRefInfo，那么就是有前缀，覆写前缀
-        if (typeof items === 'object') {
-          const { ref, length } = items
+        if (prefixItems) {
+          const { ref, length } = prefixItems
           for (let i = 0; i < length; i++) {
             arrayResult[i] = getDefaultValue(ctx, addRef(ref, i.toString()))
           }

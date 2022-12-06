@@ -26,6 +26,8 @@ it('parse in need', () => {
 
   console.log(ctx.mergedSchemaMap.keys())
 
+  // only parse direct subField of array item
   expect(ctx.mergedSchemaMap.has('#/items/0')).toBe(true)
-  expect(ctx.mergedSchemaMap.has('#/items/2')).toBe(false)
+  expect(ctx.mergedSchemaMap.has('#/items/2')).toBe(true)
+  expect(ctx.mergedSchemaMap.has('#/items/2/properties/name')).toBe(false)
 })

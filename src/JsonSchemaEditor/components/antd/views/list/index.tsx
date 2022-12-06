@@ -1,12 +1,13 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { CreateName } from '../../base/creator'
-import { canSchemaCreate, getListAllowedShortLevel } from '../../../../definition'
-import { concatAccess, getFieldSchema, getValueByPattern, jsonDataType } from '../../../../utils'
-import { isShort } from '../../../../context/virtual'
+import { concatAccess, jsonDataType } from '../../../../utils'
 import { EditionProps } from '../../../core/type/props'
 import { SelectableGroup } from 'react-selectable-fast'
 import { DataItemProps, ItemList } from './ItemList'
-import { ChildData, FatherInfo } from '../../../core/type/list'
+import { ChildData } from '../../../core/type/list'
+import { useFatherInfo } from '../../../core/hooks/useFatherInfo'
+import { useArrayListContent } from '../../../core/hooks/useArrayListContent'
+import { useSubFieldQuery } from '../../../core/hooks/useSubFieldQuery'
 
 const ArrayListView = (props: EditionProps) => {
   const { data, route, field, schemaEntry, fieldInfo } = props
@@ -19,70 +20,19 @@ const ArrayListView = (props: EditionProps) => {
     return concatAccess(route, field)
   }, [route, field])
 
-  const { required, properties, additionalProperties, patternProperties } = mergedValueSchema || {}
-  const fatherInfo = useMemo((): FatherInfo => {
-    const childFatherInfo: FatherInfo = {
-      schemaEntry,
-      valueEntry,
-      type: dataType
-    }
-    switch (dataType) {
-      case 'array':
-        childFatherInfo.type = 'array'
-        childFatherInfo.length = data.length
-        break
-      default:
-        childFatherInfo.type = 'object'
-        if (required) childFatherInfo.required = required
-        break
-    }
-    return childFatherInfo
-  }, [schemaEntry, valueEntry, data])
+  const fatherInfo = useFatherInfo(data, schemaEntry, valueEntry, mergedValueSchema)
 
-  const allowedShortLevel = getListAllowedShortLevel(ctx, dataType, valueEntry)
+  const lists = useArrayListContent(data, schemaEntry, fieldInfo)
+
+  const lastList = lists[lists.length - 1].items
+  const canCreate = lastList[lastList.length - 1] === null
 
   const content = useMemo(() => {
-    let children: ChildData[] = []
-    if (dataType === 'array') {
-      children = data.map((value: any, i: number) => {
-        return { key: i.toString(), value }
-      })
-    } else if (dataType === 'object') {
-      const shortenProps: string[] = []
-      // todo: 分开查找可优化的项，然后按顺序排列
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          const value = data[key]
-          const patternRef = patternProperties ? getValueByPattern(patternProperties, key) : undefined
-          const propRealRef =
-            properties && properties[key] ? properties[key] : patternRef ? patternRef : additionalProperties
-          if (propRealRef) {
-            const { [isShort]: shortable } = ctx.getMergedSchema(propRealRef) || {}
-            if (shortable) {
-              shortenProps.push(key)
-              continue
-            }
-          }
-          children.push({ key, value })
-        }
-      }
-
-      if (shortenProps.length > 0) {
-        const shortenChildren = shortenProps.map((key) => {
-          const value = data[key]
-          return {
-            key,
-            value
-          }
-        })
-        children.unshift({ data: shortenChildren, key: '', value: '' })
-      }
-    }
-    return children
-  }, [schemaEntry, valueEntry, data])
-
-  // items 后处理
-  const canCreate = canSchemaCreate(props, fieldInfo)
+    // 展平 list，且将最后的 { key: '' } 去除掉
+    const allChildData = lists.map((list) => list.items).flat(1)
+    if (allChildData[allChildData.length - 1].key === '') allChildData.pop()
+    return allChildData as ChildData[]
+  }, [lists])
 
   // 对数组json专用的 列表选择特性
   const [currentItem, setCurrentItem] = useState(0)
@@ -96,14 +46,7 @@ const ArrayListView = (props: EditionProps) => {
     }
   }
 
-  const getSubField = useCallback(
-    (key, short) => {
-      const subEntry = getFieldSchema(data, valueEntry, mergedValueSchema, key) || undefined
-      const Field = ctx.Field
-      return <Field route={access} field={key} fatherInfo={fatherInfo} schemaEntry={subEntry} short={short} />
-    },
-    [data, access, valueEntry, fieldInfo, fatherInfo]
-  )
+  const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo)
 
   return (
     <div style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }}>
@@ -133,9 +76,10 @@ const ArrayListView = (props: EditionProps) => {
           </SelectableGroup>
           {canCreate ? (
             <CreateName
-              fatherInfo={fatherInfo}
-              fieldProps={props}
-              fieldInfo={fieldInfo}
+              data={data}
+              access={access}
+              mergedValueSchema={mergedValueSchema}
+              ctx={ctx}
               style={{ margin: '3px', width: 'auto' }}
               key={'create'}
             />
@@ -143,7 +87,7 @@ const ArrayListView = (props: EditionProps) => {
         </div>
       </aside>
       <main style={{ height: '100%', overflow: 'auto', flex: 'auto' }}>
-        {data.length > 0 ? getSubField(currentItem.toString(), allowedShortLevel) : null}
+        {data.length > 0 ? getSubField(currentItem.toString(), 0) : null}
       </main>
     </div>
   )

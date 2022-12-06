@@ -66,8 +66,8 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
 
   // 父亲是数组，且自己的索引不超限的情况下，加入 move
   if (fatherInfo && fatherInfo.type === 'array') {
-    const { items } = ctx.getMergedSchema(fatherInfo.valueEntry) || {}
-    const length = typeof items === 'object' ? items.length : 0
+    const { prefixItems } = ctx.getMergedSchema(fatherInfo.valueEntry) || {}
+    const length = prefixItems ? prefixItems.length : 0
     const index = parseInt(field!)
     if (index - 1 >= 0 && index !== length) result.push('moveup')
     if (index + 1 < fatherInfo.length! && index + 1 !== length) result.push('movedown')

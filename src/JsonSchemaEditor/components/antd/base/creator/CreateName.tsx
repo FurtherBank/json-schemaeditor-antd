@@ -1,24 +1,21 @@
 import { CheckOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Input, message } from 'antd'
 import React, { useCallback, useState } from 'react'
-import { FieldProps, IField } from '../../../../Field'
-import { concatAccess } from '../../../../utils'
+import CpuEditorContext from '../../../../context'
+import { MergedSchema } from '../../../../context/mergeSchema'
 import { useArrayCreator } from '../../../core/hooks/useArrayCreator'
 import { useObjectCreator } from '../../../core/hooks/useObjectCreator'
-import { FatherInfo } from '../../../core/type/list'
 
 export interface CreateNameProps {
-  fatherInfo: FatherInfo
-  fieldProps: FieldProps
-  fieldInfo: IField
+  ctx: CpuEditorContext
+  access: string[]
+  data: any
+  mergedValueSchema: MergedSchema | false | undefined
   style?: React.CSSProperties
 }
 
 export const ObjectPropCreator = (props: CreateNameProps) => {
-  const { fatherInfo, fieldProps, style, fieldInfo } = props
-  const { data, route, field } = fieldProps
-  const { ctx, mergedValueSchema } = fieldInfo
-  const access = concatAccess(route, field)
+  const { data, access, style, mergedValueSchema, ctx } = props
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
@@ -77,22 +74,19 @@ export const ObjectPropCreator = (props: CreateNameProps) => {
     </div>
   ) : (
     <Button type="dashed" icon={<PlusOutlined />} size="small" block onClick={handleClick} style={style}>
-      {fatherInfo.type === 'object' ? 'Property' : 'Item'}
+      Property
     </Button>
   )
 }
 
 export const ArrayItemCreator = (props: CreateNameProps) => {
-  const { fatherInfo, fieldProps, style, fieldInfo } = props
-  const { data, route, field } = fieldProps
-  const { ctx, mergedValueSchema } = fieldInfo
-  const access = concatAccess(route, field)
+  const { data, access, style, mergedValueSchema, ctx } = props
 
   const createArrayItem = useArrayCreator(ctx, data, access, mergedValueSchema)
 
   return (
     <Button type="dashed" icon={<PlusOutlined />} size="small" block onClick={createArrayItem} style={style}>
-      {fatherInfo.type === 'object' ? 'Property' : 'Item'}
+      Item
     </Button>
   )
 }

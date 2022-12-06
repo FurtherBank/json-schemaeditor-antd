@@ -334,19 +334,3 @@ export const getSchemaEntryByPath = (data: any, path: string[], ctx: CpuEditorCo
   }
   return schemaEntry
 }
-
-/**
- * 取得列表组件允许渲染的最大短组件层级。
- * @param ctx
- * @param dataType
- * @param valueEntry
- */
-export const getListAllowedShortLevel = (
-  ctx: CpuEditorContext,
-  dataType: 'object' | 'array',
-  valueEntry: string | undefined
-) => {
-  if (dataType === 'object') return ShortLevel.no
-  const { itemInfo } = ctx.getSubInfo(valueEntry)
-  return itemInfo ? itemInfo.shortLv : ShortLevel.no
-}

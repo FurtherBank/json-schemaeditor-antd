@@ -2,6 +2,8 @@ import { metaSchema } from '../../..'
 import CpuEditorContext from '../../context'
 import examples from '../../demos/examples'
 import { createStore } from 'redux'
+import { CpuInteraction } from '../../context/interaction'
+import { antdComponentMap, antdViewsMap } from '../../components/antd'
 
 export const getAllObjectRefs = (data: any, ref = ''): string[] => {
   const result = []
@@ -48,9 +50,13 @@ export const getExample = (name: string) => {
 }
 
 export const mockCtx = (schema: any) => {
+  const interaction = new CpuInteraction(() => {})
   return new CpuEditorContext(
     schema,
     '',
-    createStore(() => ({}), {})
+    createStore(() => ({}), {}),
+    interaction,
+    antdComponentMap,
+    antdViewsMap
   )
 }

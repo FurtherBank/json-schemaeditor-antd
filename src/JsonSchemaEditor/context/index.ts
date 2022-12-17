@@ -5,10 +5,10 @@ import { doAction, CpuEditorState, CpuEditorAction } from '../definition/reducer
 import { AnyAction, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
-import { IComponentMap, IViewsMap } from '../type/Components'
-import { antdComponentMap, antdViewsMap } from '../components/antd'
+import { IComponentMap, IViewsMap } from '../components/core/ComponentMap'
 import Field from '../Field'
 import { ComponentType } from 'react'
+import { CpuInteraction } from './interaction'
 
 export interface SchemaArrayRefInfo {
   ref: string
@@ -23,6 +23,13 @@ export interface SchemaArrayRefInfo {
  */
 export default class CpuEditorContext {
   Field = Field
+  /**
+   * 获取 store 中目前的 data
+   * @returns
+   */
+  getNowData = () => {
+    return this.store.getState().present.data
+  }
   rootSchema: JSONSchema | false
   mergedSchemaMap: Map<string, MergedSchema | false>
   /**
@@ -36,7 +43,6 @@ export default class CpuEditorContext {
   resourceMap: Map<string, any>
 
   dispatch: Dispatch<AnyAction>
-
   executeAction: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
   private actionCreator: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
 
@@ -44,8 +50,8 @@ export default class CpuEditorContext {
     rootSchema: false | JSONSchema,
     public id: string | undefined,
     public store: Store<StateWithHistory<CpuEditorState>, AnyAction>,
-    public setDrawer: (route: string[], field: string | undefined) => void,
-    public readonly componentMap: IComponentMap = antdComponentMap,
+    public interaction: CpuInteraction,
+    public readonly componentMap: IComponentMap,
     /**
      * 自定义 view 的组件列表，通过`view.type`索引到 componentMap；
      *
@@ -53,7 +59,7 @@ export default class CpuEditorContext {
      *
      * 如果在 schema 中限定了`view.type`，但没有在对应的 componentMap 找到组件，将使用对应的默认组件代替。
      */
-    public readonly viewsMap: Record<string, IViewsMap> = antdViewsMap
+    public readonly viewsMap: Record<string, IViewsMap>
   ) {
     this.rootSchema = rootSchema
     this.mergedSchemaMap = new Map()

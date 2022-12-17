@@ -137,7 +137,7 @@ const FieldBase = (props: FieldProps) => {
   const menuActionHandlers = useMemo(
     () => ({
       detail: () => {
-        ctx.setDrawer(route, field)
+        ctx.interaction.setDrawer(route, field)
       },
       moveup: () => {
         doAction('moveup', route, field)

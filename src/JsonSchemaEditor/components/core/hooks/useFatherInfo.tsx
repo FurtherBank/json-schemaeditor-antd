@@ -3,6 +3,14 @@ import { MergedSchema } from '../../../context/mergeSchema'
 import { jsonDataType } from '../../../utils'
 import { FatherInfo } from '../type/list'
 
+/**
+ * [业务]获取到数组/对象数据的 fatherInfo
+ * @param data
+ * @param schemaEntry
+ * @param valueEntry
+ * @param mergedValueSchema
+ * @returns
+ */
 export const useFatherInfo = (
   data: Record<string, any> | any[],
   schemaEntry: string | undefined,

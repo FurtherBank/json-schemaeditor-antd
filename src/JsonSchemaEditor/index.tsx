@@ -9,6 +9,9 @@ import { ValidateFunction } from 'ajv'
 import CpuEditorContext from './context'
 import ajvInstance from './definition/ajvInstance'
 import { JSONSchema } from './type/Schema'
+import { IComponentMap, IViewsMap } from './components/core/ComponentMap'
+import { CpuInteraction } from './context/interaction'
+import { antdComponentMap, antdViewsMap } from './components/antd'
 
 export interface EditorProps {
   onChange?: (data: any) => void | null
@@ -16,13 +19,16 @@ export interface EditorProps {
   schema?: JSONSchema
   id?: string | undefined
   style?: CSSProperties
+  componentMap?: IComponentMap
+  viewsMap?: Record<string, IViewsMap>
 }
+
 export const InfoContext = React.createContext<CpuEditorContext>(null!)
 
 const emptyArray: never[] = []
 
 const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) => {
-  const { schema, data, onChange, id } = props
+  const { schema, data, onChange, id, viewsMap = antdViewsMap, componentMap = antdComponentMap } = props
 
   // useMemo 编译 schema
   const validate = useMemo(() => {
@@ -75,10 +81,14 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     return store
   }, [schema])
 
+  const interaction = useMemo(() => {
+    return new CpuInteraction(setDrawer)
+  }, [setDrawer])
+
   const ctx = useMemo(() => {
     const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
-    return new CpuEditorContext(realSchema, id, store, setDrawer)
-  }, [schema])
+    return new CpuEditorContext(realSchema, id, store, interaction, componentMap, viewsMap)
+  }, [schema, interaction, componentMap, viewsMap])
 
   // 暴露一下 api
   useImperativeHandle(

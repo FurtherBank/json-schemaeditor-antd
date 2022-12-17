@@ -1,5 +1,5 @@
 import { FieldDrawer } from './drawer/FieldDrawer'
-import { IComponentMap } from '../../type/Components'
+import { IComponentMap } from '../core/ComponentMap'
 import { BooleanEdition } from './edition/BooleanEdition'
 import { ConstEdition } from './edition/ConstEdition'
 import { EnumEdition } from './edition/EnumEdition'

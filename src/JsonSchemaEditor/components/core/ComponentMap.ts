@@ -1,6 +1,7 @@
 import { ComponentType } from 'react'
-import { ContainerProps, EditionProps, MenuActionProps } from '../components/core/type/props'
-import { JSONSchema } from './Schema'
+import { ContainerProps, EditionProps, MenuActionProps } from './type/props'
+import { JSONSchema } from '../../type/Schema'
+import merge from 'lodash/merge'
 
 export type CpuEditionType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'enum' | 'const'
 /**
@@ -45,4 +46,20 @@ export interface IViewsMap extends PartialIComponentMap {
    * 注：该字段仅供对外声明使用，为提高性能，并不对传入的参数进行校验。
    */
   paramSchema?: JSONSchema
+}
+
+/**
+ * 将合并 componentMap 和 viewsMap 的函数放在这个单例之中
+ */
+export class ComponentMap {
+  /**
+   * 合并 ComponentMap 或 ViewsMap
+   * @param maps
+   * @returns
+   */
+  static merge<T extends IComponentMap | IViewsMap>(...maps: T[]) {
+    return maps.reduce((resultMap, newMap) => {
+      return merge(resultMap, newMap)
+    })
+  }
 }

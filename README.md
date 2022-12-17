@@ -1,6 +1,14 @@
 # json-schemaeditor-antd
 
-[NPM version][npm-url] [Package quality][quality-url] [npm download][download-url]
+[![NPM version][npm-image]][npm-url] [![Package quality][quality-image]][quality-url] [![npm download][download-image]][download-url]
+
+[npm-image]: https://img.shields.io/npm/v/json-schemaeditor-antd.svg?logo=npm
+[npm-url]: https://npmjs.org/package/json-schemaeditor-antd
+[quality-image]: https://packagequality.com/shield/json-schemaeditor-antd.svg
+[quality-url]: https://packagequality.com/#?package=json-schemaeditor-antd
+[node-url]: http://nodejs.org/download/
+[download-image]: https://img.shields.io/npm/dm/json-schemaeditor-antd.svg?logo=npm
+[download-url]: https://npmjs.org/package/json-schemaeditor-antd
 
 该项目是一个基于 antd 搭建的可使用 JSON Schema 约束的 JSON 编辑器。主要面向 json 编辑，对 JSON Schema 的各类特性支持友好，对各种特性组合的情况考虑深入，支持很多特性组合用法。相对其它一些同类产品，支持 oneOf/anyOf 嵌套且组合 $ref、编辑元模式等特性功能。
 
@@ -9,8 +17,6 @@
 [github pages](https://furtherbank.github.io/json-schemaeditor-antd)
 
 [gitee pages](https://furtherbank.gitee.io/json-schemaeditor-antd)
-
-目前没做代码分片，所以带着 monaco-editor 加载时间会长一些~请耐心等待
 
 ## 使用方法/功能介绍
 

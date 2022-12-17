@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import React, { ForwardRefExoticComponent, ForwardRefRenderFunction, useRef } from 'react'
 
 interface MockProps {
@@ -26,10 +27,11 @@ export const RefMocker = (props: MockProps) => {
 }
 
 export const MockRender = <T extends any>(component: ForwardRefRenderFunction<T, any>, props: any = {}) => {
+  const user = userEvent.setup()
   const refMockerHook = new RefMockerHook()
   const renderResult = render(<RefMocker {...props} component={component} refHook={refMockerHook} />)
 
   const current = refMockerHook.current.current as T
 
-  return { current, refMockerHook, renderResult }
+  return { current, refMockerHook, renderResult, user }
 }

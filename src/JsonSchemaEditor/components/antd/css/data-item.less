@@ -1,9 +1,21 @@
 .list-item {
+  box-sizing: border-box;
+  height: 1em;
   padding: 0.25em 0.5em;
+
+  &:not(:last-child) {
+    border-bottom: solid 1px #80808040;
+  }
 }
 
-.list-item span {
-  width: 2.5em;
+.list-item > p {
+  padding-right: 0.5em;
   color: #808080;
   font-size: smaller;
+}
+
+.list-item > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

@@ -14,9 +14,9 @@ export const DataItem = createSelectable<DataItemProps>(
     const { selectableRef, isSelected, isSelecting, children, id } = props
 
     const classNames = [
-      'ant-select-item ant-select-item-option ant-select-item-option-active list-item',
+      'ant-select-item ant-select-item-option list-item',
       false,
-      isSelecting && 'ant-select-item-option-selected',
+      isSelecting && 'ant-select-item-option-active',
       isSelected && 'ant-select-item-option-selected'
     ]
       .filter(Boolean)
@@ -24,8 +24,8 @@ export const DataItem = createSelectable<DataItemProps>(
 
     return (
       <div ref={selectableRef} className={classNames}>
-        <span>{id}</span>
-        {children}
+        <p className="item-title">{id}</p>
+        <span>{children}</span>
       </div>
     )
   }

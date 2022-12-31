@@ -50,7 +50,7 @@ const ArrayListView = (props: EditionProps) => {
 
   return (
     <div style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }}>
-      <aside style={{ height: '100%', minWidth: '15em' }}>
+      <aside style={{ height: '100%', width: '15em' }}>
         <div
           className="ant-card-bordered"
           style={{

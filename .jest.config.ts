@@ -22,7 +22,7 @@ const config = {
     '!**/examples/**',
     '!**/*.d.ts'
   ].filter((dict) => typeof dict === 'string') as string[],
-  coveragePathIgnorePatterns: ['/node_modules/', '.umi', '.umi-production', 'demos'],
+  coveragePathIgnorePatterns: ['/node_modules/', '.umi', '.umi-production', 'demos', '__test__'],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
   moduleNameMapper: {
     '\\.(css|less|sass|scss|stylus)$': require.resolve('identity-obj-proxy')

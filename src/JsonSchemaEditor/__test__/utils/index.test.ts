@@ -211,10 +211,19 @@ describe('utils', () => {
     json2.properties.key.maxLength = 20
     const json3 = _.cloneDeep(json)
     json3.properties.key = null
+    const json4 = _.cloneDeep(json)
+    json4.properties.a = {
+      b: {
+        c: {
+          d: null
+        }
+      }
+    }
     expect(pathSet(_.cloneDeep(json), '#/title', 'Schema')).toEqual(json1)
     expect(pathSet(_.cloneDeep(json), '#/title/aabc', 5)).toEqual(json0)
     expect(pathSet(_.cloneDeep(json), '#/properties/key/maxLength', 20)).toEqual(json2)
     expect(pathSet(_.cloneDeep(json), '#/properties/key/', null)).toEqual(json3)
+    expect(pathSet(_.cloneDeep(json), '#/properties/a/b/c/d', null)).toEqual(json4)
   })
 
   it('getValueByPattern', () => {

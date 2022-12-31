@@ -12,7 +12,7 @@ const stopBubble = (e: React.SyntheticEvent) => {
 }
 
 export const FieldContainerNormal = (props: ContainerProps) => {
-  const { data, route, field, fieldDomId, titleComponent, valueComponent, fieldInfo } = props
+  const { data, route, field, fieldDomId, titleComponent, valueComponent, rootMenuItems = [], fieldInfo } = props
   const { mergedValueSchema } = fieldInfo
 
   const dataType = jsonDataType(data)
@@ -27,6 +27,8 @@ export const FieldContainerNormal = (props: ContainerProps) => {
   const canCollapse = dataIsObject && access.length > 0
   const editionIsMultiline = dataIsObject || formatType === 2
 
+  const extraComponents = operationComponents.concat(rootMenuItems).concat(menuActionComponents)
+
   return canCollapse ? (
     <Collapse
       defaultActiveKey={access.length < maxCollapseLayer ? ['theoneandtheonly'] : undefined}
@@ -35,7 +37,7 @@ export const FieldContainerNormal = (props: ContainerProps) => {
       <Panel
         key="theoneandtheonly"
         header={titleComponent}
-        extra={<Space onClick={stopBubble}>{operationComponents.concat(menuActionComponents)}</Space>}
+        extra={<Space onClick={stopBubble}>{extraComponents}</Space>}
         id={getAccessRef(access) || fieldDomId}
       >
         {valueComponent}
@@ -48,7 +50,7 @@ export const FieldContainerNormal = (props: ContainerProps) => {
       extra={
         <Space>
           {!editionIsMultiline ? valueComponent : null}
-          {operationComponents.concat(menuActionComponents)}
+          {extraComponents}
         </Space>
       }
       bodyStyle={!editionIsMultiline ? { display: 'none' } : {}}

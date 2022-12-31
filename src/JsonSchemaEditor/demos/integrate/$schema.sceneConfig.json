@@ -25,13 +25,7 @@
           "$ref": "#/definitions/ResponseData"
         }
       },
-      "required": [
-        "name",
-        "responseCode",
-        "responseData",
-        "responseDelay",
-        "rewriteResponseHeaders"
-      ],
+      "required": ["name", "responseCode", "responseData", "responseDelay", "rewriteResponseHeaders"],
       "title": "场景"
     },
     "ResponseData": {

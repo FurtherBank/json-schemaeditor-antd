@@ -16,11 +16,12 @@ import { antdComponentMap, antdViewsMap } from './components/antd'
 export interface EditorProps {
   onChange?: (data: any) => void | null
   data?: any
-  schema?: JSONSchema
+  schema?: JSONSchema | boolean
   id?: string | undefined
   style?: CSSProperties
   componentMap?: IComponentMap
   viewsMap?: Record<string, IViewsMap>
+  rootMenuItems?: JSX.Element[]
 }
 
 export const InfoContext = React.createContext<CpuEditorContext>(null!)
@@ -28,7 +29,7 @@ export const InfoContext = React.createContext<CpuEditorContext>(null!)
 const emptyArray: never[] = []
 
 const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) => {
-  const { schema, data, onChange, id, viewsMap = antdViewsMap, componentMap = antdComponentMap } = props
+  const { schema, data, onChange, id, viewsMap = antdViewsMap, componentMap = antdComponentMap, rootMenuItems } = props
 
   // useMemo 编译 schema
   const validate = useMemo(() => {
@@ -114,7 +115,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     <Provider store={store}>
       {validate instanceof Function ? null : <SchemaErrorLogger error={validate.toString()} />}
       <InfoContext.Provider value={ctx}>
-        <Field route={emptyArray} schemaEntry="#" />
+        <Field route={emptyArray} schemaEntry="#" rootMenuItems={rootMenuItems} />
         <EditorDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>

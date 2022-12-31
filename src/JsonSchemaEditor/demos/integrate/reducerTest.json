@@ -1,0 +1,21 @@
+{
+  "arr": [1, 2, 3],
+  "obj": {
+    "a": "string",
+    "b": false,
+    "c": null
+  },
+  "needToRename": {
+    "num": 123
+  },
+  "moveUpAndDown": [
+    1,
+    2,
+    3,
+    {
+      "key": "value"
+    },
+    4,
+    5
+  ]
+}

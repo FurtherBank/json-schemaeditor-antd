@@ -21,6 +21,7 @@ export interface FieldProps {
   schemaEntry?: string | undefined
   short?: ShortLevel // 可允许短字段等级
   canNotRename?: boolean | undefined
+  rootMenuItems?: JSX.Element[]
   // redux props
   doAction?: (type: string, route?: string[], field?: any, value?: any) => CpuEditorAction
   data?: any
@@ -128,7 +129,7 @@ const FieldBase = (props: FieldProps) => {
       errors,
       doAction
     }),
-    [schemaEntry, valueEntry, errors, doAction]
+    [schemaEntry, valueEntry, errors, ctx, doAction]
   )
 
   // 菜单动作空间以及动作执行函数

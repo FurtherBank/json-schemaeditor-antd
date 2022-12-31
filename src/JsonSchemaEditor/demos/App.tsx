@@ -3,7 +3,7 @@
  * desc: 可以自行查看示例、编辑，并从 monaco-editor 协助编辑 json 和 schema！点击左下角 `Open in new tab` 获取最佳编辑体验！
  * compact: true
  */
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import _ from 'lodash'
 
 import { Button, Card, PageHeader, message } from 'antd' // 用 antd 封装demo
@@ -13,6 +13,7 @@ import JsonSchemaEditor, { metaSchema } from 'json-schemaeditor-antd'
 import examples from './examples'
 import { useCooldown } from './hooks'
 import ModalSelect from './ModalSelect'
+import CpuEditorContext from '../context'
 
 const exampleJson = examples(metaSchema)
 // 从 localStorage 读取 json
@@ -34,6 +35,7 @@ export default () => {
 
   const dataEditor = useRef<MonacoEditor>(null)
   const schemaEditor = useRef<MonacoEditor>(null)
+  const editorRef = useRef<CpuEditorContext>(null)
 
   const [isModalVisible, setIsModalVisible] = useState(false)
 
@@ -93,6 +95,28 @@ export default () => {
       setMode(1)
     }
   }
+
+  const pushItem = useCallback(() => {
+    const ctx = editorRef.current
+    if (ctx) {
+      const data = ctx.getNowData()
+      if (data instanceof Array) {
+        const newItem = `new Item ${data.length}`
+        ctx.executeAction('create', [], data.length.toString(), newItem)
+      }
+    }
+  }, [editorRef])
+
+  const rootMenuItems = [
+    <button
+      key="root-menu-1"
+      type="button"
+      onClick={pushItem}
+      title="该按钮通过 rootMenuItems 属性呈现，可以在组件中拿到 ctx 然后通过 ctx 实现点击事件操作"
+    >
+      press to push item
+    </button>
+  ]
 
   return (
     <div style={{ height: '100vh', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
@@ -158,7 +182,13 @@ export default () => {
         </div>
       ) : (
         <div style={{ flex: 1, height: '0' }}>
-          <JsonSchemaEditor data={data} schema={schema as any} onChange={changeData} />
+          <JsonSchemaEditor
+            data={data}
+            schema={schema as any}
+            onChange={changeData}
+            rootMenuItems={rootMenuItems}
+            ref={editorRef}
+          />
         </div>
       )}
       <ModalSelect cb={changeExample} cancelCb={handleCancel} visible={isModalVisible} />

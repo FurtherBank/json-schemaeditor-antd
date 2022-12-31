@@ -36,10 +36,10 @@ if (typeof window !== 'undefined') {
   window.TransitionEvent = window.TransitionEvent || window.Event
 }
 
-import Enzyme from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
+// import Enzyme from 'enzyme'
+// import Adapter from 'enzyme-adapter-react-16'
 
-Enzyme.configure({ adapter: new Adapter() })
+// Enzyme.configure({ adapter: new Adapter() })
 
 // Object.assign(Enzyme.ReactWrapper.prototype, {
 //   findObserver(index = 0) {

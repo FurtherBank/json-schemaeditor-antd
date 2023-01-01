@@ -1,3 +1,21 @@
+## [0.1.4](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.3...v0.1.4) (2023-01-01)
+
+### Bug Fixes
+
+- 经过抽屉编辑后切换字段类型有可能会出错的问题 ([3d9e1db](https://github.com/FurtherBank/json-schemaeditor-antd/commit/3d9e1dbd9e8338d2754278b7c90c52d49cc7ed39))
+- **parse:** 修复在 object 三大属性关键词都没有时，会出现数组访问报错的问题 ([1934a64](https://github.com/FurtherBank/json-schemaeditor-antd/commit/1934a64948c12a356e732b5f6d5076925643b02e))
+- view: list 名称过长时样式问题 ([3711113](https://github.com/FurtherBank/json-schemaeditor-antd/commit/371111361e28fcd25285afe651914dab1602d954))
+
+### Features
+
+- 加入 reset 操作 ([cac0331](https://github.com/FurtherBank/json-schemaeditor-antd/commit/cac03310be93ca53a3bee7170b91b7d61028c797))
+- 可使用自己的 componentMap ([0ac092c](https://github.com/FurtherBank/json-schemaeditor-antd/commit/0ac092c4025c6f5b98d17c3e4f9daedb7ecc743b))
+- 可以给根节点设置更多菜单组件 rootMenuItems ([7d11e61](https://github.com/FurtherBank/json-schemaeditor-antd/commit/7d11e61c533cc839b25af6c90871ee75cb47f4b5))
+- 组件层全剥离 ([cf2b32e](https://github.com/FurtherBank/json-schemaeditor-antd/commit/cf2b32ed98e8b5ba1c248ec844f2c7bd96d5a5a2))
+- 组件架构分离 part1 ([13f4044](https://github.com/FurtherBank/json-schemaeditor-antd/commit/13f4044cd38beb7a6aa15635146d9e0302639a29))
+- field 容器组件抽离 ([b380564](https://github.com/FurtherBank/json-schemaeditor-antd/commit/b380564e98ee3f1dd60d94db036dbbc484144ab8))
+- view 特性实装 ([7dfbf99](https://github.com/FurtherBank/json-schemaeditor-antd/commit/7dfbf990cbe37b542586e4aa76568d78997917ce))
+
 ## [0.1.3](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.2...v0.1.3) (2022-05-04)
 
 ### Bug Fixes

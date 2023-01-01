@@ -1,7 +1,7 @@
 import React from 'react'
 import { ContainerProps } from '../type/props'
 import { getRefByOfChain } from '../../../context/ofInfo'
-import { getDefaultValue, defaultTypeValue } from '../../../definition'
+import { getDefaultValue, defaultTypeValue } from '../../../definition/defaultValue'
 import { JsonTypes } from '../../../definition/reducer'
 import { jsonDataType } from '../../../utils'
 

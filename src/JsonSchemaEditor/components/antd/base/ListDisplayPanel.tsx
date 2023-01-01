@@ -1,10 +1,10 @@
 import { List } from 'antd'
 import React from 'react'
 import { CreateName } from '../base/creator'
-import { gridOption } from '../../../definition'
 import { ShortLevel } from '../../../definition'
 import { ChildData, EmptyChildData, ListDisplayPanelProps } from '../../core/type/list'
 import { useSubFieldQuery } from '../../core/hooks/useSubFieldQuery'
+import { gridOption } from '../config'
 
 export const ListDisplayPanel = (props: ListDisplayPanelProps) => {
   const { data, access, fieldInfo, fatherInfo, lists } = props

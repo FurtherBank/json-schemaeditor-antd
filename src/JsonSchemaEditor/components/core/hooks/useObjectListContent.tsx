@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { isShort } from '../../../context/virtual'
-import { canSchemaCreate, ShortLevel } from '../../../definition'
+import { ShortLevel } from '../../../definition'
+import { canFieldCreate } from '../../../definition/schema'
 import { IField } from '../../../Field'
 import { getValueByPattern } from '../../../utils'
 import { ChildData, EmptyChildData, FieldDisplayList } from '../type/list'
@@ -54,7 +55,7 @@ export const useObjectListContent = (
     }
 
     // 如果可以创建新项，在第二个表后面加入 null，代表该项为 create 组件
-    const canCreate = canSchemaCreate(data, fieldInfo)
+    const canCreate = canFieldCreate(data, fieldInfo)
     if (canCreate) normalProps.push({ key: '' })
 
     return [shortenProps, normalProps]

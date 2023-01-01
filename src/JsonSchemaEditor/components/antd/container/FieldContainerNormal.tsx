@@ -1,9 +1,10 @@
 import { Card, Collapse, Space } from 'antd'
 import React from 'react'
-import { getFormatType, maxCollapseLayer } from '../../../definition'
+import { getFormatType } from '../../../definition/formats'
 import { useMenuActionComponents } from '../../core/hooks/useMenuActionComponents'
 import { jsonDataType, concatAccess, getAccessRef } from '../../../utils'
 import { ContainerProps } from '../../core/type/props'
+import { maxCollapseLayer } from '../config'
 
 const { Panel } = Collapse
 

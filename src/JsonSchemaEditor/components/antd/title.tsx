@@ -1,7 +1,8 @@
 import { CloseCircleOutlined } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 import React from 'react'
-import { canSchemaRename, isFieldRequired, ShortLevel } from '../../definition'
+import { ShortLevel } from '../../definition'
+import { canFieldRename, isFieldRequired } from '../../definition/schema'
 
 import { CInput } from '../antd/base/cacheInput'
 import { EditionProps } from '../core/type/props'
@@ -15,7 +16,7 @@ export const FieldTitle = (props: EditionProps) => {
   const { errors, mergedEntrySchema, ctx } = fieldInfo
   const { description } = mergedEntrySchema || {}
 
-  const fieldNameRange = canSchemaRename(props, fieldInfo)
+  const fieldNameRange = canFieldRename(props, fieldInfo)
   const titleName = fieldNameRange === '' || fieldNameRange instanceof RegExp ? field : fieldNameRange
 
   const isRequired = isFieldRequired(field, fatherInfo)

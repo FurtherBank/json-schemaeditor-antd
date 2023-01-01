@@ -1,7 +1,7 @@
 import range from 'lodash/range'
 import { useMemo } from 'react'
 import { isShort } from '../../../context/virtual'
-import { canSchemaCreate } from '../../../definition'
+import { canFieldCreate } from '../../../definition/schema'
 import { IField } from '../../../Field'
 import { addRef } from '../../../utils'
 import { ChildData, EmptyChildData, FieldDisplayList } from '../type/list'
@@ -62,7 +62,7 @@ export const useArrayListContent = (
     }
 
     // 如果可以创建新项，在第二个表后面加入 { key: '' }，代表该项为 create 组件
-    const canCreate = canSchemaCreate(data, fieldInfo)
+    const canCreate = canFieldCreate(data, fieldInfo)
     if (canCreate) itemsList.push({ key: '' })
 
     return [prefixList, itemsList]

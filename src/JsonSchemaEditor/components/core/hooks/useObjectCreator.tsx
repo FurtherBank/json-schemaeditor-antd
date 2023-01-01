@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import CpuEditorContext from '../../../context'
 import { MergedSchema } from '../../../context/mergeSchema'
-import { getDefaultValue } from '../../../definition'
+import { getDefaultValue } from '../../../definition/defaultValue'
 import { getValueByPattern } from '../../../utils'
 
 /**

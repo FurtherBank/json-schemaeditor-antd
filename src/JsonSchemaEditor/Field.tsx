@@ -2,7 +2,8 @@
 import React, { ComponentType, useContext, useMemo } from 'react'
 
 import { connect, useSelector } from 'react-redux'
-import { canDelete, getValueEntry, ShortLevel } from './definition'
+import { getValueEntry, ShortLevel } from './definition'
+import { canFieldDelete } from './definition/schema'
 import { doAction, CpuEditorState } from './definition/reducer'
 import { concatAccess, jsonDataType, getError, getAccessRef, pathGet } from './utils'
 import { InfoContext } from '.'
@@ -76,7 +77,7 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
 
   // 如果父亲是对象/数组，且属性可删除，加入删除功能
   if (fatherInfo && fatherInfo.type) {
-    if (canDelete(props, fieldInfo)) result.push('delete')
+    if (canFieldDelete(props, fieldInfo)) result.push('delete')
   }
 
   return result

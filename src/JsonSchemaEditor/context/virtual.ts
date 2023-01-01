@@ -1,5 +1,5 @@
 import { MergedSchemaWithoutVirtual } from './mergeSchema'
-import { getFormatType } from '../definition'
+import { getFormatType } from '../definition/formats'
 import CpuEditorContext from '.'
 
 // symbols

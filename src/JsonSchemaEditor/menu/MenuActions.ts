@@ -1,6 +1,6 @@
 import { ofSchemaCache } from '../context/ofInfo'
 
-export const MenuActions = ['undo', 'redo', 'detail', 'moveup', 'movedown', 'delete'] as const
+export const MenuActions = ['undo', 'redo', 'detail', 'reset', 'moveup', 'movedown', 'delete'] as const
 
 export type MenuActionType = typeof MenuActions[number]
 

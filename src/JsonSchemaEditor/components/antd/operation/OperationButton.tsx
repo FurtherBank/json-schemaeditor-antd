@@ -1,9 +1,17 @@
-import { ArrowUpOutlined, ArrowDownOutlined, DeleteOutlined, UndoOutlined, RedoOutlined } from '@ant-design/icons'
+import {
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  DeleteOutlined,
+  UndoOutlined,
+  RedoOutlined,
+  RetweetOutlined
+} from '@ant-design/icons'
 import { Button } from 'antd'
 import React from 'react'
 import { MenuActionProps } from '../../core/type/props'
 
 const actionIcon = {
+  reset: <RetweetOutlined />,
   moveup: <ArrowUpOutlined />,
   movedown: <ArrowDownOutlined />,
   delete: <DeleteOutlined />,

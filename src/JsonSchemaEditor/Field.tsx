@@ -14,6 +14,7 @@ import { MergedSchema } from './context/mergeSchema'
 import { MenuActionType } from './menu/MenuActions'
 import { ContainerProps } from './components/core/type/props'
 import { FatherInfo } from './components/core/type/list'
+import { useMenuActionHandlers } from './components/core/hooks/useMenuActionHandlers'
 
 export interface FieldProps {
   route: string[] // 只有这个属性是节点传的
@@ -61,6 +62,9 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
     result.push('undo')
     result.push('redo')
   }
+
+  // 如果 data 不满足要求，加入 reset
+  if (errors.length > 0) result.push('reset')
 
   // 短优化时，如果有 const/enum 或者类型错误，加入detail
   const hasEnumOrConst = constValue !== undefined || enumValue !== undefined
@@ -135,33 +139,7 @@ const FieldBase = (props: FieldProps) => {
 
   // 菜单动作空间以及动作执行函数
   const space = useMemo(() => menuActionSpace(props, fieldInfo), [props, fieldInfo])
-
-  const menuActionHandlers = useMemo(
-    () => ({
-      detail: () => {
-        ctx.interaction.setDrawer(route, field)
-      },
-      moveup: () => {
-        doAction('moveup', route, field)
-      },
-      movedown: () => {
-        doAction('movedown', route, field)
-      },
-      delete: () => {
-        doAction('delete', route, field)
-      },
-      undo: () => {
-        doAction('undo')
-      },
-      redo: () => {
-        doAction('redo')
-      },
-      paste: () => {
-        doAction('change', route, field, 0)
-      }
-    }),
-    [route, field, doAction, ctx]
-  )
+  const menuActionHandlers = useMenuActionHandlers(ctx, route, field, valueEntry, data)
 
   // 1. 设置标题组件
   const TitleComponent = ctx.getComponent(schemaEntryViewType, ['title'])

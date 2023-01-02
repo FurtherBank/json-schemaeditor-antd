@@ -51,7 +51,7 @@ export const ObjectPropCreator = (props: CreateNameProps) => {
     } else {
       setEditing(false)
     }
-  }, [createObjectProp, setEditing])
+  }, [name, createObjectProp, setEditing])
 
   return editing ? (
     <div style={{ display: 'flex' }}>

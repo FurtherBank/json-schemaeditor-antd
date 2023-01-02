@@ -10,7 +10,7 @@ export interface CpuEditorAction {
   type: string
   route: string[]
   field?: string
-  value?: string
+  value?: any
 }
 
 export interface CpuEditorState {

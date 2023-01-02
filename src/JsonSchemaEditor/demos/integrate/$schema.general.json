@@ -57,13 +57,15 @@
       "patternProperties": {
         "pattern[0-9]+": {
           "description": "这个属性改名应该满足表达式 pattern[0-9]+",
-          "type": "number"
+          "type": "number",
+          "default": 19
         }
       },
       "additionalProperties": {
         "type": "number",
         "description": "这是 additionalProperties，应当<50",
-        "maximum": 50
+        "maximum": 50,
+        "default": 49
       }
     },
     "mess": {
@@ -190,5 +192,6 @@
       "description": "这是一个又臭又长的枚举字符串。"
     }
   },
-  "required": ["enumValue", "constValue", "typeError", "newNameTest", "formats"]
+  "required": ["enumValue", "constValue", "typeError", "newNameTest", "formats"],
+  "additionalProperties": false
 }

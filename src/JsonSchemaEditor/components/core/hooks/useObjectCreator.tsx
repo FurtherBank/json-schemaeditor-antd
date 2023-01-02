@@ -30,7 +30,7 @@ export const useObjectCreator = (
           (patternProperties && getValueByPattern(patternProperties, newPropName))
         if (!newPropRef) {
           if (additionalProperties !== false) {
-            return additionalProperties
+            newValueEntry = additionalProperties
           } else {
             return `${newPropName} 不匹配 properties 中的名称或 patternProperties 中的正则式`
           }

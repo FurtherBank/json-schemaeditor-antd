@@ -11,4 +11,6 @@ export type JSONSchema = Omit<JSONSchema6, 'type'> & {
     param?: any
     type: string
   }
+  // old schema props
+  id?: string
 }

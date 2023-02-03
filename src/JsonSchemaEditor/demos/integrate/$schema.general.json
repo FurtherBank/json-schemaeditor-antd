@@ -69,26 +69,7 @@
       }
     },
     "mess": {
-      "title": "混乱",
-      "description": "这个属性的模式定义是混乱的，意在这种情况下看组件是否正常工作。",
-      "type": ["object", "array", "string", "number", "integer"],
-      "properties": {
-        "num": {
-          "type": "number"
-        }
-      },
-      "additionalProperties": {
-        "type": "number"
-      },
-      "required": ["num"],
-      "items": {
-        "type": "string",
-        "format": "color"
-      },
-      "format": "color",
-      "maxLength": 5,
-      "minimum": 20,
-      "multipleOf": 2
+      "$ref": "#/definitions/messDefForRefTest"
     },
     "formats": {
       "type": "object",
@@ -193,5 +174,29 @@
     }
   },
   "required": ["enumValue", "constValue", "typeError", "newNameTest", "formats"],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "definitions": {
+    "messDefForRefTest": {
+      "title": "混乱",
+      "description": "这个属性的模式定义是混乱的，意在这种情况下看组件是否正常工作。",
+      "type": ["object", "array", "string", "number", "integer"],
+      "properties": {
+        "num": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": {
+        "type": "number"
+      },
+      "required": ["num"],
+      "items": {
+        "type": "string",
+        "format": "color"
+      },
+      "format": "color",
+      "maxLength": 5,
+      "minimum": 20,
+      "multipleOf": 2
+    }
+  }
 }

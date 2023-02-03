@@ -3,7 +3,7 @@ import { useObjectCreator } from '../../../../components/core/hooks/useObjectCre
 import { CpuEditorAction } from '../../../../definition/reducer'
 import { getExample, mockCtx } from '../../../test-utils'
 
-describe('get correct return value', () => {
+describe('useObjectCreator: get correct return value', () => {
   const [data, schema] = getExample('一系列测试')
   const ctx = mockCtx(schema)
 

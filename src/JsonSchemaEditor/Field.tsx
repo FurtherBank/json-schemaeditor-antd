@@ -5,7 +5,7 @@ import { connect, useSelector } from 'react-redux'
 import { getValueEntry, ShortLevel } from './definition'
 import { canFieldDelete } from './definition/schema'
 import { doAction, CpuEditorState } from './definition/reducer'
-import { concatAccess, jsonDataType, getError, getAccessRef, pathGet } from './utils'
+import { concatAccess, jsonDataType, getAccessRef, pathGet } from './utils'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
 import { CpuEditorAction } from './definition/reducer'
@@ -15,6 +15,7 @@ import { MenuActionType } from './menu/MenuActions'
 import { ContainerProps } from './components/core/type/props'
 import { FatherInfo } from './components/core/type/list'
 import { useMenuActionHandlers } from './components/core/hooks/useMenuActionHandlers'
+import { ErrorObject } from 'ajv'
 
 export interface FieldProps {
   route: string[] // 只有这个属性是节点传的
@@ -25,7 +26,7 @@ export interface FieldProps {
   canNotRename?: boolean | undefined
   rootMenuItems?: JSX.Element[]
   // redux props
-  doAction?: (type: string, route?: string[], field?: any, value?: any) => CpuEditorAction
+  doAction?: (type: string, schemaEntry?: string, route?: string[], field?: any, value?: any) => CpuEditorAction
   data?: any
   reRender?: any
 }
@@ -37,7 +38,7 @@ export interface IField {
   mergedValueSchema: MergedSchema | false
   ofOption: string | false | null
   errors: any[]
-  doAction: (type: string, route?: string[], field?: any, value?: any) => CpuEditorAction
+  doAction: (type: string, schemaEntry?: string, route?: string[], field?: any, value?: any) => CpuEditorAction
 }
 
 /**
@@ -105,11 +106,12 @@ const FieldBase = (props: FieldProps) => {
 
   const mergedValueSchema = useMemo(() => ctx.getMergedSchema(valueEntry), [ctx, valueEntry])
 
-  const dataErrors = useSelector<StateWithHistory<CpuEditorState>, any[]>((state: StateWithHistory<CpuEditorState>) => {
-    return state.present.dataErrors
-  })
-
-  const errors = getError(dataErrors, access)
+  const errors = useSelector<StateWithHistory<CpuEditorState>, ErrorObject<string, Record<string, any>, unknown>[]>(
+    (state: StateWithHistory<CpuEditorState>) => {
+      const accessPath = '/' + access.join('/') // todo: 转义
+      return state.present.dataErrors[accessPath] ?? []
+    }
+  )
 
   const { view: { type: schemaEntryViewType = null } = {} } = mergedEntrySchema || {}
   const { const: constValue, enum: enumValue, view: { type: valueEntryViewType = null } = {} } = mergedValueSchema || {}

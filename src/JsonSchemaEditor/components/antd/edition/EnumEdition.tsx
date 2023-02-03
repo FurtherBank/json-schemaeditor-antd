@@ -5,7 +5,7 @@ import { exactIndexOf } from '../../../utils'
 import { EditionProps } from '../../core/type/props'
 
 export const EnumEdition = (props: EditionProps) => {
-  const { data, route, field, fieldInfo } = props
+  const { data, route, field, fieldInfo, schemaEntry } = props
 
   // 这里单独拿出来是为防止 ts 认为是 undefined
   const doAction = props.doAction!
@@ -17,7 +17,7 @@ export const EnumEdition = (props: EditionProps) => {
       const i = parseInt(key)
       const value = enumValue[i]
 
-      if (value !== undefined) doAction('change', route, field, value)
+      if (value !== undefined) doAction('change', schemaEntry, route, field, value)
     },
     [doAction]
   )

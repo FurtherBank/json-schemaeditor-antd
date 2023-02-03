@@ -20,7 +20,7 @@ it('not render field while not visible', async () => {
     fireEvent.click(drawerClose)
   })
 
-  ctx.executeAction('change', [], 'mess', '')
+  ctx.executeAction('change', undefined, [], 'mess', '')
 
   // 因为 immutable 性质，所以应当使用 ctx.getNowData 获取最新的 data
   expect(ctx.getNowData().mess).toBe('')

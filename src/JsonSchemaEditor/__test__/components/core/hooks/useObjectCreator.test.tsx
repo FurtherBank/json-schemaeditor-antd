@@ -5,7 +5,7 @@ import { getExample, mockCtx } from '../../../test-utils'
 
 describe('useObjectCreator: get correct return value', () => {
   const [data, schema] = getExample('一系列测试')
-  const ctx = mockCtx(schema)
+  const ctx = mockCtx(data, schema)
 
   let createObjectPropOnNewNameTest: (name: string) => any
   renderHook(() => {

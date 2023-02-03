@@ -3,8 +3,8 @@ import { isShort } from '../../context/virtual'
 import { getExample, mockCtx } from '../test-utils'
 
 test('parse ok', () => {
-  const [, schema] = getExample('小型示例')
-  const ctx = mockCtx(schema)
+  const [data, schema] = getExample('小型示例')
+  const ctx = mockCtx(data, schema)
   const rootMerged = ctx.getMergedSchema('#/')
   const newProps = {} as any
   for (const key in schema.properties) {

@@ -1,4 +1,4 @@
-import _, { isEqual } from 'lodash'
+import _ from 'lodash'
 import { MergedSchema } from '../context/mergeSchema'
 import { JSONSchema } from '../type/Schema'
 
@@ -357,19 +357,4 @@ export const getFieldSchema = (
         )}`
       )
   }
-}
-
-/**
- * 得到该字段犯下的错误
- * @param errors 所有的error
- * @param access 字段的access
- * @returns
- */
-export const getError = (errors: any[], access: string[]): any[] => {
-  const foundErrors = errors.filter((error) => {
-    const instancePath = error.instancePath.split('/')
-    instancePath.shift()
-    return isEqual(instancePath, access)
-  })
-  return foundErrors
 }

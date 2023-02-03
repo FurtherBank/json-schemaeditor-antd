@@ -1,8 +1,10 @@
 import { metaSchema } from '../../..'
 import CpuEditorContext from '../../context'
 import examples from '../../demos/examples'
-import { createStore } from 'redux'
 import { CpuInteraction } from '../../context/interaction'
+import { IComponentMap, IViewsMap } from '../../components/core/ComponentMap'
+import Ajv from 'ajv'
+import defaultAjvInstance from '../../definition/ajvInstance'
 import { antdComponentMap, antdViewsMap } from '../../components/antd'
 
 export const getAllObjectRefs = (data: any, ref = ''): string[] => {
@@ -49,14 +51,34 @@ export const getExample = (name: string) => {
   return exampleJson[name] || [0, {}]
 }
 
-export const mockCtx = (schema: any) => {
+/**
+ * 不需要组件的情况下构造 ctx，便于测试
+ *
+ * 该函数会随着 ctx 的构造函数参数改动而改动
+ * @param data
+ * @param schema
+ * @param ajvInstance
+ * @param id
+ * @param componentMap
+ * @param viewsMap
+ * @returns
+ */
+export const mockCtx = (
+  data: any,
+  schema: any,
+  ajvInstance?: Ajv,
+  id?: string,
+  componentMap?: IComponentMap,
+  viewsMap?: Record<string, IViewsMap>
+) => {
   const interaction = new CpuInteraction(() => {})
   return new CpuEditorContext(
+    data,
     schema,
-    '',
-    createStore(() => ({}), {}),
+    ajvInstance ?? defaultAjvInstance,
+    id,
     interaction,
-    antdComponentMap,
-    antdViewsMap
+    componentMap ?? antdComponentMap,
+    viewsMap ?? antdViewsMap
   )
 }

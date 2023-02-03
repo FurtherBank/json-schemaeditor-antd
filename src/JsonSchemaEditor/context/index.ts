@@ -1,14 +1,16 @@
 import { getRefSchemaMap, pathGet } from '../utils'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
-import { doAction, CpuEditorState, CpuEditorAction } from '../definition/reducer'
-import { AnyAction, Dispatch, Store } from 'redux'
+import { doAction, CpuEditorState, CpuEditorAction, getReducer } from '../definition/reducer'
+import { AnyAction, createStore, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
 import { IComponentMap, IViewsMap } from '../components/core/ComponentMap'
 import Field from '../Field'
 import { ComponentType } from 'react'
 import { CpuInteraction } from './interaction'
+import { v4 as uuidv4 } from 'uuid'
+import Ajv from 'ajv/dist/core'
 
 export interface SchemaArrayRefInfo {
   ref: string
@@ -31,6 +33,10 @@ export default class CpuEditorContext {
     return this.store.getState().present.data
   }
   rootSchema: JSONSchema | false
+  schemaId: string
+  schemaError: any
+  store: Store<StateWithHistory<CpuEditorState>, AnyAction>
+  basicModelMap: Map<string, any> | any
   mergedSchemaMap: Map<string, MergedSchema | false>
   /**
    * schemaInfo 是 schema 信息的需要对子层进行归纳的部分。
@@ -43,13 +49,19 @@ export default class CpuEditorContext {
   resourceMap: Map<string, any>
 
   dispatch: Dispatch<AnyAction>
-  executeAction: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
-  private actionCreator: (type: string, route?: string[], field?: string, value?: any) => CpuEditorAction
+  private actionCreator: (
+    type: string,
+    schemaEntry?: string,
+    route?: string[],
+    field?: string,
+    value?: any
+  ) => CpuEditorAction
 
   constructor(
-    rootSchema: false | JSONSchema,
-    public id: string | undefined,
-    public store: Store<StateWithHistory<CpuEditorState>, AnyAction>,
+    data: any,
+    schema: boolean | JSONSchema | undefined,
+    public ajvInstance: Ajv,
+    public domId: string | undefined,
     public interaction: CpuInteraction,
     public readonly componentMap: IComponentMap,
     /**
@@ -61,17 +73,54 @@ export default class CpuEditorContext {
      */
     public readonly viewsMap: Record<string, IViewsMap>
   ) {
-    this.rootSchema = rootSchema
+    // 1. 注册 schema，并设立 id
+    try {
+      const realSchema = schema === true ? {} : schema ? schema : schema === false ? false : {}
+      const idInSchema = realSchema ? realSchema.$id || realSchema.id : undefined
+      this.schemaId = idInSchema || uuidv4()
+      ajvInstance.addSchema(realSchema, this.schemaId)
+      this.rootSchema = realSchema
+    } catch (error) {
+      this.schemaError = error
+      // 出错了，注册一个空 schema
+      this.schemaId = uuidv4()
+      this.rootSchema = {}
+      ajvInstance.addSchema(this.rootSchema, this.schemaId)
+    }
+
+    // 2. 初始化 store，拿到 dispatch
+    const initialState: CpuEditorState = {
+      data: data,
+      dataErrors: {}
+    }
+
+    this.store = createStore(getReducer(this), {
+      past: [],
+      present: initialState,
+      future: []
+    })
+
+    this.dispatch = this.store.dispatch
+    this.actionCreator = doAction
+    // 3. 初始化各种 map
     this.mergedSchemaMap = new Map()
     this.ofInfoMap = new Map()
     this.resourceMap = new Map()
-    this.dispatch = store.dispatch
-    this.actionCreator = doAction
-    this.executeAction = (type: string, route?: string[], field?: string, value?: any) => {
-      const action = this.actionCreator(type, route, field, value)
-      this.dispatch(action)
-      return action
-    }
+  }
+
+  /**
+   * 直接执行动作，对数据进行操作
+   * @param type
+   * @param schemaEntry
+   * @param route
+   * @param field
+   * @param value
+   * @returns
+   */
+  executeAction(type: string, schemaEntry?: string, route?: string[], field?: string, value?: any) {
+    const action = this.actionCreator(type, schemaEntry, route, field, value)
+    this.dispatch(action)
+    return action
   }
 
   /**

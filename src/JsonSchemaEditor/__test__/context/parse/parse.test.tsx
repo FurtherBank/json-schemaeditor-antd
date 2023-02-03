@@ -6,8 +6,8 @@ import { MockRender } from '../../test-utils/MockComponent'
 import CpuEditorContext from '../../../context'
 
 it('use alternative rules correctly', () => {
-  const [, schema] = getExample('替代法则测试')
-  const ctx = mockCtx(schema)
+  const [data, schema] = getExample('替代法则测试')
+  const ctx = mockCtx(data, schema)
   const rootMerged = ctx.getMergedSchema('#/') as MergedSchema
 
   expect(rootMerged.format).toBe('multiline')

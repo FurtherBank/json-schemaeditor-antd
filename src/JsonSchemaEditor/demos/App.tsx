@@ -3,7 +3,7 @@
  * desc: 可以自行查看示例、编辑，并从 monaco-editor 协助编辑 json 和 schema！点击左下角 `Open in new tab` 获取最佳编辑体验！
  * compact: true
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import _ from 'lodash'
 
 import { Button, Card, PageHeader, message } from 'antd' // 用 antd 封装demo
@@ -102,10 +102,19 @@ export default () => {
       const data = ctx.getNowData()
       if (data instanceof Array) {
         const newItem = `new Item ${data.length}`
-        ctx.executeAction('create', [], data.length.toString(), newItem)
+        ctx.executeAction('create', undefined, [], data.length.toString(), newItem)
       }
     }
   }, [editorRef])
+
+  // ctx 暴露给 window 便于测试
+  useEffect(() => {
+    const ctx = editorRef.current
+    if (ctx) {
+      // @ts-ignore
+      window.ctx = ctx
+    }
+  }, [editorRef.current])
 
   const rootMenuItems = [
     <button

@@ -10,6 +10,7 @@ export interface CreateNameProps {
   ctx: CpuEditorContext
   access: string[]
   data: any
+  schemaEntry: string | undefined
   mergedValueSchema: MergedSchema | false | undefined
   style?: React.CSSProperties
 }
@@ -80,9 +81,9 @@ export const ObjectPropCreator = (props: CreateNameProps) => {
 }
 
 export const ArrayItemCreator = (props: CreateNameProps) => {
-  const { data, access, style, mergedValueSchema, ctx } = props
+  const { data, access, style, mergedValueSchema, ctx, schemaEntry } = props
 
-  const createArrayItem = useArrayCreator(ctx, data, access, mergedValueSchema)
+  const createArrayItem = useArrayCreator(ctx, data, access, mergedValueSchema, schemaEntry)
 
   return (
     <Button type="dashed" icon={<PlusOutlined />} size="small" block onClick={createArrayItem} style={style}>

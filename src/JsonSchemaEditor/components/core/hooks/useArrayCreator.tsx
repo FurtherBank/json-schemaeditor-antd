@@ -17,7 +17,8 @@ export const useArrayCreator = (
   ctx: CpuEditorContext,
   data: any[],
   access: string[],
-  arraySchema: MergedSchema | false | undefined
+  arraySchema: MergedSchema | false | undefined,
+  schemaEntry: string | undefined
 ) => {
   return useCallback(() => {
     const { maxItems, items, prefixItems } = arraySchema || {}
@@ -30,18 +31,24 @@ export const useArrayCreator = (
         if (nowLength < prefixLength) {
           // 新项处于 prefixItems 约束的位置时，通过对应 items 约束得到 defaultValue
           const defaultValue = getDefaultValue(ctx, addRef(ref, nowLength.toString()))
-          ctx.executeAction('create', access, nowLength.toString(), defaultValue)
+          ctx.executeAction('create', schemaEntry, access, nowLength.toString(), defaultValue)
         } else if (nowLength === prefixLength && items) {
           // 如果新建项恰好不属于 prefixItems，而且 additional 允许建且有约束，使用这个约束
           const defaultValue = getDefaultValue(ctx, items)
-          ctx.executeAction('create', access, nowLength.toString(), defaultValue)
+          ctx.executeAction('create', schemaEntry, access, nowLength.toString(), defaultValue)
         }
       } else if (data.length > 0) {
         // 此外如果有上一项(默认符合 schema)，copy 上一项
-        ctx.executeAction('create', access, nowLength.toString(), _.cloneDeep(data[data.length - 1]))
+        ctx.executeAction('create', schemaEntry, access, nowLength.toString(), _.cloneDeep(data[data.length - 1]))
       } else {
         // 有 items 约束，使用 items 默认值，否则 null
-        ctx.executeAction('create', access, nowLength.toString(), items ? getDefaultValue(ctx, items) : null)
+        ctx.executeAction(
+          'create',
+          schemaEntry,
+          access,
+          nowLength.toString(),
+          items ? getDefaultValue(ctx, items) : null
+        )
       }
     }
   }, [data, arraySchema, access, ctx])

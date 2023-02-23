@@ -4,6 +4,14 @@ import { IField } from '../../../Field'
 import { getFieldSchema } from '../../../utils'
 import { FatherInfo } from '../type/list'
 
+/**
+ * 返回一个函数，传入 key 和 shortLevel 可以取得 subField 的 Field 组件
+ * @param data
+ * @param access
+ * @param fieldInfo
+ * @param fatherInfo
+ * @returns
+ */
 export const useSubFieldQuery = (
   data: Record<string, any> | any[],
   access: string[],

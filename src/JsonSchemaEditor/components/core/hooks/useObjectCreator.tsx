@@ -9,6 +9,7 @@ import { getValueByPattern } from '../../../utils'
  * @param ctx
  * @param data
  * @param access
+ * @param schemaEntry
  * @param objectSchema
  * @returns `string`: 不能创建的原因; `CpuEditorAction`：代表正确创建，返回创建的`action`
  */
@@ -16,6 +17,7 @@ export const useObjectCreator = (
   ctx: CpuEditorContext,
   data: Record<string, any>,
   access: string[],
+  schemaEntry: string | undefined,
   objectSchema: MergedSchema | false | undefined
 ) => {
   return useCallback(
@@ -38,7 +40,12 @@ export const useObjectCreator = (
           newValueEntry = newPropRef
         }
       }
-      return ctx.executeAction('create', access, newPropName, getDefaultValue(ctx, newValueEntry))
+      return ctx.executeAction('create', {
+        route: access,
+        field: newPropName,
+        value: getDefaultValue(ctx, newValueEntry),
+        schemaEntry
+      })
     },
     [data, objectSchema, access, ctx]
   )

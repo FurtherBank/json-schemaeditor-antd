@@ -4,11 +4,10 @@ import React, { ComponentType, useContext, useMemo } from 'react'
 import { connect, useSelector } from 'react-redux'
 import { getValueEntry, ShortLevel } from './definition'
 import { canFieldDelete } from './definition/schema'
-import { doAction, CpuEditorState } from './definition/reducer'
+import { CpuEditorState } from './definition/reducer'
 import { concatAccess, jsonDataType, getAccessRef, pathGet } from './utils'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
-import { CpuEditorAction } from './definition/reducer'
 import CpuEditorContext from './context'
 import { MergedSchema } from './context/mergeSchema'
 import { MenuActionType } from './menu/MenuActions'
@@ -26,7 +25,6 @@ export interface FieldProps {
   canNotRename?: boolean | undefined
   rootMenuItems?: JSX.Element[]
   // redux props
-  doAction?: (type: string, schemaEntry?: string, route?: string[], field?: any, value?: any) => CpuEditorAction
   data?: any
   reRender?: any
 }
@@ -38,7 +36,6 @@ export interface IField {
   mergedValueSchema: MergedSchema | false
   ofOption: string | false | null
   errors: any[]
-  doAction: (type: string, schemaEntry?: string, route?: string[], field?: any, value?: any) => CpuEditorAction
 }
 
 /**
@@ -89,10 +86,7 @@ const menuActionSpace = (props: FieldProps, fieldInfo: IField) => {
 }
 
 const FieldBase = (props: FieldProps) => {
-  const { data, route, field, schemaEntry, short } = props
-
-  // 这里单独拿出来是为防止 ts 认为是 undefined
-  const doAction = props.doAction!
+  const { data, route, field, schemaEntry, short, fatherInfo } = props
 
   const dataType = jsonDataType(data)
   const access = concatAccess(route, field)
@@ -133,15 +127,14 @@ const FieldBase = (props: FieldProps) => {
       valueEntry,
       mergedValueSchema,
       ofOption,
-      errors,
-      doAction
+      errors
     }),
-    [schemaEntry, valueEntry, errors, ctx, doAction]
+    [schemaEntry, valueEntry, errors, ctx]
   )
 
   // 菜单动作空间以及动作执行函数
   const space = useMemo(() => menuActionSpace(props, fieldInfo), [props, fieldInfo])
-  const menuActionHandlers = useMenuActionHandlers(ctx, route, field, valueEntry, data)
+  const menuActionHandlers = useMenuActionHandlers(ctx, route, field, fatherInfo, schemaEntry, valueEntry, data)
 
   // 1. 设置标题组件
   const TitleComponent = ctx.getComponent(schemaEntryViewType, ['title'])
@@ -197,21 +190,18 @@ const FieldBase = (props: FieldProps) => {
 //   return !changed;
 // };
 
-const Field = connect(
-  (state: StateWithHistory<CpuEditorState>, props: FieldProps) => {
-    const { route, field } = props
-    const {
-      present: { data }
-    } = state
+const Field = connect((state: StateWithHistory<CpuEditorState>, props: FieldProps) => {
+  const { route, field } = props
+  const {
+    present: { data }
+  } = state
 
-    // 得到确切访问路径，取得数据
-    const path = field ? route.concat(field) : route
+  // 得到确切访问路径，取得数据
+  const path = field ? route.concat(field) : route
 
-    return {
-      data: pathGet(data, path)
-    }
-  },
-  { doAction }
-)(React.memo(FieldBase))
+  return {
+    data: pathGet(data, path)
+  }
+}, {})(React.memo(FieldBase))
 
 export default Field

@@ -28,7 +28,7 @@ export const useMenuActionComponents = (props: ContainerProps) => {
         opHandler={(value: string) => {
           const schemaRef = getRefByOfChain(ctx, schemaEntry!, value)
           const defaultValue = getDefaultValue(ctx, schemaRef, data)
-          ctx.executeAction('change', route, field, defaultValue)
+          ctx.executeAction('change', { route, field, value: defaultValue, schemaEntry })
         }}
         key={'oneOf'}
       />
@@ -48,7 +48,7 @@ export const useMenuActionComponents = (props: ContainerProps) => {
         opValue={dataType}
         opParam={typeOptions}
         opHandler={(value: string) => {
-          ctx.executeAction('change', route, field, defaultTypeValue[value])
+          ctx.executeAction('change', { route, field, value: defaultTypeValue[value], schemaEntry })
         }}
         key={'type'}
       />

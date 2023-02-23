@@ -16,7 +16,7 @@ export interface CreateNameProps {
 }
 
 export const ObjectPropCreator = (props: CreateNameProps) => {
-  const { data, access, style, mergedValueSchema, ctx } = props
+  const { data, access, style, schemaEntry, mergedValueSchema, ctx } = props
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
@@ -43,7 +43,7 @@ export const ObjectPropCreator = (props: CreateNameProps) => {
   }
 
   // 从 object 创建 prop 事件
-  const createObjectProp = useObjectCreator(ctx, data, access, mergedValueSchema)
+  const createObjectProp = useObjectCreator(ctx, data, access, schemaEntry, mergedValueSchema)
 
   const handleObjectCreate = useCallback(() => {
     const actionOrError = createObjectProp(name)

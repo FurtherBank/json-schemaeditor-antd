@@ -3,15 +3,19 @@ import { CTextArea } from '../base/cacheInput'
 import { FormatEditionProps } from '../../core/type/props'
 
 export const MultilineEdition = (props: FormatEditionProps) => {
-  const { route, field, data, schemaEntry } = props
-  // 这里单独拿出来是为防止 ts 认为是 undefined
-  const doAction = props.doAction!
+  const {
+    route,
+    field,
+    data,
+    schemaEntry,
+    fieldInfo: { ctx }
+  } = props
 
   const handleValueChange = useCallback(
     (value: any) => {
-      if (value !== undefined) doAction('change', schemaEntry, route, field, value)
+      if (value !== undefined) ctx.executeAction('change', { schemaEntry, route, field, value })
     },
-    [doAction]
+    [ctx]
   )
 
   return (

@@ -14,6 +14,7 @@ const stopBubble = (e: React.SyntheticEvent) => {
 export const FieldTitle = (props: EditionProps) => {
   const { route, field, short, canNotRename, fatherInfo, fieldInfo } = props
   const { errors, mergedEntrySchema, ctx } = fieldInfo
+  const { schemaEntry: parentSchemaEntry } = fatherInfo ?? {}
   const { description } = mergedEntrySchema || {}
 
   const fieldNameRange = canFieldRename(props, fieldInfo)
@@ -57,7 +58,7 @@ export const FieldTitle = (props: EditionProps) => {
                 e.currentTarget.blur()
               }}
               onValueChange={(value) => {
-                ctx.executeAction('rename', route, field, value)
+                ctx.executeAction('rename', { route, field, value, schemaEntry: parentSchemaEntry })
               }}
             />
           ) : (

@@ -20,7 +20,7 @@ it('root menu items work', async () => {
         const data = ctx.getNowData()
         if (data instanceof Array) {
           const newItem = `new Item ${data.length}`
-          ctx.executeAction('create', [], data.length.toString(), newItem)
+          ctx.executeAction('create', { route: [], field: data.length.toString(), value: newItem })
         }
       }
     }, [editorRef])

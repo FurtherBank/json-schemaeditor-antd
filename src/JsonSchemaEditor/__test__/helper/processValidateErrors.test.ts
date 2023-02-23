@@ -12,7 +12,12 @@ it('partial validate errors ok', () => {
   expect(mess1Error[0].schemaPath).toBe('#/definitions/messDefForRefTest/items/format')
 
   // change mess/0 to error
-  ctx.executeAction('change', '#/definitions/messDefForRefTest/items', ['mess'], '0', '12345644')
+  ctx.executeAction('change', {
+    schemaEntry: '#/definitions/messDefForRefTest/items',
+    route: ['mess'],
+    field: '0',
+    value: '12345644'
+  })
 
   const errors1 = ctx.store.getState().present.dataErrors
   const mess0Error = errors1['/mess/0']
@@ -22,7 +27,12 @@ it('partial validate errors ok', () => {
   expect(errors1['/mess/1']).toBe(mess1Error) // 之前的错误引用未变，代表修改为局部不影响其它
 
   // fix mess/1 error
-  ctx.executeAction('change', '#/definitions/messDefForRefTest/items', ['mess'], '1', '#123456')
+  ctx.executeAction('change', {
+    schemaEntry: '#/definitions/messDefForRefTest/items',
+    route: ['mess'],
+    field: '1',
+    value: '#123456'
+  })
 
   const errors2 = ctx.store.getState().present.dataErrors
   expect(errors2['/mess/1']).toBeUndefined()

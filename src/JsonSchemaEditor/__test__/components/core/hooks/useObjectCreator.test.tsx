@@ -13,13 +13,14 @@ describe('useObjectCreator: get correct return value', () => {
       ctx,
       data['newNameTest'],
       ['newNameTest'],
+      '#/properties/newNameTest',
       ctx.getMergedSchema('#/properties/newNameTest')
     )
   })
 
   let createObjectPropOnRoot: (name: string) => any
   renderHook(() => {
-    createObjectPropOnRoot = useObjectCreator(ctx, data, [], ctx.getMergedSchema('#'))
+    createObjectPropOnRoot = useObjectCreator(ctx, data, [], '#', ctx.getMergedSchema('#'))
   })
 
   it('return error message when field exists', () => {
@@ -38,6 +39,7 @@ describe('useObjectCreator: get correct return value', () => {
       type: 'create',
       route: ['newNameTest'],
       field: 'pro4',
+      schemaEntry: '#/properties/newNameTest',
       value: 4
     })
   })
@@ -47,6 +49,7 @@ describe('useObjectCreator: get correct return value', () => {
       type: 'create',
       route: ['newNameTest'],
       field: 'pattern123',
+      schemaEntry: '#/properties/newNameTest',
       value: 19
     })
   })
@@ -56,6 +59,7 @@ describe('useObjectCreator: get correct return value', () => {
       type: 'create',
       route: ['newNameTest'],
       field: 'abcd',
+      schemaEntry: '#/properties/newNameTest',
       value: 49
     })
   })

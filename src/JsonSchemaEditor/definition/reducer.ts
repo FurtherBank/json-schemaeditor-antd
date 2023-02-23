@@ -8,12 +8,18 @@ import undoable from 'redux-undo'
 import CpuEditorContext from '../context'
 import { processValidateErrors } from '../helper/validate-errors/processValidateErrors'
 
-export interface CpuEditorAction {
-  type: string
-  route: string[]
+export interface CpuEditorActionOption {
+  route?: string[]
   field?: string
   value?: any
+  /**
+   * 局部验证所需要的 schemaEntry，具体是谁的 schemaEntry 由传入的组件决定
+   */
   schemaEntry?: string
+}
+
+export interface CpuEditorAction extends CpuEditorActionOption {
+  type: string
 }
 
 export interface CpuEditorState {
@@ -21,19 +27,16 @@ export interface CpuEditorState {
   dataErrors: Record<string, ErrorObject<string, Record<string, any>, unknown>[]>
 }
 
-export const doAction = (
-  type: string,
-  schemaEntry: string | undefined,
-  route: string[] = [],
-  field: string | undefined = undefined,
-  value: any = undefined
-) => ({
-  schemaEntry,
-  type,
-  route,
-  field,
-  value
-})
+export const doAction = (type: string, options: CpuEditorActionOption): CpuEditorAction => {
+  const { schemaEntry, route, field, value } = options
+  return {
+    schemaEntry,
+    type,
+    route,
+    field,
+    value
+  }
+}
 
 export type CpuEditorActionDispatcher = typeof doAction
 
@@ -50,6 +53,11 @@ export const getReducer = (ctx: CpuEditorContext) => {
       (s: CpuEditorState, a: CpuEditorAction) => {
         const { type, route, field, value, schemaEntry } = a
         const reValidate = (fieldValue: any, dataPath: string[] = []) => {
+          // todo: fieldModel 未存在时暂时的解法，改为根节点验证
+          if (schemaEntry === undefined) {
+            fieldValue = s.data
+            dataPath = []
+          }
           const uri = ctx.schemaId + (schemaEntry || '')
           const validate = ctx.ajvInstance.getSchema(uri)
           if (typeof validate === 'function') {

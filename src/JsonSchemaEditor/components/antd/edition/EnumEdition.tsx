@@ -5,21 +5,23 @@ import { exactIndexOf } from '../../../utils'
 import { EditionProps } from '../../core/type/props'
 
 export const EnumEdition = (props: EditionProps) => {
-  const { data, route, field, fieldInfo, schemaEntry } = props
-
-  // 这里单独拿出来是为防止 ts 认为是 undefined
-  const doAction = props.doAction!
-
-  const { enum: enumValue = [] } = fieldInfo.mergedValueSchema || {}
+  const {
+    data,
+    route,
+    field,
+    fieldInfo: { ctx, mergedValueSchema },
+    schemaEntry
+  } = props
+  const { enum: enumValue = [] } = mergedValueSchema || {}
 
   const handleValueChange = useCallback(
     (key: string) => {
       const i = parseInt(key)
       const value = enumValue[i]
 
-      if (value !== undefined) doAction('change', schemaEntry, route, field, value)
+      if (value !== undefined) ctx.executeAction('change', { schemaEntry, route, field, value })
     },
-    [doAction]
+    [ctx]
   )
 
   const enumIndex = exactIndexOf(enumValue, data)

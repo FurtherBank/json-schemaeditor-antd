@@ -102,7 +102,7 @@ export default () => {
       const data = ctx.getNowData()
       if (data instanceof Array) {
         const newItem = `new Item ${data.length}`
-        ctx.executeAction('create', undefined, [], data.length.toString(), newItem)
+        ctx.executeAction('create', { route: [], field: data.length.toString(), value: newItem })
       }
     }
   }, [editorRef])

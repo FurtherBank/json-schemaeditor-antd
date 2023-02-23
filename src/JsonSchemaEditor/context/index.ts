@@ -1,7 +1,13 @@
 import { getRefSchemaMap, pathGet } from '../utils'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
-import { doAction, CpuEditorState, CpuEditorAction, getReducer } from '../definition/reducer'
+import {
+  doAction,
+  CpuEditorState,
+  getReducer,
+  CpuEditorActionDispatcher,
+  CpuEditorActionOption
+} from '../definition/reducer'
 import { AnyAction, createStore, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
@@ -49,13 +55,7 @@ export default class CpuEditorContext {
   resourceMap: Map<string, any>
 
   dispatch: Dispatch<AnyAction>
-  private actionCreator: (
-    type: string,
-    schemaEntry?: string,
-    route?: string[],
-    field?: string,
-    value?: any
-  ) => CpuEditorAction
+  private createAction: CpuEditorActionDispatcher
 
   constructor(
     data: any,
@@ -101,7 +101,7 @@ export default class CpuEditorContext {
     })
 
     this.dispatch = this.store.dispatch
-    this.actionCreator = doAction
+    this.createAction = doAction
     // 3. 初始化各种 map
     this.mergedSchemaMap = new Map()
     this.ofInfoMap = new Map()
@@ -111,14 +111,11 @@ export default class CpuEditorContext {
   /**
    * 直接执行动作，对数据进行操作
    * @param type
-   * @param schemaEntry
-   * @param route
-   * @param field
-   * @param value
+   * @param options
    * @returns
    */
-  executeAction(type: string, schemaEntry?: string, route?: string[], field?: string, value?: any) {
-    const action = this.actionCreator(type, schemaEntry, route, field, value)
+  executeAction(type: string, options: CpuEditorActionOption = {}) {
+    const action = this.createAction(type, options)
     this.dispatch(action)
     return action
   }

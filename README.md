@@ -63,9 +63,15 @@ const JsonSchemaEditor, { metaSchema } = 'json-schemaeditor-antd'
 
 ### Editor 组件的 ref
 
-Editor 组件将 store 暴露在了 `useImperativeHandle`中。如果想要从外部主动更改数据，可以按照 redux 的 store api 进行操作。
+Editor 组件将编辑器全局上下文 ctx 暴露在了`useImperativeHandle`中。
 
-更多信息详见 [Reducer](#Reducer)
+可通过`ctx.store`获取存储状态的 redux store；
+
+可通过`ctx.executeAction(type, params)`执行动作修改数据；
+
+ctx 相关的函数与参数可以从`src/JsonSchemaEditor/context/index.ts`中查阅。
+
+关于可用动作的更多信息，详见 [Reducer](#Reducer)
 
 ### id of all the fields
 
@@ -75,7 +81,7 @@ Editor 组件将 store 暴露在了 `useImperativeHandle`中。如果想要从�
 
 1. 根节点的 id 由传入 editor 的 id 属性决定，且不应用前缀
 2. 目前 id 和 schemaEntry 都没做转义处理。请不要向属性名中加入 `.`或 `/`字符，会出错。
-3. 可以通过 `options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
+3. 可以通过`options.idPerfix`指定组件的 id 前缀。前缀会直接拼接到 id 字符串前，没有分隔符。(暂未实装)
 4. 有些字段组件可能没有渲染到屏幕上或者隐藏了，有通过 id 拿组件 dom 而拿不到的可能。
 
 ### options (暂未实装)
@@ -617,13 +623,9 @@ const action = {
 
 ## 项目测试
 
-~~我不会告诉你目前本人还不会写测试~~
+目前项目的测试(单元测试、集成测试等)还相当不全，只能覆盖主流程不出错，测试覆盖率也仅达到了`70%`左右。
 
-说实话，这个项目测试也不知道最终写成什么样子去测试比较好，尤其是在界面上。逻辑测试主要测函数写的是否正确，还是比较好做的。但是这个实际效果测试就很难说，是一个混沌状态。不能绝对的说满足哪一个特征就是 ok，(但是可以绝对的说出什么问题不 ok)
-
-估计届时需要集思广益多交一些 bug，然后汇集成大量的测试用例。
-
-目前准备用 macaca 来做测试，会尽快补全的 o(T ヘ To)。
+会尽快补全的 o(T ヘ To)。
 
 ## 其它问题
 
@@ -637,7 +639,8 @@ const action = {
 
 该项目并未将 antd 打包进入，使用你自己的 antd 依赖项。
 
-antd 可以通过 babel 简化按需引入，该项目使用了这个特性。所以你的项目必须配置好 less 的加载能力。
+> antd 可以通过 babel 简化按需引入，该项目使用了这个特性。  
+> 但是不知为何(可能是打包配置的原因，不过没有仔细研究)，导入项目包不一起加载 antd 的 css 文件，必须要手动加载完整`antd.css`才能应用样式(如果是使用了 umi 等框架，框架会自动帮你加载)
 
 同时，项目使用的 antd 主题取决于你使用的 antd 主题。开发时使用了紧凑主题。
 
@@ -673,7 +676,7 @@ v0.1.4：os: windows 11 nodejs v16.14.2 npm v8.5.0
 - [ ] format 自验证及默认值生成
 - [ ] anchor
 - [ ] 动作副作用，可以让面板有实际的操作
-- [ ] 面包屑导引局部编辑
+- [ ] 面包屑导引局部编辑(路由)
 - [ ] 如果可以，支持 xml/yaml/bson，以及非标准 jsonschema(甚至后续有可能还会自己提出一个优化后的 schema 草案)
 - [ ] 插入文件及文件显示接口
 - [ ] 低版本 schema 兼容性(目前只能通过转移到高版本 schema 解决)

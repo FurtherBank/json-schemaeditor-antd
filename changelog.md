@@ -1,3 +1,15 @@
+## [0.1.5](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.4...v0.1.5) (2023-03-03)
+
+### Bug Fixes
+
+- 一些代码问题 ([2f0884e](https://github.com/FurtherBank/json-schemaeditor-antd/commit/2f0884ea1ae380f748cfdd6fa8c4d064b4deb9b0))
+- object 无法创建 additionalProperties 的 bug ([f595ffd](https://github.com/FurtherBank/json-schemaeditor-antd/commit/f595ffd8219aade3170afb423059616d9d8a1ec5))
+
+### Features
+
+- 按需验证 part 2 ([50a0a9d](https://github.com/FurtherBank/json-schemaeditor-antd/commit/50a0a9d6d6ec54964050ada4230770f4f060fbd9))
+- ajv 按需验证 part1 ([f9299e2](https://github.com/FurtherBank/json-schemaeditor-antd/commit/f9299e249035dcc62e6ecea009aca7183a57586a))
+
 ## [0.1.4](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.3...v0.1.4) (2023-01-01)
 
 ### Bug Fixes

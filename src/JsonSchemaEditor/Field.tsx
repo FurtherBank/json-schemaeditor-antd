@@ -5,7 +5,7 @@ import { connect, useSelector } from 'react-redux'
 import { getValueEntry, ShortLevel } from './definition'
 import { canFieldDelete } from './definition/schema'
 import { CpuEditorState } from './definition/reducer'
-import { concatAccess, jsonDataType, getAccessRef, pathGet } from './utils'
+import { concatAccess, jsonDataType, getAccessRef, deepGet } from './utils'
 import { InfoContext } from '.'
 import { StateWithHistory } from 'redux-undo'
 import CpuEditorContext from './context'
@@ -200,7 +200,7 @@ const Field = connect((state: StateWithHistory<CpuEditorState>, props: FieldProp
   const path = field ? route.concat(field) : route
 
   return {
-    data: pathGet(data, path)
+    data: deepGet(data, path)
   }
 }, {})(React.memo(FieldBase))
 

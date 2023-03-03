@@ -1,7 +1,7 @@
 import { Input, Select } from 'antd'
+import isEqual from 'lodash/isEqual'
 import React, { useCallback } from 'react'
 import { toConstName } from '../../../definition'
-import { exactIndexOf } from '../../../utils'
 import { EditionProps } from '../../core/type/props'
 
 export const EnumEdition = (props: EditionProps) => {
@@ -24,7 +24,7 @@ export const EnumEdition = (props: EditionProps) => {
     [ctx]
   )
 
-  const enumIndex = exactIndexOf(enumValue, data)
+  const enumIndex = enumValue.findIndex((v) => isEqual(v, data))
 
   return (
     <Input.Group compact style={{ display: 'flex', flex: 1 }}>

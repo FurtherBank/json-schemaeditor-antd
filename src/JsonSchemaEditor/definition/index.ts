@@ -2,7 +2,8 @@
 import CpuEditorContext from '../context'
 import { MergedSchema } from '../context/mergeSchema'
 import { getOfOption, getRefByOfChain } from '../context/ofInfo'
-import { jsonDataType, getFieldSchema } from '../utils'
+import { jsonDataType } from '../utils'
+import { getFieldSchema } from '../utils/schemaWithRef'
 
 export enum ShortLevel {
   no,

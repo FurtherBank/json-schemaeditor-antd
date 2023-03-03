@@ -8,6 +8,7 @@ import { gridOption } from '../config'
 
 export const ListDisplayPanel = (props: ListDisplayPanelProps) => {
   const { data, access, fieldInfo, fatherInfo, lists } = props
+  const { schemaEntry } = fatherInfo
   const { ctx, mergedValueSchema } = fieldInfo
 
   const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo)
@@ -20,7 +21,13 @@ export const ListDisplayPanel = (props: ListDisplayPanelProps) => {
       } else {
         return (
           <List.Item key="end">
-            <CreateName data={data} access={access} mergedValueSchema={mergedValueSchema} ctx={ctx} />
+            <CreateName
+              data={data}
+              access={access}
+              mergedValueSchema={mergedValueSchema}
+              ctx={ctx}
+              schemaEntry={schemaEntry}
+            />
           </List.Item>
         )
       }

@@ -78,6 +78,7 @@ const ArrayListView = (props: EditionProps) => {
             <CreateName
               data={data}
               access={access}
+              schemaEntry={schemaEntry}
               mergedValueSchema={mergedValueSchema}
               ctx={ctx}
               style={{ margin: '3px', width: 'auto' }}

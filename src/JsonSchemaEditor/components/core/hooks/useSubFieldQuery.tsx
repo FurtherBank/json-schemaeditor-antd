@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { ShortLevel } from '../../../definition'
 import { IField } from '../../../Field'
-import { getFieldSchema } from '../../../utils'
+import { getFieldSchema } from '../../../utils/schemaWithRef'
 import { FatherInfo } from '../type/list'
 
 /**

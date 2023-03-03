@@ -1,4 +1,4 @@
-import { getRefSchemaMap, pathGet } from '../utils'
+import { deepGet } from '../utils'
 import { ofSchemaCache, setOfInfo } from './ofInfo'
 import { MergedSchema, mergeSchemaMap } from './mergeSchema'
 import {
@@ -17,6 +17,7 @@ import { ComponentType } from 'react'
 import { CpuInteraction } from './interaction'
 import { v4 as uuidv4 } from 'uuid'
 import Ajv from 'ajv/dist/core'
+import { getRefSchemaMap } from '../utils/schemaWithRef'
 
 export interface SchemaArrayRefInfo {
   ref: string
@@ -153,11 +154,11 @@ export default class CpuEditorContext {
   getComponent(view: string | null = null, rolePath: string | string[]): ComponentType<any> {
     const componentPath = typeof rolePath === 'string' ? [rolePath] : rolePath
     if (view) {
-      const result = pathGet(this.viewsMap[view] || {}, componentPath)
+      const result = deepGet(this.viewsMap[view] || {}, componentPath)
 
       if (result) return result
     }
-    const result = pathGet(this.componentMap, componentPath)
+    const result = deepGet(this.componentMap, componentPath)
     if (result) {
       return result
     } else {
@@ -176,10 +177,10 @@ export default class CpuEditorContext {
   getFormatComponent(view: string | null = null, format: string): ComponentType<any> {
     const componentPath = ['format', format]
     if (view) {
-      const result = pathGet(this.viewsMap, componentPath)
+      const result = deepGet(this.viewsMap, componentPath)
       if (result) return result
     }
-    const result = pathGet(this.componentMap, componentPath)
+    const result = deepGet(this.componentMap, componentPath)
     if (result) {
       return result
     } else {

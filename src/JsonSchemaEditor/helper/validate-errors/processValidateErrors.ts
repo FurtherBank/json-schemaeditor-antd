@@ -1,5 +1,5 @@
 import { ErrorObject } from 'ajv'
-import { extractURI } from '../../utils'
+import { uri2strArray } from '../../utils/path/uri'
 
 /**
  * 将数组形式的 errors 转为 key => value 形式的 errors；
@@ -33,8 +33,8 @@ export const processValidateErrors = (
     }
     // schemaPath
     if (schemaEntry) {
-      const schemaPrefixPath = extractURI(schemaEntry)
-      const errorSchemaPath = extractURI(error.schemaPath)
+      const schemaPrefixPath = uri2strArray(schemaEntry)
+      const errorSchemaPath = uri2strArray(error.schemaPath)
       error.schemaPath = '#/' + schemaPrefixPath.join('/') + '/' + errorSchemaPath.join('/')
     }
     // 赋值到错误数组上

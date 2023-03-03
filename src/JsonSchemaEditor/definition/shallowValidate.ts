@@ -1,6 +1,6 @@
-import { isEqual } from 'lodash'
+import isEqual from 'lodash/isEqual'
 import CpuEditorContext from '../context'
-import { jsonDataType, exactIndexOf, addRef } from '../utils'
+import { jsonDataType, addRef } from '../utils'
 import ajvInstance from './ajvInstance'
 
 const formatSchemaSheet = (function () {
@@ -46,7 +46,7 @@ export const shallowValidate = (
   if (constValue !== undefined) {
     return isEqual(data, constValue)
   } else if (enumValue !== undefined) {
-    return exactIndexOf(enumValue, data) > -1
+    return enumValue.findIndex((v) => isEqual(v, data)) > -1
   } else if (
     allowedTypes &&
     allowedTypes.length === 1 &&

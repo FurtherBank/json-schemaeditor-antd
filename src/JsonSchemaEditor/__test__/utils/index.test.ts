@@ -3,14 +3,14 @@ import {
   addRef,
   concatAccess,
   deepCollect,
+  deepGet,
   deepReplace,
-  pathSet,
-  extractURI,
-  getPathVal,
+  deepSet,
   getValueByPattern,
   jsonDataType
 } from '../../utils'
 import _ from 'lodash'
+import { uri2strArray } from '../../utils/path/uri'
 
 describe('utils', () => {
   it('concatAccess: ok', () => {
@@ -20,33 +20,6 @@ describe('utils', () => {
     expect(concatAccess(route, '')).toEqual(['abc', 'def', 'ghi'])
 
     // expect(screen.queryByText(basic)).toBeInTheDocument();
-  })
-
-  it('extractURI', () => {
-    expect(extractURI('#/abc/def')).toEqual(['abc', 'def'])
-    expect(extractURI('#/abc/def/')).toEqual(['abc', 'def'])
-    expect(extractURI('#/')).toEqual([])
-    // expect(screen.queryByText(basic)).toBeInTheDocument();
-  })
-
-  it('getPathVal', () => {
-    const json = {
-      title: 'Default Schema',
-      description: 'a simple object schema by default',
-      type: 'object',
-      properties: {
-        key: {
-          type: 'string',
-          format: 'row'
-        }
-      },
-      additionalProperties: false
-    }
-    expect(getPathVal(json, '#/title')).toBe(json.title)
-    expect(getPathVal(json, '#/title/aabc')).toBe(undefined)
-    expect(getPathVal(json, '#/properties')).toBe(json.properties)
-    expect(getPathVal(json, '#/properties/key/')).toBe(json.properties.key)
-    expect(getPathVal(json, '#/')).toBe(json)
   })
 
   it('addRef', () => {
@@ -59,6 +32,26 @@ describe('utils', () => {
     expect(addRef('#/title', 'foo', 'bar')).toBe('#/title/foo/bar')
     expect(addRef('#/title/', 'foo', 'bar')).toBe('#/title/foo/bar')
     expect(addRef(undefined, '#/title/aabc')).toBe(undefined)
+  })
+
+  it('deepGet', () => {
+    const json = {
+      title: 'Default Schema',
+      description: 'a simple object schema by default',
+      type: 'object',
+      properties: {
+        key: {
+          type: 'string',
+          format: 'row'
+        }
+      },
+      additionalProperties: false
+    }
+    expect(deepGet(json, uri2strArray('#/title'))).toBe(json.title)
+    expect(deepGet(json, uri2strArray('#/title/aabc'))).toBe(undefined)
+    expect(deepGet(json, uri2strArray('#/properties'))).toBe(json.properties)
+    expect(deepGet(json, uri2strArray('#/properties/key/'))).toBe(json.properties.key)
+    expect(deepGet(json, uri2strArray('#/'))).toBe(json)
   })
 
   it('deepCollect', () => {
@@ -191,7 +184,7 @@ describe('utils', () => {
     expect(deepReplace(_.cloneDeep(obj), 'd', replace)).toEqual(obj2)
   })
 
-  it('pathSet', () => {
+  it('deepSet', () => {
     const json = {
       title: 'Default Schema',
       description: 'a simple object schema by default',
@@ -219,11 +212,11 @@ describe('utils', () => {
         }
       }
     }
-    expect(pathSet(_.cloneDeep(json), '#/title', 'Schema')).toEqual(json1)
-    expect(pathSet(_.cloneDeep(json), '#/title/aabc', 5)).toEqual(json0)
-    expect(pathSet(_.cloneDeep(json), '#/properties/key/maxLength', 20)).toEqual(json2)
-    expect(pathSet(_.cloneDeep(json), '#/properties/key/', null)).toEqual(json3)
-    expect(pathSet(_.cloneDeep(json), '#/properties/a/b/c/d', null)).toEqual(json4)
+    expect(deepSet(_.cloneDeep(json), '#/title', 'Schema')).toEqual(json1)
+    expect(deepSet(_.cloneDeep(json), '#/title/aabc', 5)).toEqual(json0)
+    expect(deepSet(_.cloneDeep(json), '#/properties/key/maxLength', 20)).toEqual(json2)
+    expect(deepSet(_.cloneDeep(json), '#/properties/key/', null)).toEqual(json3)
+    expect(deepSet(_.cloneDeep(json), '#/properties/a/b/c/d', null)).toEqual(json4)
   })
 
   it('getValueByPattern', () => {

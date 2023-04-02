@@ -98,6 +98,14 @@
         "multi": {
           "type": "string",
           "format": "multiline"
+        },
+        "time": {
+          "type": "string",
+          "format": "time"
+        },
+        "date-time": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },

@@ -7,6 +7,8 @@ import { canFieldRename, isFieldRequired } from '../../definition/schema'
 import { CInput } from '../antd/base/cacheInput'
 import { EditionProps } from '../core/type/props'
 
+import './css/title.less'
+
 const stopBubble = (e: React.SyntheticEvent) => {
   e.stopPropagation()
 }
@@ -25,20 +27,18 @@ export const FieldTitle = (props: EditionProps) => {
   const spaceStyle =
     short === ShortLevel.short
       ? {
-          width: '9.5em',
-          display: 'flex',
-          alignItems: 'center'
+          width: '9.5em'
         }
       : {}
   return (
-    <div onClick={stopBubble} style={spaceStyle}>
+    <div onClick={stopBubble} style={spaceStyle} className="flex-center">
       {errors.length > 0 ? (
         <Tooltip
           title={errors.map((error: { message: string }) => error.message).join('\n')}
           placement="topLeft"
           key="valid"
         >
-          <CloseCircleOutlined style={{ color: 'red', marginRight: '0.25em' }} />
+          <CloseCircleOutlined style={{ color: 'red', marginRight: '0.25em', display: 'inline-block' }} />
         </Tooltip>
       ) : null}
 
@@ -48,7 +48,7 @@ export const FieldTitle = (props: EditionProps) => {
             <CInput
               size="small"
               bordered={false}
-              className="prop-name"
+              className="prop-name-editable"
               title={field}
               value={field} // todo: validate the propertyName
               validate={(v) => {
@@ -62,7 +62,7 @@ export const FieldTitle = (props: EditionProps) => {
               }}
             />
           ) : (
-            <span style={{ width: '100px' }} title={titleName!}>
+            <span className="prop-name inline-text-block" title={titleName!}>
               {isRequired ? <span style={{ color: 'orange', width: '0.75em', display: 'inline-block' }}>*</span> : null}
               {titleName}
             </span>

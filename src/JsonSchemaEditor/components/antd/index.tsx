@@ -20,6 +20,9 @@ import { ArrayListViewEdition } from './views/list'
 import './css/index.less'
 import { ObjectEdition } from './edition/ObjectEdition'
 import { ArrayEdition } from './edition/ArrayEdition'
+import { DateEdition } from './format/date'
+import { DateTimeEdition } from './format/date-time'
+import { TimeEdition } from './format/time'
 
 export const antdComponentMap: IComponentMap = {
   containerNormal: FieldContainerNormal,
@@ -32,6 +35,9 @@ export const antdComponentMap: IComponentMap = {
   },
   format: {
     multiline: MultilineEdition,
+    date: DateEdition,
+    time: TimeEdition,
+    'date-time': DateTimeEdition,
     row: RowEdition,
     uri: RowEdition,
     'uri-reference': RowEdition

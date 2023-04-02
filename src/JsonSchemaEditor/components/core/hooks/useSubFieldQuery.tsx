@@ -25,6 +25,6 @@ export const useSubFieldQuery = (
       const Field = ctx.Field
       return <Field route={access} field={key} fatherInfo={fatherInfo} schemaEntry={subEntry} short={short} />
     },
-    [data, access, valueEntry, fieldInfo, fatherInfo]
+    [data, access, valueEntry, fieldInfo, fatherInfo, ctx]
   )
 }

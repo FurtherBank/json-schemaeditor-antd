@@ -37,5 +37,5 @@ export const useFatherInfo = (
         break
     }
     return childFatherInfo
-  }, [valueEntry, schemaEntry, dataType])
+  }, [mergedValueSchema, valueEntry, schemaEntry, dataType])
 }

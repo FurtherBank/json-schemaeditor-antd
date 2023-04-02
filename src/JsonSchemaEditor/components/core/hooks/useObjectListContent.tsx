@@ -64,5 +64,5 @@ export const useObjectListContent = (
         items: propList
       }))
       .filter((list) => list.items.length > 0)
-  }, [schemaEntry, valueEntry, data])
+  }, [schemaEntry, valueEntry, data, ctx])
 }

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "json-schemaeditor-antd",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "基于 antd 搭建的可使用 JSON Schema 约束的 JSON 编辑器。\n支持良好，简单可靠，效率更高。",
   "author": "furtherbank",
   "homepage": "https://github.com/furtherbank/json-schemaeditor-antd",

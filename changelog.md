@@ -1,3 +1,13 @@
+## [0.1.6](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.5...v0.1.6) (2023-04-02)
+
+### Bug Fixes
+
+- 修复 schema 在局部变更时的组件展示问题 ([515a021](https://github.com/FurtherBank/json-schemaeditor-antd/commit/515a0215af43e02a0542123eae26586aeeba2c5e))
+
+### Features
+
+- date & time & date-time 组件 ([562139c](https://github.com/FurtherBank/json-schemaeditor-antd/commit/562139cde9f1713466c22c36164cb40f7ab2f669))
+
 ## [0.1.5](https://github.com/FurtherBank/json-schemaeditor-antd/compare/v0.1.4...v0.1.5) (2023-03-03)
 
 ### Bug Fixes

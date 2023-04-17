@@ -7,7 +7,7 @@ import { useFatherInfo } from '../../core/hooks/useFatherInfo'
 import { ListDisplayPanel } from '../base/ListDisplayPanel'
 
 const ArrayEditionPanel = (props: EditionProps) => {
-  const { data, route, field, schemaEntry, fieldInfo } = props
+  const { viewport, data, route, field, schemaEntry, fieldInfo } = props
   const { valueEntry, mergedValueSchema } = fieldInfo
 
   console.assert(data instanceof Array)
@@ -20,7 +20,16 @@ const ArrayEditionPanel = (props: EditionProps) => {
 
   const lists = useArrayListContent(data, schemaEntry, fieldInfo)
 
-  return <ListDisplayPanel lists={lists} data={data} fieldInfo={fieldInfo} fatherInfo={fatherInfo} access={access} />
+  return (
+    <ListDisplayPanel
+      viewport={viewport}
+      lists={lists}
+      data={data}
+      fieldInfo={fieldInfo}
+      fatherInfo={fatherInfo}
+      access={access}
+    />
+  )
 }
 
 export const ArrayEdition = (props: EditionProps) => {

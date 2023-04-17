@@ -34,7 +34,7 @@ const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
 
   return (
     <Drawer onClose={onClose} visible={visible}>
-      {route !== undefined && visible ? <Field route={route} field={field} canNotRename /> : null}
+      {route !== undefined && visible ? <Field viewport="drawer" route={route} field={field} canNotRename /> : null}
     </Drawer>
   )
 }

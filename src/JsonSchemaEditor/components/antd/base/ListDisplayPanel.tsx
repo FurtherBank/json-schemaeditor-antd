@@ -7,11 +7,11 @@ import { useSubFieldQuery } from '../../core/hooks/useSubFieldQuery'
 import { gridOption } from '../config'
 
 export const ListDisplayPanel = (props: ListDisplayPanelProps) => {
-  const { data, access, fieldInfo, fatherInfo, lists } = props
+  const { viewport, data, access, fieldInfo, fatherInfo, lists } = props
   const { schemaEntry } = fatherInfo
   const { ctx, mergedValueSchema } = fieldInfo
 
-  const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo)
+  const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo, viewport)
 
   const renderItem = (shortLv: ShortLevel) => {
     return (item: ChildData | EmptyChildData) => {

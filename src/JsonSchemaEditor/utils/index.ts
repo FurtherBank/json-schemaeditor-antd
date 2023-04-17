@@ -80,7 +80,7 @@ export const deepGet = (data: any, path: string[]) => {
  * 设置对象树某一位置的值。
  * 如果途中遇到了已定义的非对象，会取消操作
  * @param obj
- * @param ref
+ * @param ref json-pointer string without #
  * @param value
  * @returns
  */

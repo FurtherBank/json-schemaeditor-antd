@@ -13,7 +13,7 @@ import { FatherInfo } from '../type/list'
  * @param viewport
  * @returns
  */
-export const useSubFieldQuery = (
+export const useFieldModel = (
   data: Record<string, any> | any[],
   access: string[],
   fieldInfo: IField,

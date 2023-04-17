@@ -17,6 +17,7 @@ import { useMenuActionHandlers } from './components/core/hooks/useMenuActionHand
 import { ErrorObject } from 'ajv'
 
 export interface FieldProps {
+  viewport: string
   route: string[] // 只有这个属性是节点传的
   field?: string // route的最后
   fatherInfo?: FatherInfo

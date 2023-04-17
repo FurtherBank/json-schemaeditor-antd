@@ -30,6 +30,7 @@ export interface FieldDisplayList {
 }
 
 export interface ListDisplayPanelProps {
+  viewport: string
   lists: FieldDisplayList[]
   fatherInfo: FatherInfo
   fieldInfo: IField

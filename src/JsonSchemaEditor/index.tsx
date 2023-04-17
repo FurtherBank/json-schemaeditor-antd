@@ -96,7 +96,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     <Provider store={ctx.store}>
       {ctx.schemaError ? <SchemaErrorLogger error={ctx.schemaError.toString()} /> : null}
       <InfoContext.Provider value={ctx}>
-        <Field route={emptyArray} schemaEntry="#" rootMenuItems={rootMenuItems} />
+        <Field viewport="window" route={emptyArray} schemaEntry="#" rootMenuItems={rootMenuItems} />
         <EditorDrawer ref={drawerRef} />
       </InfoContext.Provider>
     </Provider>

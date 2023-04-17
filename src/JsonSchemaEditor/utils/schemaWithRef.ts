@@ -6,7 +6,7 @@ import { uri2strArray } from './path/uri'
 
 /**
  * 找到 $ref 引用的 schemaMap。如果找不到返回一个空 Map
- * @param $ref
+ * @param $ref json-pointer with #
  * @param rootSchema
  * @param deepSearch 深入搜索：深递归加入所有schema引用，否则只递归到浅一层
  * @returns

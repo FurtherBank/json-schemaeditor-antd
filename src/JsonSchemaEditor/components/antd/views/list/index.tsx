@@ -10,7 +10,7 @@ import { useArrayListContent } from '../../../core/hooks/useArrayListContent'
 import { useSubFieldQuery } from '../../../core/hooks/useSubFieldQuery'
 
 const ArrayListView = (props: EditionProps) => {
-  const { data, route, field, schemaEntry, fieldInfo } = props
+  const { viewport, data, route, field, schemaEntry, fieldInfo } = props
   const { valueEntry, ctx, mergedValueSchema } = fieldInfo
 
   const dataType = jsonDataType(data) as 'object' | 'array'
@@ -46,7 +46,7 @@ const ArrayListView = (props: EditionProps) => {
     }
   }
 
-  const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo)
+  const getSubField = useSubFieldQuery(data, access, fieldInfo, fatherInfo, viewport)
 
   return (
     <div style={{ height: '100%', flexDirection: 'row', alignItems: 'stretch', display: 'flex' }}>

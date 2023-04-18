@@ -1,6 +1,6 @@
 import { TreeSelect } from 'antd'
 import React from 'react'
-import { ofSchemaCache } from '../../../context/ofInfo'
+import { ofSchemaCache } from '@cpu-studio/json-editor/src/context/ofInfo'
 
 interface OneOfOperationProps {
   opHandler: (value: string) => void

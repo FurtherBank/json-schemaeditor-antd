@@ -1,8 +1,8 @@
 import { EllipsisOutlined } from '@ant-design/icons'
 import { Button, Dropdown, Input, Menu } from 'antd'
 import React from 'react'
-import { jsonDataType } from '../../../utils'
-import { ContainerProps } from '../@cpu-studio/json-editor/type/props'
+import { jsonDataType } from '@cpu-studio/json-editor/src/utils'
+import { ContainerProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 export const FieldContainerShort = (props: ContainerProps) => {
   const { data, fieldDomId, availableMenuActions, menuActionHandlers, titleComponent, valueComponent, fieldInfo } =

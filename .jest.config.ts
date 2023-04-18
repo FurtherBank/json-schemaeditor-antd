@@ -29,7 +29,7 @@ const config = {
   },
   setupFiles: [
     require.resolve('@umijs/test/helpers/setupFiles/shim'),
-    require.resolve('./src/JsonSchemaEditor/__test__/setupTest')
+    require.resolve('./@cpu-studio/json-editor/src/__test__/setupTest')
   ],
   setupFilesAfterEnv: [require.resolve('@umijs/test/helpers/setupFiles/jasmine')],
   testEnvironment: require.resolve('jest-environment-jsdom-fourteen'),

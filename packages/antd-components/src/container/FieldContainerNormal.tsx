@@ -1,9 +1,9 @@
 import { Card, Collapse, Space } from 'antd'
 import React from 'react'
-import { getFormatType } from '../../../definition/formats'
-import { useMenuActionComponents } from '../@cpu-studio/json-editor/hooks/useMenuActionComponents'
-import { jsonDataType, concatAccess, getAccessRef } from '../../../utils'
-import { ContainerProps } from '../@cpu-studio/json-editor/type/props'
+import { getFormatType } from '@cpu-studio/json-editor/src/definition/formats'
+import { useMenuActionComponents } from '@cpu-studio/json-editor/src/components/hooks/useMenuActionComponents'
+import { jsonDataType, concatAccess, getAccessRef } from '@cpu-studio/json-editor/src/utils'
+import { ContainerProps } from '@cpu-studio/json-editor/src/components/type/props'
 import { maxCollapseLayer } from '../config'
 
 const { Panel } = Collapse

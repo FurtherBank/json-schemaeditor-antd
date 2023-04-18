@@ -1,5 +1,5 @@
 import { FieldDrawer } from './drawer/FieldDrawer'
-import { IComponentMap } from '@cpu-studio/json-editor/ComponentMap'
+import { IComponentMap } from '@cpu-studio/json-editor/src/components/ComponentMap'
 import { BooleanEdition } from './edition/BooleanEdition'
 import { ConstEdition } from './edition/ConstEdition'
 import { EnumEdition } from './edition/EnumEdition'

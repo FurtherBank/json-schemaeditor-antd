@@ -1,8 +1,8 @@
 import { Input, Select } from 'antd'
 import isEqual from 'lodash/isEqual'
 import React, { useCallback } from 'react'
-import { toConstName } from '../../../definition'
-import { EditionProps } from '../@cpu-studio/json-editor/type/props'
+import { toConstName } from '@cpu-studio/json-editor/src/definition'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 export const EnumEdition = (props: EditionProps) => {
   const {

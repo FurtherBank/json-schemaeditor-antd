@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react'
-import { FormatEditionProps } from '../@cpu-studio/json-editor/type/props'
+import { FormatEditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 import { TimePicker } from 'antd'
 import moment, { Moment } from 'moment'
 

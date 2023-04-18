@@ -9,7 +9,8 @@ import _ from 'lodash'
 import { Button, Card, PageHeader, message } from 'antd' // 用 antd 封装demo
 import MonacoEditor from 'react-monaco-editor/lib/editor'
 
-import JsonSchemaEditor, { metaSchema } from 'json-schemaeditor-antd'
+import JsonSchemaEditor, { metaSchema } from '@cpu-studio/json-editor'
+import { antdComponentMap, antdViewsMap } from '@cpu-studio/antd-components'
 import examples from './examples'
 import { useCooldown } from './hooks'
 import ModalSelect from './ModalSelect'
@@ -196,6 +197,8 @@ export default () => {
             schema={schema as any}
             onChange={changeData}
             rootMenuItems={rootMenuItems}
+            componentMap={antdComponentMap}
+            viewsMap={antdViewsMap}
             ref={editorRef}
           />
         </div>

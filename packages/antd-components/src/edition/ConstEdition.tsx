@@ -1,7 +1,7 @@
 import { Input, Space } from 'antd'
 import React from 'react'
-import { toConstName } from '../../../definition'
-import { EditionProps } from '../@cpu-studio/json-editor/type/props'
+import { toConstName } from '@cpu-studio/json-editor/src/definition'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 export const ConstEdition = (props: EditionProps) => {
   const { data } = props

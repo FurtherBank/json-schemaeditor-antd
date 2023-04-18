@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { CInput } from '../base/cacheInput'
-import { EditionProps } from '../@cpu-studio/json-editor/type/props'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 const allUsedProps = {
   size: 'small',

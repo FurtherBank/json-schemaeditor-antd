@@ -1,9 +1,9 @@
 import React, { memo, PropsWithChildren } from 'react'
-import { toConstName } from '../../../../definition'
+import { toConstName } from '@cpu-studio/json-editor/src/definition'
 import { createSelectable, TSelectableItemProps } from 'react-selectable-fast'
 
 import '../../css/data-item.less'
-import { ChildData } from '../../@cpu-studio/json-editor/type/list'
+import { ChildData } from '@cpu-studio/json-editor/src/components/type/list'
 
 type Props = {
   items: ChildData[]

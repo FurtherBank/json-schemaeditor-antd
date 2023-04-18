@@ -10,7 +10,5 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true
-  },
-  "include": ["packages/**/src"],
-  "exclude": ["demos/**", "jest.config.ts", "__test__/**"]
+  }
 }

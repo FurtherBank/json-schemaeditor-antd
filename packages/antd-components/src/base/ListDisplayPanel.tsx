@@ -2,8 +2,8 @@ import { List } from 'antd'
 import React from 'react'
 import { CreateName } from './creator'
 import { ShortLevel } from '@cpu-studio/json-editor/src/definition'
-import { ChildData, EmptyChildData, ListDisplayPanelProps } from '../../../../src/JsonSchemaEditor/components/type/list'
-import { useSubFieldQuery } from '../../../../src/JsonSchemaEditor/components/hooks/useSubFieldQuery'
+import { ChildData, EmptyChildData, ListDisplayPanelProps } from '@cpu-studio/json-editor/src/components/type/list'
+import { useSubFieldQuery } from '@cpu-studio/json-editor/src/components/hooks/useSubFieldQuery'
 import { gridOption } from '../config'
 
 export const ListDisplayPanel = (props: ListDisplayPanelProps) => {

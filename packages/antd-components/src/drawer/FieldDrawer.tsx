@@ -1,6 +1,6 @@
 import React from 'react'
 import { Drawer } from 'antd'
-import { EditorDrawerProps } from '../@cpu-studio/json-editor/type/props'
+import { EditorDrawerProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 export const FieldDrawer = (props: EditorDrawerProps) => {
   const { onClose, visible, children } = props

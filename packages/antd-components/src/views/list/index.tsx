@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react'
 import { CreateName } from '../../base/creator'
-import { concatAccess, jsonDataType } from '../../../../utils'
-import { EditionProps } from '../../@cpu-studio/json-editor/type/props'
+import { concatAccess, jsonDataType } from '@cpu-studio/json-editor/src/utils'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 import { SelectableGroup } from 'react-selectable-fast'
 import { DataItemProps, ItemList } from './ItemList'
-import { ChildData } from '../../@cpu-studio/json-editor/type/list'
-import { useFatherInfo } from '../../@cpu-studio/json-editor/hooks/useFatherInfo'
-import { useArrayListContent } from '../../@cpu-studio/json-editor/hooks/useArrayListContent'
-import { useSubFieldQuery } from '../../@cpu-studio/json-editor/hooks/useSubFieldQuery'
+import { ChildData } from '@cpu-studio/json-editor/src/components/type/list'
+import { useFatherInfo } from '@cpu-studio/json-editor/src/components/hooks/useFatherInfo'
+import { useArrayListContent } from '@cpu-studio/json-editor/src/components/hooks/useArrayListContent'
+import { useSubFieldQuery } from '@cpu-studio/json-editor/src/components/hooks/useSubFieldQuery'
 
 const ArrayListView = (props: EditionProps) => {
   const { viewport, data, route, field, schemaEntry, fieldInfo } = props

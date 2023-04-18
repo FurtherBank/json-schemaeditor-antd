@@ -1,13 +1,13 @@
 import { CloseCircleOutlined } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 import React from 'react'
-import { ShortLevel } from '@cpu-studio/json-editor/definition'
-import { canFieldRename, isFieldRequired } from '@cpu-studio/json-editor/definition/schema'
+import { ShortLevel } from '@cpu-studio/json-editor/src/definition'
+import { canFieldRename, isFieldRequired } from '@cpu-studio/json-editor/src/definition/schema'
 
 import { CInput } from './base/cacheInput'
-import { EditionProps } from '@cpu-studio/json-editor/type/props'
 
 import './css/title.less'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 const stopBubble = (e: React.SyntheticEvent) => {
   e.stopPropagation()
@@ -17,7 +17,7 @@ export const FieldTitle = (props: EditionProps) => {
   const { route, field, short, canNotRename, fatherInfo, fieldInfo } = props
   const { errors, mergedEntrySchema, ctx } = fieldInfo
   const { schemaEntry: parentSchemaEntry } = fatherInfo ?? {}
-  const { description } = mergedEntrySchema || ({} as MergedSchema)
+  const { description } = mergedEntrySchema || {}
 
   const fieldNameRange = canFieldRename(props, fieldInfo)
   const titleName = fieldNameRange === '' || fieldNameRange instanceof RegExp ? field : fieldNameRange

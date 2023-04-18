@@ -1,10 +1,10 @@
 import { CheckOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Input, message } from 'antd'
 import React, { useCallback, useState } from 'react'
-import CpuEditorContext from '../../../../../src/JsonSchemaEditor/context'
-import { MergedSchema } from '../../../../../src/JsonSchemaEditor/context/mergeSchema'
-import { useArrayCreator } from '../../../../../src/JsonSchemaEditor/components/hooks/useArrayCreator'
-import { useObjectCreator } from '../../../../../src/JsonSchemaEditor/components/hooks/useObjectCreator'
+import CpuEditorContext from '@cpu-studio/json-editor/src/context'
+import { MergedSchema } from '@cpu-studio/json-editor/src/context/mergeSchema'
+import { useArrayCreator } from '@cpu-studio/json-editor/src/components/hooks/useArrayCreator'
+import { useObjectCreator } from '@cpu-studio/json-editor/src/components/hooks/useObjectCreator'
 
 export interface CreateNameProps {
   ctx: CpuEditorContext

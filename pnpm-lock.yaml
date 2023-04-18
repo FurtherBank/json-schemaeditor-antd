@@ -12,6 +12,7 @@ importers:
       '@babel/preset-typescript': ^7.21.4
       '@commitlint/cli': ^17.2.0
       '@commitlint/config-conventional': ^17.3.0
+      '@cpu-studio/json-editor': workspace:^0.1.0
       '@testing-library/jest-dom': ^5.15.1
       '@testing-library/react': ^12.1.2
       '@testing-library/react-hooks': ^8.0.1
@@ -41,6 +42,7 @@ importers:
       lesshat: ^4.1.0
       lint-staged: ^10.5.4
       lodash: ^4.17.21
+      moment: ^2.29.4
       monaco-editor: ^0.33.0
       monaco-editor-webpack-plugin: ^7.0.1
       prettier: ^2.2.1
@@ -74,6 +76,7 @@ importers:
       '@babel/preset-typescript': 7.21.4
       '@commitlint/cli': 17.6.1
       '@commitlint/config-conventional': 17.6.1
+      '@cpu-studio/json-editor': link:packages/cpu-json-editor
       '@testing-library/jest-dom': 5.16.5
       '@testing-library/react': 12.1.5_wcqkhtmu7mswc6yz4uyexck3ty
       '@testing-library/react-hooks': 8.0.1_mavkoyjpbpkdsq22shloacltwy
@@ -98,6 +101,7 @@ importers:
       husky: 8.0.3
       lesshat: 4.1.0
       lint-staged: 10.5.4
+      moment: 2.29.4
       monaco-editor: 0.33.0
       monaco-editor-webpack-plugin: 7.0.1_monaco-editor@0.33.0
       prettier: 2.8.7

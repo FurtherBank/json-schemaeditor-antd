@@ -2,7 +2,7 @@ import { Modal, Select } from 'antd'
 import { cloneDeep } from 'lodash'
 import React, { useState } from 'react'
 import examples from './examples'
-import { metaSchema } from 'json-schemaeditor-antd'
+import { metaSchema } from '@cpu-studio/json-editor'
 
 // 接下来是示例选择功能的定义
 const exampleJson = examples(metaSchema)

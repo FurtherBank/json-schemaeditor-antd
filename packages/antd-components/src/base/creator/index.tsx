@@ -1,5 +1,5 @@
 import React from 'react'
-import { jsonDataType } from '../../../../../src/JsonSchemaEditor/utils'
+import { jsonDataType } from '@cpu-studio/json-editor/src/utils'
 import { ArrayItemCreator, CreateNameProps, ObjectPropCreator } from './CreateName'
 
 export const CreateName = (props: CreateNameProps) => {

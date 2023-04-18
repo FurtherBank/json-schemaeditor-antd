@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons'
 import { Button } from 'antd'
 import React from 'react'
-import { MenuActionProps } from '../@cpu-studio/json-editor/type/props'
+import { MenuActionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 const actionIcon = {
   reset: <RetweetOutlined />,

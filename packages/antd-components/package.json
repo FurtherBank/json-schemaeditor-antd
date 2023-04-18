@@ -26,7 +26,6 @@
     "@cpu-studio/json-editor": "^0.1.0"
   },
   "devDependencies": {
-    "@cpu-studio/json-editor": "^0.1.0",
     "father": "^4.1.8"
   }
 }

@@ -1,6 +1,6 @@
 import { Switch } from 'antd'
 import React, { useCallback } from 'react'
-import { EditionProps } from '../@cpu-studio/json-editor/type/props'
+import { EditionProps } from '@cpu-studio/json-editor/src/components/type/props'
 
 export const BooleanEdition = (props: EditionProps) => {
   const {

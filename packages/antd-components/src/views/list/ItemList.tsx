@@ -3,7 +3,7 @@ import { toConstName } from '../../../../definition'
 import { createSelectable, TSelectableItemProps } from 'react-selectable-fast'
 
 import '../../css/data-item.less'
-import { ChildData } from '../../../core/type/list'
+import { ChildData } from '../../@cpu-studio/json-editor/type/list'
 
 type Props = {
   items: ChildData[]

@@ -11,6 +11,6 @@
     "resolveJsonModule": true,
     "declaration": true
   },
-  "include": ["src"],
+  "include": ["packages/**/src"],
   "exclude": ["demos/**", "jest.config.ts", "__test__/**"]
 }

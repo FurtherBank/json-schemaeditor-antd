@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { CTextArea } from '../base/cacheInput'
-import { FormatEditionProps } from '../../core/type/props'
+import { FormatEditionProps } from '../@cpu-studio/json-editor/type/props'
 
 export const MultilineEdition = (props: FormatEditionProps) => {
   const {

@@ -1,4 +1,4 @@
-import { FatherInfo } from '../components/core/type/list'
+import { FatherInfo } from '../components/type/list'
 import { IField, FieldProps } from '../Field'
 import { jsonDataType, getKeyByPattern } from '../utils'
 

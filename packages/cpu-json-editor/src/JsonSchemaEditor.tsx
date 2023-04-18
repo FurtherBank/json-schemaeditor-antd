@@ -7,9 +7,8 @@ import Ajv from 'ajv'
 import CpuEditorContext from './context'
 import defaultAjvInstance from './definition/ajvInstance'
 import { JSONSchema } from './type/Schema'
-import { IComponentMap, IViewsMap } from './components/core/ComponentMap'
+import { IComponentMap, IViewsMap } from './components/ComponentMap'
 import { CpuInteraction } from './context/interaction'
-import { antdComponentMap, antdViewsMap } from './components/antd'
 
 export interface EditorProps {
   onChange?: (data: any) => void | null
@@ -17,8 +16,8 @@ export interface EditorProps {
   schema?: JSONSchema | boolean
   id?: string | undefined
   style?: CSSProperties
-  componentMap?: IComponentMap
-  viewsMap?: Record<string, IViewsMap>
+  componentMap: IComponentMap
+  viewsMap: Record<string, IViewsMap>
   rootMenuItems?: JSX.Element[]
   options?: {
     ajvInstance?: Ajv
@@ -35,8 +34,8 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     data,
     onChange,
     id,
-    viewsMap = antdViewsMap,
-    componentMap = antdComponentMap,
+    viewsMap,
+    componentMap,
     rootMenuItems,
     options: { ajvInstance = defaultAjvInstance } = {}
   } = props

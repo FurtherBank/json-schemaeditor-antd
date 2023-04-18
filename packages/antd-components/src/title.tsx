@@ -1,11 +1,11 @@
 import { CloseCircleOutlined } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 import React from 'react'
-import { ShortLevel } from '../../definition'
-import { canFieldRename, isFieldRequired } from '../../definition/schema'
+import { ShortLevel } from '@cpu-studio/json-editor/definition'
+import { canFieldRename, isFieldRequired } from '@cpu-studio/json-editor/definition/schema'
 
-import { CInput } from '../antd/base/cacheInput'
-import { EditionProps } from '../core/type/props'
+import { CInput } from './base/cacheInput'
+import { EditionProps } from '@cpu-studio/json-editor/type/props'
 
 import './css/title.less'
 
@@ -17,7 +17,7 @@ export const FieldTitle = (props: EditionProps) => {
   const { route, field, short, canNotRename, fatherInfo, fieldInfo } = props
   const { errors, mergedEntrySchema, ctx } = fieldInfo
   const { schemaEntry: parentSchemaEntry } = fatherInfo ?? {}
-  const { description } = mergedEntrySchema || {}
+  const { description } = mergedEntrySchema || ({} as MergedSchema)
 
   const fieldNameRange = canFieldRename(props, fieldInfo)
   const titleName = fieldNameRange === '' || fieldNameRange instanceof RegExp ? field : fieldNameRange

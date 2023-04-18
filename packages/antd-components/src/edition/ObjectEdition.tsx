@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 import { concatAccess } from '../../../utils'
-import { EditionProps } from '../../core/type/props'
+import { EditionProps } from '../@cpu-studio/json-editor/type/props'
 import { ConstEdition } from './ConstEdition'
-import { useObjectListContent } from '../../core/hooks/useObjectListContent'
-import { useFatherInfo } from '../../core/hooks/useFatherInfo'
+import { useObjectListContent } from '../@cpu-studio/json-editor/hooks/useObjectListContent'
+import { useFatherInfo } from '../@cpu-studio/json-editor/hooks/useFatherInfo'
 import { ListDisplayPanel } from '../base/ListDisplayPanel'
 
 const ObjectEditionPanel = (props: EditionProps) => {

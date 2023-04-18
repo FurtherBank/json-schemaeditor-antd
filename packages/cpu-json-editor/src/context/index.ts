@@ -11,7 +11,7 @@ import {
 import { AnyAction, createStore, Dispatch, Store } from 'redux'
 import { StateWithHistory } from 'redux-undo'
 import { JSONSchema } from '../type/Schema'
-import { IComponentMap, IViewsMap } from '../components/core/ComponentMap'
+import { IComponentMap, IViewsMap } from '../components/ComponentMap'
 import Field from '../Field'
 import { ComponentType } from 'react'
 import { CpuInteraction } from './interaction'

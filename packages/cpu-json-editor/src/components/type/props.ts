@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
-import { FieldProps, IField } from '../../../Field'
-import { MenuActionType } from '../../../menu/MenuActions'
+import { FieldProps, IField } from '../../Field'
+import { MenuActionType } from '../../menu/MenuActions'
 
 export interface EditionProps extends FieldProps {
   children?: ReactNode

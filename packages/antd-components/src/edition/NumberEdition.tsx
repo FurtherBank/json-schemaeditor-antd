@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { EditionProps } from '../../core/type/props'
+import { EditionProps } from '../@cpu-studio/json-editor/type/props'
 import { CInputNumber } from '../base/cacheInput'
 
 export const NumberEdition = (props: EditionProps) => {

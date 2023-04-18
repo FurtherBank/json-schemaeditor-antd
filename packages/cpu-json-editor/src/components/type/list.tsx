@@ -1,5 +1,5 @@
-import { ShortLevel } from '../../../definition'
-import { IField } from '../../../Field'
+import { ShortLevel } from '../../definition'
+import { IField } from '../../Field'
 
 /**
  * 原则上来自于父字段的信息，不具有子字段特异性

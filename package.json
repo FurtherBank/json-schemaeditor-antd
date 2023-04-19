@@ -76,6 +76,7 @@
     "@commitlint/cli": "^17.2.0",
     "@commitlint/config-conventional": "^17.3.0",
     "@cpu-studio/json-editor": "workspace:^0.1.0",
+    "@playwright/test": "^1.32.3",
     "@testing-library/jest-dom": "^5.15.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/react-hooks": "^8.0.1",

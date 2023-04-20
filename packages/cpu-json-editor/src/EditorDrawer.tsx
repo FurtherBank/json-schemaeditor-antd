@@ -13,10 +13,10 @@ const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
     route: undefined,
     field: undefined
   })
-  const [visible, setVisible] = useState(false)
+  const [open, setOpen] = useState(false)
   useImperativeHandle(ref, () => ({
     setDrawer: (route: string[] | undefined, field: string | undefined, isVisible = true) => {
-      setVisible(isVisible)
+      setOpen(isVisible)
       setAccess({
         route,
         field
@@ -27,14 +27,14 @@ const FieldDrawerBase = (props: any, ref: React.Ref<unknown> | undefined) => {
   const { route, field } = access
 
   const onClose = () => {
-    setVisible(false)
+    setOpen(false)
   }
 
   const Drawer = ctx.getComponent(null, ['drawer'])
 
   return (
-    <Drawer onClose={onClose} visible={visible}>
-      {route !== undefined && visible ? <Field viewport="drawer" route={route} field={field} canNotRename /> : null}
+    <Drawer onClose={onClose} open={open}>
+      {route !== undefined && open ? <Field viewport="drawer" route={route} field={field} canNotRename /> : null}
     </Drawer>
   )
 }

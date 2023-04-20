@@ -32,7 +32,7 @@ export interface MenuActionProps<T extends MenuActionType = MenuActionType> {
 }
 
 export interface EditorDrawerProps {
-  visible: boolean
+  open: boolean
   children?: ReactNode
   onClose: () => void
 }

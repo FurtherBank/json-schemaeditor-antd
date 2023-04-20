@@ -21,7 +21,7 @@ const ModalSelect = (props: { cb: (data: any, schema: any) => void; cancelCb: ()
       onCancel={() => {
         cancelCb()
       }}
-      visible={visible}
+      open={visible}
     >
       <TreeSelect
         showSearch

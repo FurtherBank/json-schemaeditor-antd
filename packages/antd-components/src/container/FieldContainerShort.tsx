@@ -1,5 +1,5 @@
 import { EllipsisOutlined } from '@ant-design/icons'
-import { Button, Dropdown, Input, Menu } from 'antd'
+import { Button, Dropdown, Input } from 'antd'
 import React from 'react'
 import { jsonDataType } from '@cpu-studio/json-editor/src/utils'
 import { ContainerProps } from '@cpu-studio/json-editor/src/components/type/props'
@@ -21,10 +21,10 @@ export const FieldContainerShort = (props: ContainerProps) => {
     if (menuActionHandlers[key]) menuActionHandlers[key]()
   }
 
-  const items = availableMenuActions.map((a: string) => {
-    return <Menu.Item key={a}>{a}</Menu.Item>
-  })
-  const menu = <Menu onClick={menuAction}>{items}</Menu>
+  const items = availableMenuActions.map((a) => ({
+    key: a,
+    label: a
+  }))
 
   const compact = valueType !== 'boolean'
   return (
@@ -42,7 +42,7 @@ export const FieldContainerShort = (props: ContainerProps) => {
       >
         {valueComponent}
         {items.length !== 0 ? (
-          <Dropdown overlay={menu} placement="bottomRight" key="actions">
+          <Dropdown menu={{ items, onClick: menuAction }} placement="bottomRight" key="actions">
             <Button icon={<EllipsisOutlined />} size="small" shape="circle" />
           </Dropdown>
         ) : null}

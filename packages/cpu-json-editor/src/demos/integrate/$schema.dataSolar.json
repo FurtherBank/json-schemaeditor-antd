@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "《星际探索者》太阳系星球配置",
   "type": "array",
   "items": {
     "$ref": "#/definitions/DataSolarElement"

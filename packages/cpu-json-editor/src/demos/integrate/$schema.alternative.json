@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "替代法则测试",
   "type": "string",
-  "title": "alternative",
   "$ref": "#/definitions/a",
   "definitions": {
     "a": {

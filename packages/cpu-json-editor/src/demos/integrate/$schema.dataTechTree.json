@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "《星际探索者》科技树配置",
   "type": "array",
   "items": {
     "type": "array",

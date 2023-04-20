@@ -9,14 +9,13 @@ import _ from 'lodash'
 import { Button, Card, PageHeader, message } from 'antd' // 用 antd 封装demo
 import MonacoEditor from 'react-monaco-editor/lib/editor'
 
-import JsonSchemaEditor, { metaSchema } from '@cpu-studio/json-editor'
+import JsonSchemaEditor from '@cpu-studio/json-editor'
 import { antdComponentMap, antdViewsMap } from '@cpu-studio/antd-components'
 import examples from './examples'
 import { useCooldown } from './hooks'
 import ModalSelect from './ModalSelect'
 import CpuEditorContext from '../context'
 
-const exampleJson = examples(metaSchema)
 // 从 localStorage 读取 json
 const loadLocalJson = (key: string) => {
   try {
@@ -31,8 +30,8 @@ const loadLocalJson = (key: string) => {
 export default () => {
   const [mode, setMode] = useState(0)
 
-  const [data, setData] = useState(() => loadLocalJson('data') ?? _.cloneDeep(exampleJson['基础'][0]))
-  const [schema, setSchema] = useState(() => loadLocalJson('schema') ?? _.cloneDeep(exampleJson['基础'][1]))
+  const [data, setData] = useState(() => loadLocalJson('data') ?? _.cloneDeep(examples.plainData['string'][0]))
+  const [schema, setSchema] = useState(() => loadLocalJson('schema') ?? _.cloneDeep(examples.plainData['string'][1]))
 
   const dataEditor = useRef<MonacoEditor>(null)
   const schemaEditor = useRef<MonacoEditor>(null)

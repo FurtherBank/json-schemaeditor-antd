@@ -1,5 +1,5 @@
 {
-  "title": "Default Schema",
+  "title": "简单示例",
   "description": "a simple object schema by default",
   "type": "object",
   "properties": {

@@ -1,5 +1,5 @@
 {
-  "title": "JSON schema for ESLint configuration files",
+  "title": "Eslint 配置",
   "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
   "definitions": {

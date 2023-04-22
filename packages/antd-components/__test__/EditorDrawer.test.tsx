@@ -1,12 +1,14 @@
 import { fireEvent, act } from '@testing-library/react'
-import JsonSchemaEditor from '@cpu-studio/json-editor/src/JsonSchemaEditor'
+import JsonSchemaEditor, { EditorProps } from '@cpu-studio/json-editor/src/JsonSchemaEditor'
 import CpuEditorContext from '@cpu-studio/json-editor/src/context'
 import { getExample } from '@cpu-studio/json-editor/src/__test__/test-utils'
 import { MockRender } from '@cpu-studio/json-editor/src/__test__/test-utils/MockComponent'
+import { antdComponentMap, antdViewsMap } from '../src'
 
 it('not render field while not visible', async () => {
   const [data, schema] = getExample('一系列测试')
-  const { current: ctx } = MockRender<CpuEditorContext>(JsonSchemaEditor, { data, schema })
+  const editorProps: EditorProps = { data, schema, componentMap: antdComponentMap, viewsMap: antdViewsMap }
+  const { current: ctx } = MockRender<CpuEditorContext>(JsonSchemaEditor, editorProps)
 
   // 点击 detail
   act(() => ctx.interaction.setDrawer(['mess'], '1'))

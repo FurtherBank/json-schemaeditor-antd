@@ -12,6 +12,6 @@
     "declaration": true
   },
   "include": ["src/**/*"],
-  "exclude": ["demos/**", "jest.config.ts", "__test__/**"],
-  "references": [{ "path": "../cpu-json-editor/tsconfig.json" }]
+  "exclude": ["demos/**", "jest.config.ts", "__test__/**"]
+  // "references": [{ "path": "../cpu-json-editor/tsconfig.json" }]
 }

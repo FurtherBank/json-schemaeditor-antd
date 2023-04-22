@@ -5,6 +5,9 @@ import JsonSchemaEditor from '@cpu-studio/json-editor/src'
 import { getExample } from '@cpu-studio/json-editor/src/__test__/test-utils'
 import { JSONSchema } from '@cpu-studio/json-editor/src/type/Schema'
 import { antdComponentMap, antdViewsMap } from '../../src'
+import CpuEditorContext from '@cpu-studio/json-editor/src/context'
+import { EditorProps } from '@cpu-studio/json-editor/src/JsonSchemaEditor'
+import { MockRender } from '@cpu-studio/json-editor/src/__test__/test-utils/MockComponent'
 
 test('view is list when schema has view.type === list', async () => {
   const [data, schema] = getExample('view: list')
@@ -61,4 +64,18 @@ test('view is not list when root schema is array but data not', async () => {
   // asserts
   const listItems = document.querySelectorAll('.list-item')
   expect(listItems).toHaveLength(0)
+})
+
+test('parse in need', () => {
+  const [data, schema] = getExample('view: list')
+  // const { asFragment } =
+
+  const editorProps: EditorProps = { data, schema, componentMap: antdComponentMap, viewsMap: antdViewsMap }
+  const { current: ctx } = MockRender<CpuEditorContext>(JsonSchemaEditor, editorProps)
+  console.log(ctx.mergedSchemaMap.keys())
+
+  // only parse direct subField of array item
+  expect(ctx.mergedSchemaMap.has('#/items/0')).toBe(true)
+  expect(ctx.mergedSchemaMap.has('#/items/2')).toBe(true)
+  expect(ctx.mergedSchemaMap.has('#/items/2/properties/name')).toBe(false)
 })

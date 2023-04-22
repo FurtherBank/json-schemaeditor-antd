@@ -8,7 +8,7 @@ import { MockRender } from '@cpu-studio/json-editor/src/__test__/test-utils/Mock
 import { antdComponentMap, antdViewsMap } from '../src'
 
 it('root menu items work', async () => {
-  const [data, schema] = getExample('basic: string Array')
+  const [data, schema] = getExample('string[]')
 
   const TestComponent = forwardRef<CpuEditorContext | null, any>((props, ref) => {
     const editorRef = useRef<CpuEditorContext>(null)

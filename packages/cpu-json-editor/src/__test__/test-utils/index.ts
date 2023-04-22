@@ -1,11 +1,10 @@
-import { metaSchema } from '../..'
 import CpuEditorContext from '../../context'
 import examples from '../../demos/examples'
 import { CpuInteraction } from '../../context/interaction'
 import { IComponentMap, IViewsMap } from '../../components/ComponentMap'
 import Ajv from 'ajv'
 import defaultAjvInstance from '../../definition/ajvInstance'
-import { antdComponentMap, antdViewsMap } from '../../components/antd'
+import { MockComponentMap } from './componentMap'
 
 export const getAllObjectRefs = (data: any, ref = ''): string[] => {
   const result = []
@@ -47,8 +46,7 @@ export const countNullId = (data: any) => {
 }
 
 export const getExample = (name: string) => {
-  const exampleJson = examples(metaSchema)
-  return exampleJson[name] || [0, {}]
+  return examples.plainData[name] || [0, {}]
 }
 
 /**
@@ -78,7 +76,7 @@ export const mockCtx = (
     ajvInstance ?? defaultAjvInstance,
     id,
     interaction,
-    componentMap ?? antdComponentMap,
-    viewsMap ?? antdViewsMap
+    componentMap ?? MockComponentMap,
+    viewsMap ?? {}
   )
 }

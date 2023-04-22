@@ -1,10 +1,11 @@
 import { fireEvent, act, screen } from '@testing-library/react'
 import React, { useCallback, useImperativeHandle } from 'react'
 import { forwardRef, useRef } from 'react'
-import JsonSchemaEditor from '../..'
-import CpuEditorContext from '../../context'
-import { getExample } from '../test-utils'
-import { MockRender } from '../test-utils/MockComponent'
+import JsonSchemaEditor from '@cpu-studio/json-editor/src'
+import CpuEditorContext from '@cpu-studio/json-editor/src/context'
+import { getExample } from '@cpu-studio/json-editor/src/__test__/test-utils'
+import { MockRender } from '@cpu-studio/json-editor/src/__test__/test-utils/MockComponent'
+import { antdComponentMap, antdViewsMap } from '../src'
 
 it('root menu items work', async () => {
   const [data, schema] = getExample('basic: string Array')
@@ -30,7 +31,16 @@ it('root menu items work', async () => {
       </button>
     ]
 
-    return <JsonSchemaEditor data={data} schema={schema} rootMenuItems={rootMenuItems} ref={editorRef} />
+    return (
+      <JsonSchemaEditor
+        data={data}
+        schema={schema}
+        rootMenuItems={rootMenuItems}
+        ref={editorRef}
+        componentMap={antdComponentMap}
+        viewsMap={antdViewsMap}
+      />
+    )
   }) as any
 
   const { current: ctx } = MockRender<CpuEditorContext>(TestComponent, {})

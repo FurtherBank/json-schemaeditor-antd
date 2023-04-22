@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks'
-import { useObjectCreator } from '../../../../components/hooks/useObjectCreator'
-import { CpuEditorAction } from '../../../../definition/reducer'
-import { getExample, mockCtx } from '../../../test-utils'
+import { useObjectCreator } from '../../../components/hooks/useObjectCreator'
+import { CpuEditorAction } from '../../../definition/reducer'
+import { getExample, mockCtx } from '../../test-utils'
 
 describe('useObjectCreator: get correct return value', () => {
   const [data, schema] = getExample('一系列测试')

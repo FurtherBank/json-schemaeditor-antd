@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "declaration": true
   },
-  "include": ["src"],
+  "include": ["src/**/*"],
   "exclude": ["demos/**", "jest.config.ts", "__test__/**"],
   "references": [{ "path": "../cpu-json-editor/tsconfig.json" }]
 }

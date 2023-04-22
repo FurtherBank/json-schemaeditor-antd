@@ -17,7 +17,7 @@ export interface EditorProps {
   id?: string | undefined
   style?: CSSProperties
   componentMap: IComponentMap
-  viewsMap: Record<string, IViewsMap>
+  viewsMap?: Record<string, IViewsMap>
   rootMenuItems?: JSX.Element[]
   options?: {
     ajvInstance?: Ajv
@@ -34,7 +34,7 @@ const Editor = (props: EditorProps, ref: React.ForwardedRef<CpuEditorContext>) =
     data,
     onChange,
     id,
-    viewsMap,
+    viewsMap = {},
     componentMap,
     rootMenuItems,
     options: { ajvInstance = defaultAjvInstance } = {}

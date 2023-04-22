@@ -35,7 +35,7 @@ import stringArray from './basic-data/string-array.json'
 import $stringArray from './basic-data/$schema.string-array.json'
 
 import { DefaultOptionType } from 'antd/lib/select'
-import { metaSchema } from '@cpu-studio/json-editor'
+import metaSchema from '../$meta.json'
 
 export type TestExample = [any, any] | [any, any, string]
 export type TestExamples = {

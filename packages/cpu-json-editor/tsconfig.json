@@ -12,6 +12,6 @@
     "declaration": true,
     "composite": true
   },
-  "include": ["src/**/*", "src/**/*.json"],
+  "include": ["src/**/*", "src/**/*.json", "../antd-components/__test__/EditorDrawer.test.tsx"],
   "exclude": ["demos/**", "jest.config.ts", "__test__/**"]
 }

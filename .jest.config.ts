@@ -1,17 +1,18 @@
-// @ts-ignore
 import { isLernaPackage } from '@umijs/utils'
 import { existsSync } from 'fs'
 import { join } from 'path'
-// import type { Config } from '@jest/types'
+import type { Config } from '@jest/types'
 
-const testMatchTypes = ['spec', 'test', 'e2e']
+const testMatchTypes = ['test', 'e2e']
 
 const isLerna = isLernaPackage(process.cwd())
 const hasPackage = false
 const testMatchPrefix = hasPackage ? `**/packages/1/` : ''
 const hasSrc = existsSync(join(process.cwd(), 'src'))
 
-const config = {
+// https://jestjs.io/docs/27.x/configuration
+
+const config: Config.InitialOptions = {
   collectCoverageFrom: [
     'index.{js,jsx,ts,tsx}',
     hasSrc && 'src/**/*.{js,jsx,ts,tsx}',
@@ -29,7 +30,7 @@ const config = {
   },
   setupFiles: [
     require.resolve('@umijs/test/helpers/setupFiles/shim'),
-    require.resolve('./@cpu-studio/json-editor/src/__test__/setupTest')
+    require.resolve('./packages/cpu-json-editor/src/__test__/setupTest')
   ],
   setupFilesAfterEnv: [require.resolve('@umijs/test/helpers/setupFiles/jasmine')],
   testEnvironment: require.resolve('jest-environment-jsdom-fourteen'),

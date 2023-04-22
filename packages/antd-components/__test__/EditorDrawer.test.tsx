@@ -1,8 +1,8 @@
 import { fireEvent, act } from '@testing-library/react'
-import JsonSchemaEditor from '../../../JsonSchemaEditor'
-import CpuEditorContext from '../../../context'
-import { getExample } from '../../test-utils'
-import { MockRender } from '../../test-utils/MockComponent'
+import JsonSchemaEditor from '@cpu-studio/json-editor/src/JsonSchemaEditor'
+import CpuEditorContext from '@cpu-studio/json-editor/src/context'
+import { getExample } from '@cpu-studio/json-editor/src/__test__/test-utils'
+import { MockRender } from '@cpu-studio/json-editor/src/__test__/test-utils/MockComponent'
 
 it('not render field while not visible', async () => {
   const [data, schema] = getExample('一系列测试')
